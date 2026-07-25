@@ -1,3 +1,5 @@
+<img width="1916" height="821" alt="image" src="https://github.com/user-attachments/assets/3623083a-9087-49d3-9412-2ebf7b21df5e" />
+
 # Mecha Rampage: Siege Walker V5
 
 브라우저에서 실행하는 3D 메카 전투 프로토타입입니다. 격납고에서 장비를 구성하고 메카 외형을 조정한 뒤, 파괴 가능한 도시 전장에 출격해 적 8M Assault Platform과 교전합니다.
