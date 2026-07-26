@@ -15,6 +15,9 @@ window.AudioManager = class AudioManager {
     this.sampleEngine = null;
     this.muted = false;
     this.previousMasterVolume = 0.82;
+    this.bgmStopTimer = null;
+    this.sharedNoiseBuffer = null;
+    this.autoplaySetup = false;
 
     this.volumes = {
       master: 0.82,
@@ -126,10 +129,38 @@ window.AudioManager = class AudioManager {
     };
   }
 
+  setupAutoplayResume() {
+    if (this.autoplaySetup) return;
+    this.autoplaySetup = true;
+    const resumeCtx = () => {
+      if (this.context && this.context.state === "suspended") {
+        this.context.resume().catch(() => {});
+      }
+    };
+    ["click", "keydown", "pointerdown", "touchstart"].forEach((event) => {
+      window.addEventListener(event, resumeCtx, { once: true, capture: true });
+    });
+  }
+
+  createSharedNoiseBuffer() {
+    if (!this.context || this.sharedNoiseBuffer) return;
+    const duration = 2.0;
+    const rate = this.context.sampleRate;
+    const length = Math.ceil(rate * duration);
+    const buffer = this.context.createBuffer(1, length, rate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    this.sharedNoiseBuffer = buffer;
+  }
+
   async init() {
+    this.setupAutoplayResume();
+
     if (this.context) {
       if (this.context.state === "suspended") {
-        await this.context.resume();
+        await this.context.resume().catch(() => {});
       }
 
       return;
@@ -225,6 +256,7 @@ window.AudioManager = class AudioManager {
       this.mediaSource.connect(this.buses.bgm);
     }
 
+    this.createSharedNoiseBuffer();
     this.createEngine();
 
     // 백그라운드에서 샘플 로딩
@@ -308,8 +340,16 @@ window.AudioManager = class AudioManager {
       const arrayBuffer =
         await response.arrayBuffer();
 
-      const audioBuffer =
-        await this.context.decodeAudioData(arrayBuffer);
+      const audioBuffer = await new Promise((resolve, reject) => {
+        const p = this.context.decodeAudioData(
+          arrayBuffer,
+          (buf) => resolve(buf),
+          (err) => reject(err)
+        );
+        if (p && typeof p.then === "function") {
+          p.then(resolve).catch(reject);
+        }
+      });
 
       this.buffers.set(url, audioBuffer);
 
@@ -497,6 +537,11 @@ window.AudioManager = class AudioManager {
   }
 
   async startBgm() {
+    if (this.bgmStopTimer) {
+      clearTimeout(this.bgmStopTimer);
+      this.bgmStopTimer = null;
+    }
+
     await this.init();
 
     if (!this.context || !this.bgm.paused) {
@@ -524,6 +569,11 @@ window.AudioManager = class AudioManager {
       return;
     }
 
+    if (this.bgmStopTimer) {
+      clearTimeout(this.bgmStopTimer);
+      this.bgmStopTimer = null;
+    }
+
     const gain = this.buses.bgm.gain;
     const now = this.context.currentTime;
 
@@ -535,7 +585,8 @@ window.AudioManager = class AudioManager {
       now + duration
     );
 
-    window.setTimeout(() => {
+    this.bgmStopTimer = window.setTimeout(() => {
+      this.bgmStopTimer = null;
       this.bgm.pause();
       this.bgm.currentTime = 0;
 
@@ -746,6 +797,28 @@ window.AudioManager = class AudioManager {
     return this.playFallback(type, options);
   }
 
+  playAtPosition(type, sourcePos, listenerPos, options = {}) {
+    if (!sourcePos || !listenerPos) {
+      return this.play(type, options);
+    }
+    const dx = sourcePos.x - listenerPos.x;
+    const dz = sourcePos.z - listenerPos.z;
+    const distance = Math.hypot(dx, dz);
+
+    const pan = clamp(dx / Math.max(1, distance + 5), -1, 1);
+    const maxDist = options.maxDistance || 120;
+    const falloff = clamp(1 - distance / maxDist, 0, 1);
+    const volume = (options.volume ?? this.defaultVolume(type)) * (falloff * falloff);
+
+    if (volume <= 0.001) return;
+
+    return this.play(type, {
+      ...options,
+      volume,
+      pan
+    });
+  }
+
   playBuffer(
     buffer,
     {
@@ -755,7 +828,7 @@ window.AudioManager = class AudioManager {
       reverb = 0.1
     } = {}
   ) {
-    if (!buffer) {
+    if (!buffer || !this.context) {
       return;
     }
 
@@ -766,13 +839,12 @@ window.AudioManager = class AudioManager {
       const oldest =
         this.activeSources.values().next().value;
 
-      try {
-        oldest.stop();
-      } catch (error) {
-        // 이미 종료된 소스
+      if (oldest) {
+        oldest.onended = null;
+        try { oldest.stop(); } catch (error) {}
+        try { oldest.disconnect(); } catch (error) {}
+        this.activeSources.delete(oldest);
       }
-
-      this.activeSources.delete(oldest);
     }
 
     const ctx = this.context;
@@ -818,10 +890,16 @@ window.AudioManager = class AudioManager {
 
     this.activeSources.add(source);
 
-    source.onended = () => {
+    const cleanup = () => {
+      try { source.stop(); } catch (e) {}
+      source.disconnect();
+      gain.disconnect();
+      panner?.disconnect();
+      send.disconnect();
       this.activeSources.delete(source);
     };
 
+    source.onended = cleanup;
     source.start();
 
     return source;
@@ -926,6 +1004,7 @@ window.AudioManager = class AudioManager {
     pan = 0,
     reverb = 0.1
   }) {
+    if (!this.context) return;
     const ctx = this.context;
     const now = ctx.currentTime;
 
@@ -1001,6 +1080,19 @@ window.AudioManager = class AudioManager {
         .connect(this.sends.reverb);
     }
 
+    this.activeSources.add(oscillator);
+
+    const cleanup = () => {
+      try { oscillator.stop(); } catch (e) {}
+      oscillator.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+      panner?.disconnect();
+      send.disconnect();
+      this.activeSources.delete(oscillator);
+    };
+
+    oscillator.onended = cleanup;
     oscillator.start(now);
     oscillator.stop(now + duration + 0.03);
   }
@@ -1086,25 +1178,14 @@ window.AudioManager = class AudioManager {
     pan = 0,
     reverb = 0.15
   ) {
+    if (!this.context) return;
     const ctx = this.context;
-
-    const buffer = ctx.createBuffer(
-      1,
-      Math.ceil(ctx.sampleRate * duration),
-      ctx.sampleRate
-    );
-
-    const data = buffer.getChannelData(0);
-
-    for (let i = 0; i < data.length; i++) {
-      const progress = i / data.length;
-
-      data[i] =
-        (Math.random() * 2 - 1) *
-        Math.pow(1 - progress, 1.8);
-    }
+    if (!this.sharedNoiseBuffer) this.createSharedNoiseBuffer();
 
     const source = ctx.createBufferSource();
+    source.buffer = this.sharedNoiseBuffer;
+    source.loop = true;
+
     const filter = ctx.createBiquadFilter();
     const gain = ctx.createGain();
 
@@ -1117,14 +1198,12 @@ window.AudioManager = class AudioManager {
     filter.type = "lowpass";
     filter.frequency.value = cutoff;
 
-    gain.gain.value = volume;
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
     send.gain.value = reverb;
 
-    source.buffer = buffer;
-
-    source
-      .connect(filter)
-      .connect(gain);
+    source.connect(filter).connect(gain);
 
     if (panner) {
       panner.pan.value = clamp(pan, -1, 1);
@@ -1144,7 +1223,21 @@ window.AudioManager = class AudioManager {
         .connect(this.sends.reverb);
     }
 
-    source.start();
+    this.activeSources.add(source);
+
+    const cleanup = () => {
+      try { source.stop(); } catch (e) {}
+      source.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+      panner?.disconnect();
+      send.disconnect();
+      this.activeSources.delete(source);
+    };
+
+    source.onended = cleanup;
+    source.start(now);
+    source.stop(now + duration + 0.03);
   }
 
   playSynthStep(

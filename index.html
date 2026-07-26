@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mecha Rampage - Siege Walker V5</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
     * { box-sizing: border-box; }
@@ -59,25 +60,10 @@
     @keyframes radarDanger { from { filter:none; } to { filter:drop-shadow(0 0 8px #ff173d); } }
     #minimapCanvas { display:block; width: 180px; height: 180px; border-radius:50%; clip-path:circle(50% at 50% 50%); }
     #fpsCounter { position:absolute; right:18px; top:18px; color:#8ff3ff; font:800 12px Orbitron,sans-serif; text-shadow:0 0 8px #19b9d3; }
-    #partsDamageHud { position:absolute; left:50%; bottom:119px; width:166px; height:166px; transform:translateX(-50%); border:1px solid rgba(113,219,232,.34); border-radius:50%; background:radial-gradient(circle,rgba(4,19,28,.7),rgba(4,11,17,.2) 68%,transparent 70%); font:700 8px Orbitron,sans-serif; pointer-events:none; }
-    .parts-title { left:50%; top:30px; transform:translateX(-50%); white-space:nowrap; font-size:8px; }
-    .mech-diagram { display:none; }
-    .integrity-chip { position:absolute; min-width:36px; padding:3px; border:1px solid currentColor; background:rgba(3,14,21,.88); color:#7ff0ff; font:800 7px Orbitron,sans-serif; text-align:center; }
-    #partHead { left:64px; top:43px; } #partTorso { left:64px; top:62px; } #partLeftArm { left:28px; top:81px; } #partRightArm { right:28px; top:81px; } #partLegs { left:64px; top:100px; }
+    #partsDamageHud { position:absolute; left:18px; bottom:18px; display:grid; grid-template-columns:repeat(5,minmax(36px,1fr)); gap:5px; width:244px; padding:23px 8px 8px; border:1px solid rgba(113,219,232,.34); border-radius:2px; background:linear-gradient(180deg,rgba(4,19,28,.4),rgba(4,11,17,.84)); font:700 8px Orbitron,sans-serif; pointer-events:none; }
+    .parts-title { position:absolute; left:8px; top:7px; color:#7ee9f5; font-size:8px; letter-spacing:.16em; white-space:nowrap; }
+    .integrity-chip { min-width:36px; padding:3px; border:1px solid currentColor; background:rgba(3,14,21,.88); color:#7ff0ff; font:800 7px Orbitron,sans-serif; text-align:center; }
     #spawnProtectionHud { position:absolute; left:50%; bottom:330px; transform:translateX(-50%); display:none; padding:7px 12px; border:1px solid #ffe36a; background:rgba(35,27,3,.82); color:#fff3a1; font:900 11px Orbitron,sans-serif; letter-spacing:.12em; text-shadow:0 0 8px #ffc928; box-shadow:0 0 18px rgba(255,203,39,.48); }
-    .parts-title { position:absolute; left:50%; top:30px; transform:translateX(-50%); color:#7ee9f5; letter-spacing:.16em; white-space:nowrap; font-size:8px; }
-    .mech-diagram { display:none; }
-    .mech-shape { position:absolute; border:1px solid rgba(116,226,239,.42); background:linear-gradient(135deg,rgba(76,112,122,.4),rgba(21,38,45,.72)); }
-    .shape-head { left:80px; top:5px; width:34px; height:27px; clip-path:polygon(18% 0,82% 0,100% 35%,83% 100%,17% 100%,0 35%); }
-    .shape-torso { left:57px; top:38px; width:80px; height:72px; clip-path:polygon(13% 0,87% 0,100% 25%,88% 100%,12% 100%,0 25%); }
-    .shape-arm-left,.shape-arm-right { top:45px; width:36px; height:83px; clip-path:polygon(14% 0,86% 8%,100% 88%,64% 100%,0 76%); }
-    .shape-arm-left { left:17px; } .shape-arm-right { right:17px; transform:scaleX(-1); }
-    .shape-leg-left,.shape-leg-right { top:116px; width:38px; height:82px; clip-path:polygon(8% 0,92% 0,78% 100%,5% 100%,0 32%); }
-    .shape-leg-left { left:54px; } .shape-leg-right { right:54px; transform:scaleX(-1); }
-    .part-value { position:absolute; z-index:2; min-width:38px; padding:3px 4px; border:1px solid currentColor; background:rgba(2,8,11,.82); color:#7ff0ff; text-align:center; font-size:10px; }
-    #partHead { left:78px; top:10px; } #partTorso { left:78px; top:70px; }
-    #partLeftArm { left:1px; top:76px; } #partRightArm { right:1px; top:76px; }
-    #partLegs { left:78px; top:158px; }
     #navReadout { position:absolute; left:24px; right:24px; bottom:17px; display:flex; justify-content:space-between; gap:8px; padding-top:5px; border-top:1px solid rgba(113,219,232,.2); color:#a8c9cf; font-size:8px; letter-spacing:.06em; pointer-events:none; }
     #nearestEnemyDistance { color: #ff7568; }
     #damageDirection.active { opacity: 1; animation: damagePulse .32s ease-in-out infinite alternate; }
@@ -487,6 +473,8 @@
     </div>
   </div>
 
+  <script src="./weapon-system.js"></script>
+  <script src="./mecha-rigidbody.js"></script>
   <script src="./enemy-ai.js"></script>
   <script src="./mecha-character.js"></script>
   <script src="./audio-manager.js"></script>
@@ -512,6 +500,7 @@
       buildingZ: Object.freeze([-50, -14, 18, 48])
     });
     const EnemyAI = window.createEnemyAIClass(THREE);
+    const MechaRigidBody = window.createMechaRigidBodyClass(THREE);
 
     const scene = new THREE.Scene();
     let currentLevel = 1;
@@ -1256,6 +1245,7 @@
     // Player
     const mechaCharacter = window.createMechaCharacterContext(THREE, window.MECHA_CUSTOMIZATION || {});
     const { player, dimensions: mechaDimensions, materials: mechaMaterials, meshes: mechaMeshes, hiddenParts: mechaHiddenParts, colors: mechaColors } = mechaCharacter;
+    const playerRigidBody = new MechaRigidBody(player, { mass: 24000, linearDamping: 5.4 });
     const MECH_HEIGHT = mechaDimensions.height;
     const MECH_RADIUS = mechaDimensions.radius;
     const MECH_BODY_BASE_Y = mechaDimensions.bodyBaseY;
@@ -2630,6 +2620,10 @@
     const MAX_MECH_FALL_SPEED = 31;
     let walkCycle = 0;
     let walkBlend = 0;
+    let bodyBounceOffset = 0;
+    let bodyBounceVelocity = 0;
+    const BODY_SUSPENSION_STIFFNESS = 78;
+    const BODY_SUSPENSION_DAMPING = 12.5;
     const footWasAirborne = [false, false];
     const footPlantWorld = [null, null];
     const footGroundRaycaster = new THREE.Raycaster();
@@ -2685,6 +2679,7 @@ let landingRecoveryTimer = 0;
     let enemyAI2 = null;
     let paused = false;
     let jetpackEquipped = false;
+    let jetpackTimeRemaining = 0;
     let boostEnergy = 100;
     let homingMissileAmmo = 0;
     const laserCooldowns = [0, 0];
@@ -3789,11 +3784,11 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       return sharedAimPoint.copy(origin).addScaledVector(direction, maxDistance);
     }
 
-    function resolveWeaponTargetPoint() {
+    function resolveWeaponTargetPoint(maxDistance = 110) {
       if (lockOnActive && enemyAI?.alive && isEnemyVisible()) {
         return enemyAI.group.position.clone().add(new THREE.Vector3(0, 4.8, 0));
       }
-      return computeSharedAimPoint().clone();
+      return computeSharedAimPoint(maxDistance).clone();
     }
 
     function fireWeaponSlot(slot) {
@@ -3810,7 +3805,8 @@ document.getElementById('customBackButton').addEventListener('click', () => {
     function fireLaserCannon(slot = 1) {
       const cooldownIndex = slot - 1;
       if (matchOver || !battleStarted || playerDestroyed || areWeaponsDisabledByBodyDamage() || laserCooldowns[cooldownIndex] > 0 || laserEnergy <= 0) return;
-      laserCooldowns[cooldownIndex] = .09;
+      const weaponStats = window.MECHA_WEAPON_SYSTEM.get('laser', powerLevel);
+      laserCooldowns[cooldownIndex] = weaponStats.cooldown;
       if (performance.now() - lastWeaponSoundTime > 85) {
         playGameSound('laser');
         lastWeaponSoundTime = performance.now();
@@ -3823,9 +3819,9 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       const activePreset = slot === 1 ? activeLeftPreset : activeRightPreset;
       const activeLaserMuzzle = activePreset > 2 ? shoulderWeaponMuzzles[slot - 1] : slot === 1 ? leftLaserMuzzle : laserMuzzle;
       activeLaserMuzzle.getWorldPosition(origin);
-      const targetPoint = resolveWeaponTargetPoint();
+      const targetPoint = resolveWeaponTargetPoint(weaponStats.range);
       const direction = targetPoint.clone().sub(origin).normalize();
-      let hitDistance = origin.distanceTo(targetPoint);
+      let hitDistance = Math.min(weaponStats.range, origin.distanceTo(targetPoint));
       let hitBlock = null;
       const ray = new THREE.Ray(origin, direction);
       for (const block of blocks) {
@@ -3855,8 +3851,8 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       }
       const end = origin.clone().addScaledVector(direction, hitDistance);
       const beam = new THREE.Mesh(
-        new THREE.CylinderGeometry(.105, .105, hitDistance, 8),
-        new THREE.MeshBasicMaterial({ color: 0xff3045, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })
+        new THREE.CylinderGeometry(weaponStats.radius, weaponStats.radius, hitDistance, 8),
+        new THREE.MeshBasicMaterial({ color: weaponStats.color, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })
       );
       beam.position.copy(origin).add(end).multiplyScalar(.5);
       beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction);
@@ -3865,7 +3861,7 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       laserBeams.push(beam);
       if (hitEnemy) {
         const wasAlive = hitEnemy.alive;
-        hitEnemy.takeDamage(.07 + powerLevel * .02, direction, end);
+        hitEnemy.takeDamage(weaponStats.damage, direction, end);
         score += wasAlive && !hitEnemy.alive ? 500 : 35;
         if (wasAlive && !hitEnemy.alive) playerKills++;
         spawnExplosionEffect(end, 1.15);
@@ -3901,18 +3897,19 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         return;
       }
       const activeWeapon = getActiveWeapon(slot);
+      const weaponStats = window.MECHA_WEAPON_SYSTEM.get(activeWeapon, powerLevel);
       const gatlingShot = activeWeapon === 'gatling';
       const soundDelay = gatlingShot ? 80 : 120;
       if (performance.now() - lastWeaponSoundTime > soundDelay) {
         playGameSound(activeWeapon === 'homing' ? 'homing' : gatlingShot ? 'gatling' : 'cannon');
         lastWeaponSoundTime = performance.now();
       }
-      weaponCooldowns[cooldownIndex] = gatlingShot ? .075 : activeWeapon === 'homing' ? .9 : .34;
+      weaponCooldowns[cooldownIndex] = weaponStats.cooldown;
       attackTimer = gatlingShot ? .08 : .2;
       const useHoming = (activeWeapon === 'homing' || (lockOnActive && homingMissileAmmo > 0)) && enemyAI?.alive;
       const shell = new THREE.Mesh(
-        new THREE.SphereGeometry((gatlingShot ? .16 : .34) + powerLevel * .05, 12, 9),
-        new THREE.MeshStandardMaterial({ color: useHoming ? 0x6cff68 : gatlingShot ? 0xffd063 : 0xff9f1c, emissive: useHoming ? 0x159c37 : 0xff5a00, emissiveIntensity: 1.8, metalness: .45 })
+        new THREE.SphereGeometry(weaponStats.radius + powerLevel * .05, 12, 9),
+        new THREE.MeshStandardMaterial({ color: weaponStats.color, emissive: weaponStats.emissive, emissiveIntensity: 1.8, metalness: .45 })
       );
       player.updateWorldMatrix(true, true);
       const activePreset = slot === 1 ? activeLeftPreset : activeRightPreset;
@@ -3936,8 +3933,8 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         attackTimer = .18;
       }
       selectedMuzzle.getWorldPosition(shell.position);
-      const shellSpeed = (useHoming ? 52 : gatlingShot ? 84 : 44) + powerLevel * 8;
-      const targetPoint = resolveWeaponTargetPoint();
+      const shellSpeed = weaponStats.speed;
+      const targetPoint = resolveWeaponTargetPoint(weaponStats.range);
       const launchDirection = targetPoint.sub(shell.position).normalize();
       if (gatlingShot) {
         const spreadRight = new THREE.Vector3().crossVectors(launchDirection, new THREE.Vector3(0, 1, 0)).normalize();
@@ -3948,19 +3945,21 @@ document.getElementById('customBackButton').addEventListener('click', () => {
           .normalize();
       }
       shell.userData.velocity = launchDirection.multiplyScalar(shellSpeed);
-      shell.userData.gravity = useHoming ? 3 : 0;
-      shell.userData.damage = gatlingShot ? .18 + powerLevel * .08 : 1 + powerLevel;
+      shell.userData.origin = shell.position.clone();
+      shell.userData.maxRange = weaponStats.range;
+      shell.userData.gravity = weaponStats.gravity;
+      shell.userData.damage = weaponStats.damage;
       shell.userData.level = gatlingShot ? 0 : powerLevel;
-      shell.userData.splashRadius = gatlingShot ? 0 : useHoming ? 6.5 : 3.4 + powerLevel * .8;
+      shell.userData.splashRadius = weaponStats.splashRadius;
       shell.userData.homing = useHoming;
       shell.userData.wasHomingMissile = useHoming;
-      shell.userData.life = gatlingShot ? .36 + powerLevel * .26 : 1.5 + powerLevel * .65;
+      shell.userData.life = weaponStats.range / shellSpeed + 0.1;
       if (useHoming) {
-        shell.userData.life = 2.15;
+        shell.userData.life = weaponStats.range / shellSpeed + 0.1;
         shell.userData.homingTime = 1.05;
-        shell.userData.airburstTime = 1.85;
+        shell.userData.airburstTime = weaponStats.range / weaponStats.speed;
         shell.userData.homingLaunchDelay = .24;
-        shell.userData.damage = .62 + powerLevel * .22;
+        shell.userData.damage = weaponStats.damage;
         if (activeWeapon !== 'homing') homingMissileAmmo--;
         missileRackLeft.visible = weaponPresets[2] === 'homing';
         missileRack.visible = weaponPresets[3] === 'homing' || homingMissileAmmo > 0;
@@ -4768,17 +4767,25 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       }
     }
 
+    const staticVehicleFragmentMats = [
+      new THREE.MeshStandardMaterial({ color: 0x23313c, roughness: .52, metalness: .72 }),
+      new THREE.MeshStandardMaterial({ color: 0x4d6878, roughness: .45, metalness: .68 }),
+      new THREE.MeshStandardMaterial({ color: 0xff6b35, emissive: 0x8a1800, emissiveIntensity: .8, roughness: .35, metalness: .5 })
+    ];
+    const staticVehicleCylinderGeo = new THREE.CylinderGeometry(.16, .22, .28, 8);
+    const staticVehicleBoxGeos = [
+      new THREE.BoxGeometry(.4, .2, .4),
+      new THREE.BoxGeometry(.6, .3, .5),
+      new THREE.BoxGeometry(.7, .25, .6)
+    ];
+
     function spawnVehicleFragments(vehicle, impulseDirection) {
       const center = vehicle.position.clone().add(new THREE.Vector3(0, .8, 0));
-      const fragmentMats = [
-        new THREE.MeshStandardMaterial({ color: 0x23313c, roughness: .52, metalness: .72 }),
-        new THREE.MeshStandardMaterial({ color: 0x4d6878, roughness: .45, metalness: .68 }),
-        new THREE.MeshStandardMaterial({ color: 0xff6b35, emissive: 0x8a1800, emissiveIntensity: .8, roughness: .35, metalness: .5 })
-      ];
       for (let i = 0; i < 9; i++) {
+        const geo = i % 3 === 0 ? staticVehicleCylinderGeo : staticVehicleBoxGeos[i % 3];
         const piece = new THREE.Mesh(
-          i % 3 === 0 ? new THREE.CylinderGeometry(.16, .22, .28, 8) : new THREE.BoxGeometry(.3 + Math.random() * .65, .16 + Math.random() * .34, .34 + Math.random() * .75),
-          fragmentMats[i % fragmentMats.length]
+          geo,
+          staticVehicleFragmentMats[i % staticVehicleFragmentMats.length]
         );
         piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * .8, (Math.random() - .5) * 2.3));
         piece.castShadow = true;
@@ -4823,9 +4830,16 @@ document.getElementById('customBackButton').addEventListener('click', () => {
           other !== vehicle && other.userData.alive && !other.userData.isBus &&
           other.position.distanceTo(vehicle.position) <= chainRadius
         );
+        let chainDelay = 70;
         for (const nearbyCar of nearbyCars) {
           const chainImpulse = nearbyCar.position.clone().sub(vehicle.position).setY(.18).normalize();
-          explodeVehicle(nearbyCar, source, chainImpulse);
+          const currentDelay = chainDelay;
+          window.setTimeout(() => {
+            if (nearbyCar.userData.alive) {
+              explodeVehicle(nearbyCar, source, chainImpulse);
+            }
+          }, currentDelay);
+          chainDelay += 70 + Math.floor(Math.random() * 50);
         }
       }
       if (source === 'player') {
@@ -5108,25 +5122,38 @@ document.getElementById('customBackButton').addEventListener('click', () => {
     }
 
     function updateStreetFurnitureCollisions() {
-      if (playerDestroyed || !player.visible) return;
+      const activeMechas = [
+        (!playerDestroyed && player.visible) ? { pos: player.position, isPlayer: true } : null,
+        (enemyAI?.alive && enemyAI.group.visible) ? { pos: enemyAI.group.position, isPlayer: false } : null,
+        (enemyAI2?.alive && enemyAI2.group.visible) ? { pos: enemyAI2.group.position, isPlayer: false } : null
+      ].filter(Boolean);
+
+      if (!activeMechas.length) return;
+
       for (const bench of destructibleBenches) {
         if (!bench.alive) continue;
-        const dx = player.position.x - bench.x, dz = player.position.z - bench.z;
-        if (dx * dx + dz * dz > 9) continue;
-        bench.alive = false;
-        for (const mesh of bench.meshes) {
-          mesh.setMatrixAt(bench.index, new THREE.Matrix4().makeScale(0, 0, 0));
-          mesh.instanceMatrix.needsUpdate = true;
+        for (const mecha of activeMechas) {
+          const dx = mecha.pos.x - bench.x, dz = mecha.pos.z - bench.z;
+          if (dx * dx + dz * dz > 12) continue;
+          bench.alive = false;
+          for (const mesh of bench.meshes) {
+            mesh.setMatrixAt(bench.index, new THREE.Matrix4().makeScale(0, 0, 0));
+            mesh.instanceMatrix.needsUpdate = true;
+          }
+          spawnExplosionEffect(new THREE.Vector3(bench.x, .65, bench.z), .55);
+          break;
         }
-        spawnExplosionEffect(new THREE.Vector3(bench.x, .65, bench.z), .55);
       }
       for (const station of destructibleStations) {
         if (!station.alive) continue;
-        const dx = player.position.x - station.x, dz = player.position.z - station.z;
-        if (dx * dx + dz * dz > 12.5) continue;
-        station.alive = false;
-        station.group.visible = false;
-        spawnExplosionEffect(new THREE.Vector3(station.x, 1.5, station.z), 1.2);
+        for (const mecha of activeMechas) {
+          const dx = mecha.pos.x - station.x, dz = mecha.pos.z - station.z;
+          if (dx * dx + dz * dz > 16) continue;
+          station.alive = false;
+          station.group.visible = false;
+          spawnExplosionEffect(new THREE.Vector3(station.x, 1.5, station.z), 1.2);
+          break;
+        }
       }
     }
 
@@ -5238,17 +5265,27 @@ document.getElementById('customBackButton').addEventListener('click', () => {
     }
 
     function updateStreetlightCollisions() {
-      if (playerDestroyed || !player.visible) return;
+      const activeMechas = [
+        (!playerDestroyed && player.visible) ? { pos: player.position, rot: player.rotation.y, isPlayer: true } : null,
+        (enemyAI?.alive && enemyAI.group.visible) ? { pos: enemyAI.group.position, rot: enemyAI.group.rotation.y, isPlayer: false } : null,
+        (enemyAI2?.alive && enemyAI2.group.visible) ? { pos: enemyAI2.group.position, rot: enemyAI2.group.rotation.y, isPlayer: false } : null
+      ].filter(Boolean);
+
+      if (!activeMechas.length) return;
+
       for (let i = 0; i < destructibleStreetlights.length; i++) {
         const light = destructibleStreetlights[i];
         if (!light.alive) continue;
-        const dx = player.position.x - light.position.x;
-        const dz = player.position.z - light.position.z;
-        if (dx * dx + dz * dz < 5.2 && player.position.y < 6.8) {
-          const impulse = new THREE.Vector3(dx, 0, dz);
-          if (impulse.lengthSq() < .01) impulse.set(Math.sin(player.rotation.y), 0, Math.cos(player.rotation.y));
-          breakStreetlight(i, impulse.normalize());
-          showMessage('STREETLIGHT CRUSHED');
+        for (const mecha of activeMechas) {
+          const dx = mecha.pos.x - light.position.x;
+          const dz = mecha.pos.z - light.position.z;
+          if (dx * dx + dz * dz < 7.5 && mecha.pos.y < 6.8) {
+            const impulse = new THREE.Vector3(dx, 0, dz);
+            if (impulse.lengthSq() < .01) impulse.set(Math.sin(mecha.rot), 0, Math.cos(mecha.rot));
+            breakStreetlight(i, impulse.normalize());
+            if (mecha.isPlayer) showMessage('STREETLIGHT CRUSHED');
+            break;
+          }
         }
       }
     }
@@ -5354,13 +5391,30 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       return collidesAtPosition(x, z, player.position.y, playerRadius);
     }
 
-    function cpuCollidesWithBuilding(x, z, y = 0, radius = 1.55) {
+    function cpuCollidesWithBuilding(x, z, y = 0, radius = 1.85) {
+      const boundary = arenaHalfSize - radius - 0.5;
+      if (Math.abs(x) > boundary || Math.abs(z) > boundary) return true;
+
       if (collidesAtPosition(x, z, y, radius)) return true;
-      return buildingBounds.some(bounds =>
+      if (buildingBounds.some(bounds =>
         !collapsingBuildings.has(bounds.buildingId) &&
         Math.abs(x - bounds.x) < bounds.halfX + radius &&
         Math.abs(z - bounds.z) < bounds.halfZ + radius
-      );
+      )) return true;
+
+      if (y < 2.5) {
+        for (const vehicle of trafficVehicles) {
+          if (!vehicle.userData.alive || !vehicle.visible) continue;
+          const dx = x - vehicle.position.x;
+          const dz = z - vehicle.position.z;
+          const hitRadius = vehicle.userData.isBus ? 3.6 : 2.2;
+          if (dx * dx + dz * dz < (hitRadius + radius) * (hitRadius + radius)) {
+            return true;
+          }
+        }
+      }
+
+      return false;
     }
 
     function getRandomSpawnPoint(excludePosition = null, minimumDistance = 0) {
@@ -5426,8 +5480,14 @@ document.getElementById('customBackButton').addEventListener('click', () => {
 
     function getRandomItemPoint() {
       const existingItems = [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems];
+      const protectedSpawnPoints = [
+        getFormationSpawn('player', 0),
+        getFormationSpawn('enemy', 0),
+        getFormationSpawn('enemy', 1)
+      ];
       for (let attempt = 0; attempt < 80; attempt++) {
         const point = getRandomSpawnPoint();
+        if (protectedSpawnPoints.some(spawn => point.distanceToSquared(spawn) < 18 * 18)) continue;
         if (existingItems.every(item => {
           const dx = item.position.x - point.x;
           const dz = item.position.z - point.z;
@@ -5761,31 +5821,27 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         ? (dashing ? 31 : airBoosting ? 24 : 9.5) * loadoutSpeedFactor * damageSpeedFactor * landingSpeedFactor
         : 0;
       const speedResponse = dashing ? 18 : requestedSpeed > locomotionSpeed ? 3.4 : 5.2;
-      locomotionSpeed = THREE.MathUtils.lerp(locomotionSpeed, requestedSpeed, 1 - Math.exp(-speedResponse * dt));
       const moveStartX = player.position.x;
       const moveStartZ = player.position.z;
       const rotationBeforeMove = player.rotation.y;
+      const activeMove = dashing
+        ? dashDirection
+        : isMoving ? move.normalize() : null;
       if (isMoving || dashing) {
-        const activeMove = dashing ? dashDirection : move.normalize();
         if (airBoosting) {
           boostEnergy = Math.max(0, boostEnergy - 24 * dt);
           energyUsed = true;
           boostedSinceTakeoff = true;
         }
-        // Convert the constant glide into alternating planted-foot pushes.
-        // Speed peaks at foot contact and eases during the middle of a swing.
-        const gaitDrive = grounded && !dashing
-          ? .82 + Math.pow(Math.abs(Math.cos(walkCycle)), 1.6) * .18
-          : 1;
-        const distance = locomotionSpeed * gaitDrive * dt;
-        // Resolve X and Z separately, allowing the player to slide along a wall.
-        const nextX = player.position.x + activeMove.x * distance;
-        if (!collidesWithBuilding(nextX, player.position.z)) player.position.x = nextX;
-        const nextZ = player.position.z + activeMove.z * distance;
-        if (!collidesWithBuilding(player.position.x, nextZ)) player.position.z = nextZ;
         const movementYaw = Math.atan2(activeMove.x, activeMove.z);
         player.rotation.y = dampAngle(player.rotation.y, movementYaw, dashing ? 8.5 : 4.6, dt);
       }
+      const gaitDrive = grounded && !dashing
+        ? .82 + Math.pow(Math.abs(Math.cos(walkCycle)), 1.6) * .18
+        : 1;
+      playerRigidBody.drive(activeMove, requestedSpeed * gaitDrive, speedResponse, dt);
+      playerRigidBody.integrateHorizontal(dt, (x, z) => collidesWithBuilding(x, z));
+      locomotionSpeed = Math.hypot(playerRigidBody.velocity.x, playerRigidBody.velocity.z);
       const turnRate = Math.abs(angleDelta(rotationBeforeMove, player.rotation.y)) / Math.max(dt, .001);
       const turnStability = THREE.MathUtils.clamp(1 - turnRate / 1.8, 0, 1);
       if (turnRate > .62) footPlantWorld[0] = footPlantWorld[1] = null;
@@ -5875,6 +5931,13 @@ if (!wasGrounded && grounded) {
         boostEnergy = Math.min(100, boostEnergy + rechargeRate * dt);
       }
       const dashJetsActive = dashing;
+      if (jetpackEquipped && energyUsed && !dashing) {
+        jetpackTimeRemaining = Math.max(0, jetpackTimeRemaining - dt);
+        if (jetpackTimeRemaining <= 0) {
+          jetpackEquipped = false;
+          showMessage('JETPACK TIME EXPIRED');
+        }
+      }
       const jetsActive = dashJetsActive || (jetpackEquipped && energyUsed && boostEnergy > 0);
       jetpack.visible = true;
       jetFlameMat.color.setHex(dashJetsActive ? 0xff2b18 : 0x55e7ff);
@@ -5912,6 +5975,9 @@ if (!wasGrounded && grounded) {
         flame.rotation.set(dashJetsActive ? .22 : 0, 0, Math.PI);
       }
       document.getElementById('boostText').textContent = Math.ceil(boostEnergy);
+      document.getElementById('jetpackText').textContent = jetpackEquipped
+        ? `EQUIPPED ${Math.ceil(jetpackTimeRemaining)}s`
+        : 'NOT EQUIPPED';
       const weaponLabels = { cannon: 'HEAVY CANNON', gatling: 'GATLING', laser: 'LASER CANNON', homing: 'HOMING MISSILE' };
       document.getElementById('weaponSlot1Text').textContent = weaponLabels[weaponSlot1];
       document.getElementById('weaponSlot2Text').textContent = weaponLabels[weaponSlot2];
@@ -5921,19 +5987,37 @@ if (!wasGrounded && grounded) {
       attackTimer = Math.max(0, attackTimer - dt);
       const walking = actualGroundSpeed > .35 && grounded;
       const speedRatio = THREE.MathUtils.clamp(actualGroundSpeed / 9.5, 0, 3.3);
-      // Keep the gait cadence coupled to travel speed. A slow capped cadence makes
-      // planted feet remain behind while the chassis continues moving forward.
-      const animationSpeed = dashing ? 10.8 : THREE.MathUtils.lerp(3.8, 7.2, Math.min(1, speedRatio));
-      if (walking) walkCycle += dt * animationSpeed * (isReversing ? -1 : 1);
+      // Advance the gait by distance traveled, not clock time. This preserves
+      // believable foot speed through acceleration, braking and heavy impacts.
+      if (walking) walkCycle += actualGroundSpeed * dt * .76 * (isReversing ? -1 : 1);
       const movementBlendTarget = walking ? THREE.MathUtils.clamp(actualGroundSpeed / 3.2, .18, 1) : 0;
       walkBlend = THREE.MathUtils.lerp(walkBlend, movementBlendTarget, 1 - Math.exp(-(walking ? 6.5 : 4.8) * dt));
-      const strideScale = THREE.MathUtils.lerp(.72, 1.5, Math.min(1, speedRatio)) * (dashing ? 1.12 : 1);
-      const swing = Math.sin(walkCycle) * walkBlend * strideScale;
-      const leftLift = Math.pow(Math.max(0, Math.sin(walkCycle)), .82) * walkBlend;
-      const rightLift = Math.pow(Math.max(0, -Math.sin(walkCycle)), .82) * walkBlend;
-      const gaitPhases = [Math.sin(walkCycle), -Math.sin(walkCycle)];
-      for (let index = 0; index < gaitPhases.length; index++) {
-        const airborneNow = walking && gaitPhases[index] > .055;
+      const strideScale = THREE.MathUtils.lerp(.68, 1.28, Math.min(1, speedRatio)) * (dashing ? 1.08 : 1);
+      const normalizedCycle = ((walkCycle / (Math.PI * 2)) % 1 + 1) % 1;
+      const gaitCycles = [normalizedCycle, (normalizedCycle + .5) % 1];
+      const gaitLift = [0, 0];
+      const gaitFore = [0, 0];
+      const gaitStance = [0, 0];
+      const gaitSwing = [0, 0];
+      const stanceDuration = .62;
+      for (let index = 0; index < 2; index++) {
+        const phase = gaitCycles[index];
+        if (phase < stanceDuration) {
+          const stanceProgress = phase / stanceDuration;
+          gaitStance[index] = stanceProgress;
+          gaitFore[index] = 1 - stanceProgress * 2;
+        } else {
+          const swingProgress = (phase - stanceDuration) / (1 - stanceDuration);
+          const swingEase = swingProgress * swingProgress * (3 - 2 * swingProgress);
+          gaitSwing[index] = swingProgress;
+          gaitFore[index] = -1 + swingEase * 2;
+          gaitLift[index] = Math.pow(Math.sin(swingProgress * Math.PI), .9) * walkBlend;
+        }
+      }
+      const leftLift = gaitLift[0];
+      const rightLift = gaitLift[1];
+      for (let index = 0; index < gaitCycles.length; index++) {
+        const airborneNow = walking && gaitCycles[index] >= stanceDuration;
         if (footWasAirborne[index] && !airborneNow && grounded && walkBlend > .38) {
           lastFootstepIndex = index;
           playGameSound('footstep');
@@ -5943,6 +6027,8 @@ if (!wasGrounded && grounded) {
           spawnFootstepEffect(stepPosition);
           shake = Math.max(shake, .018 + Math.min(1, speedRatio) * .018);
           landingImpact = Math.max(landingImpact, .035 + Math.min(1, speedRatio) * .025);
+          // Transfer the planted foot's impulse into the heavy upper chassis.
+          bodyBounceVelocity -= .72 + Math.min(1.4, speedRatio) * .58;
         }
         if (airborneNow) footPlantWorld[index] = null;
         footWasAirborne[index] = airborneNow;
@@ -5984,26 +6070,27 @@ if (!wasGrounded && grounded) {
       playerLegs[0].position.y = THREE.MathUtils.lerp(playerLegs[0].position.y, mechaMeshes.legRoot.position[1] + leftLift * .38 - impactNow * .16, jointBlend);
       playerLegs[1].position.y = THREE.MathUtils.lerp(playerLegs[1].position.y, mechaMeshes.legRoot.position[1] + rightLift * .38 - impactNow * .16, jointBlend);
       const turnStrideScale = THREE.MathUtils.lerp(.28, 1, turnStability);
-      playerLegs[0].position.z = THREE.MathUtils.lerp(playerLegs[0].position.z, mechaMeshes.legRoot.position[2] - swing * .24 * turnStrideScale, jointBlend);
-      playerLegs[1].position.z = THREE.MathUtils.lerp(playerLegs[1].position.z, mechaMeshes.legRoot.position[2] + swing * .24 * turnStrideScale, jointBlend);
+      playerLegs[0].position.z = THREE.MathUtils.lerp(playerLegs[0].position.z, mechaMeshes.legRoot.position[2] + gaitFore[0] * .28 * strideScale * walkBlend * turnStrideScale, jointBlend);
+      playerLegs[1].position.z = THREE.MathUtils.lerp(playerLegs[1].position.z, mechaMeshes.legRoot.position[2] + gaitFore[1] * .28 * strideScale * walkBlend * turnStrideScale, jointBlend);
       for (let index = 0; index < playerLegs.length; index++) {
         const joints = playerLegs[index].userData.joints;
-        const signedSwing = index === 0 ? swing : -swing;
-        const lift = index === 0 ? leftLift : rightLift;
-        const gaitPhase = gaitPhases[index];
-        const swingToeUp = Math.max(0, gaitPhase) * walkBlend;
-        const stanceRoll = Math.max(0, -gaitPhase) * walkBlend;
-        const heelStrike = Math.exp(-Math.pow(gaitPhase / .16, 2)) * Math.max(0, -Math.cos(walkCycle) * (index === 0 ? 1 : -1)) * walkBlend;
-        const kneeBend = lift * .8 + impactNow * .24 + (dashing ? .14 : 0);
-        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, -.12 + signedSwing * .72, jointBlend);
+        const lift = gaitLift[index];
+        const legSwing = gaitFore[index] * strideScale * walkBlend;
+        const swingToeUp = Math.sin(gaitSwing[index] * Math.PI) * (gaitSwing[index] > 0 ? walkBlend : 0);
+        const stanceRoll = THREE.MathUtils.smoothstep(gaitStance[index], .55, 1) * walkBlend;
+        const heelStrike = gaitCycles[index] < stanceDuration
+          ? Math.exp(-Math.pow(gaitStance[index] / .11, 2)) * walkBlend
+          : 0;
+        const kneeBend = lift * .92 + impactNow * .24 + stanceRoll * .12 + (dashing ? .14 : 0);
+        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, -.12 - legSwing * .58, jointBlend);
         joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, .22 + kneeBend, jointBlend);
-        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, .18 - kneeBend * .48, jointBlend);
+        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, .18 - kneeBend * .52, jointBlend);
         joints.rearCalf.rotation.x = THREE.MathUtils.lerp(joints.rearCalf.rotation.x, -.18 - kneeBend * .28, jointBlend);
-        const anklePitch = -.08 - signedSwing * .06 + kneeBend * .16 - swingToeUp * .14 + stanceRoll * .08;
+        const anklePitch = -.08 + legSwing * .07 + kneeBend * .16 - swingToeUp * .18 + stanceRoll * .1;
         joints.ankle.rotation.x = THREE.MathUtils.lerp(joints.ankle.rotation.x, anklePitch, jointBlend);
-        const footPitch = -swingToeUp * .2 + stanceRoll * .09 - heelStrike * .12 - kneeBend * .08;
+        const footPitch = -swingToeUp * .24 + stanceRoll * .13 - heelStrike * .16 - kneeBend * .06;
         joints.foot.rotation.x = THREE.MathUtils.lerp(joints.foot.rotation.x, footPitch, jointBlend);
-        const toeCurl = stanceRoll * .34 - swingToeUp * .08;
+        const toeCurl = stanceRoll * .38 - swingToeUp * .1;
         for (const toePivot of joints.toePivots) {
           toePivot.userData.baseCurl = toeCurl;
           toePivot.rotation.x = THREE.MathUtils.lerp(toePivot.rotation.x, toeCurl, jointBlend);
@@ -6070,6 +6157,16 @@ if (!wasGrounded && grounded) {
         footPlantWorld[0] = footPlantWorld[1] = null;
       }
       const upperMotionBlend = isReversing ? 0 : walkBlend;
+      const suspensionAcceleration =
+        -BODY_SUSPENSION_STIFFNESS * bodyBounceOffset
+        -BODY_SUSPENSION_DAMPING * bodyBounceVelocity;
+      bodyBounceVelocity += suspensionAcceleration * dt;
+      bodyBounceOffset += bodyBounceVelocity * dt;
+      bodyBounceOffset = THREE.MathUtils.clamp(bodyBounceOffset, -.34, .14);
+      if (!grounded) {
+        bodyBounceVelocity *= Math.exp(-8 * dt);
+        bodyBounceOffset = THREE.MathUtils.lerp(bodyBounceOffset, 0, 1 - Math.exp(-7 * dt));
+      }
       const footPlant = Math.pow(Math.abs(Math.cos(walkCycle)), 8) * walkBlend;
       const pelvisSide = Math.sin(walkCycle) * walkBlend;
       const pelvisTwist = Math.sin(walkCycle * .5) * walkBlend * turnStability;
@@ -6088,10 +6185,21 @@ if (!wasGrounded && grounded) {
       waistCoreAssembly.rotation.z = THREE.MathUtils.lerp(waistCoreAssembly.rotation.z, -pelvis.rotation.z * .72, 1 - Math.exp(-13 * dt));
       const coreCompression = 1 - footPlant * .035 - impactNow * .06;
       waistCoreAssembly.scale.y = THREE.MathUtils.lerp(waistCoreAssembly.scale.y, coreCompression, 1 - Math.exp(-15 * dt));
-      const chassisDrop = footPlant * .23 * upperMotionBlend;
-      body.position.y = THREE.MathUtils.lerp(body.position.y, BODY_LOCAL_BASE_Y - chassisDrop - impactNow * .42, 1 - Math.exp(-11 * dt));
+      const chassisDrop = footPlant * .12 * upperMotionBlend;
+      const suspensionBounce = bodyBounceOffset * upperMotionBlend;
+      body.position.y = THREE.MathUtils.lerp(
+        body.position.y,
+        BODY_LOCAL_BASE_Y - chassisDrop + suspensionBounce - impactNow * .42,
+        1 - Math.exp(-16 * dt)
+      );
       body.rotation.z = THREE.MathUtils.lerp(body.rotation.z, Math.sin(walkCycle * .5) * .045 * upperMotionBlend, 1 - Math.exp(-6 * dt));
-      body.rotation.x = THREE.MathUtils.lerp(body.rotation.x, Math.cos(walkCycle) * .026 * upperMotionBlend + (dashing && !isReversing ? -.085 : 0), 1 - Math.exp(-7 * dt));
+      body.rotation.x = THREE.MathUtils.lerp(
+        body.rotation.x,
+        Math.cos(walkCycle) * .026 * upperMotionBlend
+          - bodyBounceVelocity * .018 * upperMotionBlend
+          + (dashing && !isReversing ? -.085 : 0),
+        1 - Math.exp(-9 * dt)
+      );
 
       const visualAimLimit = isReversing ? Math.PI : 2.25;
       const visualAimYaw = THREE.MathUtils.clamp(angleDelta(player.rotation.y, yaw), -visualAimLimit, visualAimLimit);
@@ -6158,10 +6266,12 @@ if (!wasGrounded && grounded) {
       }
     }
 
+    const shellPrevPos = new THREE.Vector3();
     function updateShells(dt) {
       for (let i = shells.length - 1; i >= 0; i--) {
         const shell = shells[i];
         shell.userData.life -= dt;
+        shellPrevPos.copy(shell.position);
         if (shell.userData.wasHomingMissile) {
           shell.userData.homingTime -= dt;
           shell.userData.airburstTime -= dt;
@@ -6182,6 +6292,9 @@ if (!wasGrounded && grounded) {
         }
         shell.userData.velocity.y -= shell.userData.gravity * dt;
         shell.position.addScaledVector(shell.userData.velocity, dt);
+        if (shell.userData.origin && shell.position.distanceTo(shell.userData.origin) >= shell.userData.maxRange) {
+          shell.userData.life = 0;
+        }
         if (shell.userData.homing) {
           shell.userData.trailTimer = (shell.userData.trailTimer || 0) - dt;
           if (shell.userData.trailTimer <= 0) {
@@ -6195,7 +6308,7 @@ if (!wasGrounded && grounded) {
             if (!targetAI?.alive || targetAI.group.position.distanceTo(shell.position) > 6.5) continue;
             const impulse = targetAI.group.position.clone().sub(shell.position).normalize();
             const wasAlive = targetAI.alive;
-            targetAI.takeDamage(2.4 + powerLevel, impulse, shell.position);
+            targetAI.takeDamage(shell.userData.damage, impulse, shell.position);
             score += wasAlive && !targetAI.alive ? 500 : 45;
             if (wasAlive && !targetAI.alive) playerKills++;
           }
@@ -6239,7 +6352,7 @@ if (!wasGrounded && grounded) {
             if (!targetAI?.alive) continue;
             const impulse = shell.userData.velocity.clone().normalize();
             const wasAlive = targetAI.alive;
-            if (targetAI.checkPlayerShellHit(shell.position, shell.userData.damage, impulse)) {
+            if (targetAI.checkPlayerShellHit(shell.position, shell.userData.damage, impulse, shellPrevPos)) {
               const blastRadius = shell.userData.level > 0 ? 2 + shell.userData.level * 1.35 : 1.2;
               spawnExplosionEffect(shell.position, blastRadius);
               applyPlayerShellSplash(shell, targetAI);
@@ -6296,6 +6409,36 @@ if (!wasGrounded && grounded) {
       }
     }
 
+    const explosionPool = [];
+
+    function createExplosionMeshGroup() {
+      const sphereMat = explosionSphereMatBase.clone();
+      const ringMat = explosionRingMatBase.clone();
+      const coreMat = explosionCoreMatBase.clone();
+      const sphere = new THREE.Mesh(explosionSphereGeo, sphereMat);
+      const ring = new THREE.Mesh(explosionRingGeo, ringMat);
+      ring.rotation.x = -Math.PI / 2;
+      const hotCore = new THREE.Mesh(explosionHotCoreGeo, coreMat);
+      const smokePuffs = [];
+      for (let i = 0; i < 2; i++) {
+        const puffMat = explosionSmokeMatBase.clone();
+        if (i % 2) puffMat.color.setHex(0x2b3034);
+        const puff = new THREE.Mesh(explosionSmokeGeo, puffMat);
+        smokePuffs.push(puff);
+      }
+      const sparks = [];
+      for (let i = 0; i < 3; i++) {
+        const sparkMat = explosionSparkMatBase.clone();
+        if (i % 3 === 0) sparkMat.color.setHex(0xffffff);
+        const spark = new THREE.Mesh(explosionSparkGeo, sparkMat);
+        sparks.push(spark);
+      }
+      const group = new THREE.Group();
+      group.add(sphere, ring, hotCore, ...smokePuffs, ...sparks);
+      group.userData = { sphere, ring, hotCore, smokePuffs, sparks };
+      return group;
+    }
+
     function spawnExplosionEffect(position, radius) {
       if (radius >= 1.8 && performance.now() - lastExplosionSoundTime > 120) {
         playGameSound('explosion');
@@ -6309,51 +6452,30 @@ if (!wasGrounded && grounded) {
       if (explosionEffects.length >= 10) {
         const oldest = explosionEffects.shift();
         scene.remove(oldest);
-        oldest.traverse(object => object.material?.dispose());
+        explosionPool.push(oldest);
       }
-      const group = new THREE.Group();
+
+      const group = explosionPool.pop() || createExplosionMeshGroup();
       group.position.copy(position);
-      const sphere = new THREE.Mesh(
-        explosionSphereGeo,
-        explosionSphereMatBase.clone()
-      );
-      const ring = new THREE.Mesh(
-        explosionRingGeo,
-        explosionRingMatBase.clone()
-      );
-      ring.rotation.x = -Math.PI / 2;
-      const hotCore = new THREE.Mesh(
-        explosionHotCoreGeo,
-        explosionCoreMatBase.clone()
-      );
-      const smokePuffs = [];
-      for (let i = 0; i < 2; i++) {
-        const puff = new THREE.Mesh(
-          explosionSmokeGeo,
-          explosionSmokeMatBase.clone()
-        );
-        if (i % 2) puff.material.color.setHex(0x2b3034);
+      group.scale.setScalar(.01);
+
+      group.userData.elapsed = 0;
+      group.userData.duration = .68;
+      group.userData.radius = radius;
+
+      group.userData.smokePuffs.forEach(puff => {
         const direction = new THREE.Vector3(Math.random() - .5, Math.random() * .75 + .15, Math.random() - .5).normalize();
         puff.userData.direction = direction;
         puff.position.copy(direction).multiplyScalar(.16);
-        smokePuffs.push(puff);
-      }
-      const sparks = [];
-      for (let i = 0; i < 3; i++) {
-        const spark = new THREE.Mesh(
-          explosionSparkGeo,
-          explosionSparkMatBase.clone()
-        );
-        if (i % 3 === 0) spark.material.color.setHex(0xffffff);
-        spark.userData.direction = new THREE.Vector3(Math.random() - .5, Math.random() * .8, Math.random() - .5).normalize();
-        spark.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), spark.userData.direction);
-        sparks.push(spark);
-      }
-      const flashLight = radius >= 3 ? new THREE.PointLight(0xff8a32, Math.min(36, 10 + radius * 6), radius * 9, 2) : null;
-      group.add(sphere, ring, hotCore, ...smokePuffs, ...sparks);
-      if (flashLight) group.add(flashLight);
-      group.scale.setScalar(.01);
-      group.userData = { elapsed: 0, duration: .68, radius, sphere, ring, hotCore, smokePuffs, sparks, flashLight };
+      });
+
+      group.userData.sparks.forEach(spark => {
+        const direction = new THREE.Vector3(Math.random() - .5, Math.random() * .8, Math.random() - .5).normalize();
+        spark.userData.direction = direction;
+        spark.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
+        spark.position.set(0, 0, 0);
+      });
+
       scene.add(group);
       explosionEffects.push(group);
       if (radius >= 2.5) spawnBurningEffect(position, radius);
@@ -6487,10 +6609,8 @@ if (!wasGrounded && grounded) {
         }
         if (t >= 1) {
           scene.remove(effect);
-          effect.traverse(object => {
-            object.material?.dispose();
-          });
           explosionEffects.splice(i, 1);
+          explosionPool.push(effect);
         }
       }
       const now = performance.now() * .001;
@@ -6650,6 +6770,7 @@ if (!wasGrounded && grounded) {
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .22;
         if (!playerDestroyed && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
           jetpackEquipped = true;
+          jetpackTimeRemaining = 60;
           boostEnergy = 100;
           jetpack.visible = true;
           showMessage('JETPACK EQUIPPED!');
@@ -6686,8 +6807,8 @@ if (!wasGrounded && grounded) {
           showMessage('HEALTH +40');
           queuePickupRespawn(item, 16);
           updateHUD();
-        } else if (getCpuPickupOwner(item, cpu => cpu.health < cpu.maxHealth)) {
-          getCpuPickupOwner(item, cpu => cpu.health < cpu.maxHealth).applyHealth(40);
+        } else if (getCpuPickupOwner(item)) {
+          getCpuPickupOwner(item).applyHealth(40);
           queuePickupRespawn(item, 16);
         }
       }
@@ -6703,8 +6824,8 @@ if (!wasGrounded && grounded) {
           showMessage('ENERGY SHIELD +60');
           queuePickupRespawn(item, 20);
           updateHUD();
-        } else if (getCpuPickupOwner(item, cpu => cpu.shield < 100)) {
-          getCpuPickupOwner(item, cpu => cpu.shield < 100).applyShield(60);
+        } else if (getCpuPickupOwner(item)) {
+          getCpuPickupOwner(item).applyShield(60);
           queuePickupRespawn(item, 20);
         }
       }
@@ -6713,10 +6834,10 @@ if (!wasGrounded && grounded) {
     function getNearestPickup(fromPosition) {
       let nearest = null;
       let nearestDistanceSq = 45 * 45;
-      const seekingCpu = [enemyAI, enemyAI2].find(cpu => cpu?.group.position === fromPosition);
+      const seekingCpu = [enemyAI, enemyAI2].find(cpu => cpu?.alive && cpu.group.position.distanceToSquared(fromPosition) < 1.0);
       const availableJetpacks = seekingCpu?.jetpackEquipped ? [] : jetpackItems;
-      const availableHealthItems = seekingCpu && seekingCpu.health >= seekingCpu.maxHealth ? [] : healthItems;
-      const availableShieldItems = seekingCpu && seekingCpu.shield >= 100 ? [] : shieldItems;
+      const availableHealthItems = (seekingCpu && seekingCpu.health >= 90) ? [] : healthItems;
+      const availableShieldItems = (seekingCpu && seekingCpu.shield >= 90) ? [] : shieldItems;
       for (const item of [...powerItems, ...availableJetpacks, ...homingItems, ...laserItems, ...jumpItems, ...availableHealthItems, ...availableShieldItems]) {
         if (!item.visible) continue;
         const dx = item.position.x - fromPosition.x;
@@ -6985,7 +7106,9 @@ if (!wasGrounded && grounded) {
       document.getElementById('ammoText').textContent = reloadTimer > 0
         ? `RELOADING ${reloadTimer.toFixed(1)}s`
         : `${ammo} / ${magazineSize}`;
-      document.getElementById('jetpackText').textContent = jetpackEquipped ? 'EQUIPPED' : 'NOT EQUIPPED';
+      document.getElementById('jetpackText').textContent = jetpackEquipped
+        ? `EQUIPPED ${Math.ceil(jetpackTimeRemaining)}s`
+        : 'NOT EQUIPPED';
       document.getElementById('boostText').textContent = Math.ceil(boostEnergy);
       updatePlayerStatusHud();
       document.getElementById('homingAmmoText').textContent = homingMissileAmmo;
@@ -7247,12 +7370,15 @@ if (!wasGrounded && grounded) {
       Object.keys(partHealth).forEach(key => partHealth[key] = 100);
       playerShield = 0;
       locomotionSpeed = 0;
+      playerRigidBody.stop();
       dashTimer = 0;
       dashCooldown = 0;
       dashInputReady = true;
       boostedSinceTakeoff = false;
       poweredJumpLanding = false;
       landingImpact = 0;
+      bodyBounceOffset = 0;
+      bodyBounceVelocity = 0;
       lastFootstepIndex = -1;
       footWasAirborne[0] = footWasAirborne[1] = false;
       footPlantWorld[0] = footPlantWorld[1] = null;
@@ -7459,6 +7585,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
   }
   if (source !== 'fall' && source !== 'fire' && (attackerPosition || impactPosition)) showDamageDirection(attackerPosition || impactPosition);
   if (impactPosition) spawnExplosionEffect(impactPosition, 1.2);
+  const impulseSource = attackerPosition || impactPosition;
+  if (source !== 'fall' && source !== 'fire' && impulseSource) {
+    const hitImpulse = player.position.clone().sub(impulseSource).setY(0);
+    if (hitImpulse.lengthSq() > .001) {
+      hitImpulse.normalize().multiplyScalar(playerRigidBody.mass * Math.min(2.4, .35 + damage * .045));
+      playerRigidBody.applyImpulse(hitImpulse);
+    }
+  }
   const absorbed = source === 'fall' ? 0 : Math.min(playerShield, damage);
       if (absorbed > 0) {
         const shieldImpact = impactPosition || player.position.clone().add(new THREE.Vector3(0, 4.2, 0));
@@ -7510,12 +7644,15 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       headGroup.rotation.set(0, 0, 0);
       verticalVelocity = 0;
       locomotionSpeed = 0;
+      playerRigidBody.stop();
       dashTimer = 0;
       dashCooldown = 0;
       dashInputReady = true;
       boostedSinceTakeoff = false;
       poweredJumpLanding = false;
       landingImpact = 0;
+      bodyBounceOffset = 0;
+      bodyBounceVelocity = 0;
       lastFootstepIndex = -1;
       footWasAirborne[0] = footWasAirborne[1] = false;
       footPlantWorld[0] = footPlantWorld[1] = null;
@@ -7550,6 +7687,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       ammo = magazineSize;
       reloadTimer = 0;
       jetpackEquipped = false;
+      jetpackTimeRemaining = 0;
       boostEnergy = 100;
       homingMissileAmmo = 0;
       missileRack.visible = false;
@@ -7602,12 +7740,15 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       walkCycle = 0;
       walkBlend = 0;
       locomotionSpeed = 0;
+      playerRigidBody.stop();
       dashTimer = 0;
       dashCooldown = 0;
       dashInputReady = true;
       boostedSinceTakeoff = false;
       poweredJumpLanding = false;
       landingImpact = 0;
+      bodyBounceOffset = 0;
+      bodyBounceVelocity = 0;
       lastFootstepIndex = -1;
       footWasAirborne[0] = footWasAirborne[1] = false;
       footPlantWorld[0] = footPlantWorld[1] = null;
@@ -7665,6 +7806,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       playerShield = 0;
       shieldBubble.reset();
       jetpackEquipped = false;
+      jetpackTimeRemaining = 0;
       boostEnergy = 100;
       homingMissileAmmo = 0;
       missileRack.visible = false;
@@ -7761,7 +7903,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           : Math.ceil(health);
       },
       onMessage: showMessage,
-      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil || isInSafeZone(position, 'enemy')
+      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil || isInSafeZone(position, 'enemy'),
+      weaponSlot1: 'gatling',
+      weaponSlot2: 'cannon'
     });
     enemyAI2 = new EnemyAI({
       scene,
@@ -7783,7 +7927,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         document.getElementById('cpuHealthText').textContent = `${firstHealth} / ${Math.ceil(health)}`;
       },
       onMessage: showMessage,
-      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil || isInSafeZone(position, 'enemy')
+      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil || isInSafeZone(position, 'enemy'),
+      weaponSlot1: 'laser',
+      weaponSlot2: 'cannon'
     });
     enemyAI2.group.traverse(object => {
       if (!object.isMesh || !object.material?.color) return;
