@@ -4,31 +4,64 @@
 window.createMechaCharacterContext = function createMechaCharacterContext(THREE, overrides = {}) {
   try {
     const saved = JSON.parse(localStorage.getItem('mechaCustomization') || '{}');
-    overrides = { ...saved, ...overrides, meshes: { ...(saved.meshes || {}), ...(overrides.meshes || {}) } };
+    const migratedSaved = saved.designVersion === 8
+      ? saved
+      : { colors: saved.colors, hiddenParts: saved.hiddenParts };
+    overrides = {
+      ...migratedSaved,
+      ...overrides,
+      meshes: { ...(migratedSaved.meshes || {}), ...(overrides.meshes || {}) }
+    };
   } catch (_) {}
   const defaults = {
+    designVersion: 8,
     hiddenParts: { head: true },
-    colors: { body: '#34373a', armorLight: '#a3a09a' },
+    hiddenBodyJoints: {},
+    colors: { body: '#292e35', armorLight: '#67717b' },
     dimensions: {
-    height: 8.7,
-    radius: 2.7,
-    bodyBaseY: 4.92,
-    upperPivotY: 4.18
+    height: 10.75,
+    radius: 2.9,
+    bodyBaseY: 6.67,
+    upperPivotY: 5.83
+    },
+    attachments: {
+      leftArm: [-3.15, 5.35, 0.12], rightArm: [3.15, 5.35, 0.12],
+      leftWeapon: [-1.9, 7.15, -0.15], rightWeapon: [1.9, 7.15, -0.15], backpack: [0, 0, 0],
+      leftHoming: [-3.15, 4.55, 2.44], rightHoming: [3.15, 4.55, 2.44],
+      leftCannon: [-1.42, 7.05, -0.2], rightCannon: [1.42, 7.05, -0.2], leftGatling: [-1.42, 7.05, -0.2], rightGatling: [1.42, 7.05, -0.2], leftLaser: [-1.42, 7.05, -0.2], rightLaser: [1.42, 7.05, -0.2],
+      slot3Mount: [-1.42, 7.05, -0.2], slot4Mount: [1.42, 7.05, -0.2],
+      leftLeg: [-2.02, -0.07, 0], rightLeg: [2.02, -0.07, 0]
+    },
+    ballJointSize: 1,
+    ballJointLayout: {
+      backpack: [0, -1.65, -1.45], leftArm: [-3.15, -1.32, .12], rightArm: [3.15, -1.32, .12],
+      leftSub: [-2.18, -.05, 1.76], rightSub: [2.18, -.05, 1.76], lowerLink: [0, -1.5, -.02]
+    },
+    partJointOffsets: {
+      backpack: [0, 5.02, -1.45], leftArm: [0, 0, 0], rightArm: [0, 0, 0],
+      leftWeapon: [0, 0, 0], rightWeapon: [0, 0, 0], leftLeg: [0, 0, 0], rightLeg: [0, 0, 0],
+      leftCannon: [0, 0, 0], rightCannon: [0, 0, 0], leftGatling: [0, 0, 0], rightGatling: [0, 0, 0],
+      leftLaser: [0, 0, 0], rightLaser: [0, 0, 0], leftHoming: [0, 0, 0], rightHoming: [0, 0, 0]
+      , slot3Mount: [0, 0, 0], slot4Mount: [0, 0, 0]
     },
     meshes: {
-      pelvis: { size: [3.45, 0.92, 2.72], position: [0, -0.68, -0.06] },
-      hipSkirt: { size: [1.18, 1.18, 1.92], position: [1.72, -0.08, 0.08] },
-      torso: { size: [5.8, 2.35, 3.65], position: [0, 0.08, -0.12] },
-      lowerChest: { size: [4.45, 0.72, 3.15], position: [0, -0.95, -0.04] },
-      frontArmor: { size: [4.25, 1.32, 0.62], position: [0, -0.02, 1.96] },
-      head: { size: [0.85, 0.42, 0.92], position: [0, 0.12, 0.22] },
-      legRoot: { position: [1.52, -0.08, 0] },
-      thigh: { size: [1.25, 1.42, 1.38], position: [0, -0.68, 0.14] },
-      knee: { size: [1.05, 1.08, 0.72], position: [0, -0.02, 0.65] },
-      calf: { size: [1.18, 1.7, 1.28], position: [0, -0.88, -0.08] },
-      rearCalf: { size: [0.82, 1.28, 0.55], position: [0, -0.86, -0.9] },
-      foot: { size: [1.95, 0.58, 2.65], position: [0, 0, 0.34] },
-      toe: { size: [0.54, 0.34, 1.05], position: [0.48, 0.02, 1.25] }
+      pelvis: { size: [3.72, 1.08, 2.62], position: [0, -0.64, -0.02] },
+      hipSkirt: { size: [1.18, 1.3, 1.76], position: [1.76, -0.12, 0.02] },
+      torso: { size: [6.34, 2.08, 3.48], position: [0, 0.18, -0.18] },
+      lowerChest: { size: [4.22, 0.76, 2.94], position: [0, -0.92, -0.04] },
+      frontArmor: { size: [4.72, 1.12, 0.68], position: [0, -0.02, 1.82] },
+      // Match the gameplay pivot at rest; the customizer can raise it further.
+      upperBody: { position: [0, 5.83, 0] },
+      leftArm: { rotation: [-0.06, 0.08, -0.08] },
+      rightArm: { rotation: [-0.06, -0.08, 0.08] },
+      head: { size: [0.76, 0.34, 0.82], position: [0, 0.06, 0.18] },
+      legRoot: { position: [2.02, -0.07, 0] },
+      thigh: { size: [1.54, 2.25, 1.63], position: [0, -1.0, 0.14] },
+      knee: { size: [1.32, 1.15, 0.94], position: [0, -0.04, 0.86] },
+      calf: { size: [1.3, 3.05, 1.42], position: [0, -1.43, -0.05] },
+      rearCalf: { size: [0.82, 2.35, 0.65], position: [0, -1.38, -0.98] },
+      foot: { size: [1.56, 0.53, 2.06], position: [0, 0, 0.19] },
+      toe: { size: [0.5, 0.36, 1.54], position: [0.58, 0.02, 1.18] }
     }
   };
   const merge = (base, custom) => Object.fromEntries(Object.entries(base).map(([key, value]) => [
@@ -42,7 +75,7 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
 
   const player = new THREE.Group();
   player.name = 'PlayerMecha';
-  player.userData.unitClass = 'MK486DX MEDIUM BATTLE WALKER';
+  player.userData.unitClass = 'MK486DX HEAVY ASSAULT WALKER';
 
   const materials = {
     armorMat: new THREE.MeshStandardMaterial({ color: customization.colors.body, roughness: .42, metalness: .62 }),
@@ -58,5 +91,5 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
     jointGlowMat: new THREE.MeshBasicMaterial({ color: 0x55e9ff, toneMapped: false })
   };
 
-  return { player, dimensions, materials, meshes: customization.meshes, hiddenParts: customization.hiddenParts || {}, colors: customization.colors };
+  return { player, dimensions, materials, meshes: customization.meshes, attachments: customization.attachments, ballJointSize: customization.ballJointSize, ballJointLayout: customization.ballJointLayout, partJointOffsets: customization.partJointOffsets, hiddenParts: customization.hiddenParts || {}, hiddenBodyJoints: customization.hiddenBodyJoints || {}, colors: customization.colors };
 };

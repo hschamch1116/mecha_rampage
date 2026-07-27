@@ -28,6 +28,22 @@
         this.externalVelocity.addScaledVector(impulse, 1 / this.mass);
       }
 
+      integrateAngularContact(state, currentAngle, targetAngle, dt, options = {}) {
+        const stiffness = options.stiffness ?? 72;
+        const damping = options.damping ?? 15;
+        const inverseMass = 1 / Math.max(.1, options.mass ?? 1);
+        const error = targetAngle - currentAngle;
+        const acceleration = error * stiffness * inverseMass - state.angularVelocity * damping * inverseMass;
+        state.angularVelocity += acceleration * dt;
+        state.angularVelocity = THREE.MathUtils.clamp(state.angularVelocity, -4.5, 4.5);
+        const nextAngle = currentAngle + state.angularVelocity * dt;
+        if (Math.abs(error) < .001 && Math.abs(state.angularVelocity) < .01) {
+          state.angularVelocity = 0;
+          return targetAngle;
+        }
+        return nextAngle;
+      }
+
       integrateHorizontal(dt, isBlocked) {
         this.externalVelocity.multiplyScalar(Math.exp(-this.linearDamping * dt));
         const totalX = this.velocity.x + this.externalVelocity.x;

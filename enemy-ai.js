@@ -204,7 +204,7 @@ const WEAPONS = window.MECHA_WEAPON_SYSTEM;
 const MechaRigidBody = window.createMechaRigidBodyClass(THREE);
 const AI_CONFIG = {
   ENERGY: {
-    MAX: 100,
+    MAX: 200,
     GATLING: 5,
     CANNON: 12,
     DASH: 22,
@@ -218,14 +218,14 @@ const AI_CONFIG = {
     AIRBORNE_START: 58
   },
   HEALTH: {
-    MAX: 100,
+    MAX: 200,
     REGEN_COVER: 12,
     RESUPPLY_THRESHOLD: 0.76,
     RETREAT_LOW_HEALTH: 0.26,
     RETREAT_DAMAGED_HEALTH: 0.38
   },
   SHIELD: {
-    MAX: 100,
+    MAX: 200,
     REGEN_COVER: 25
   },
   COOLDOWNS: {
@@ -289,8 +289,8 @@ class EnemyAI {
     this.weaponSlot1 = weaponSlot1;
     this.weaponSlot2 = weaponSlot2;
     this.nextWeaponSlot = 1;
-    this.maxHealth = 100;
-    this.health = 100;
+    this.maxHealth = AI_CONFIG.HEALTH.MAX;
+    this.health = AI_CONFIG.HEALTH.MAX;
     this.shield = 0;
     this.healthBarTimer = 0;
     this.alive = true;
@@ -303,7 +303,7 @@ class EnemyAI {
     this.jetpackEquipped = false;
     this.jetpackReadyAt = Infinity;
     this.jetpackTimeRemaining = 0;
-    this.energy = 100;
+    this.energy = AI_CONFIG.ENERGY.MAX;
     this.seekCoverTimer = 0;
     this.retreatMode = false;
     this.targetMemory = 0;
@@ -784,7 +784,7 @@ class EnemyAI {
     this.jetpackEquipped = false;
     this.jetpackReadyAt = Infinity;
     this.jetpackTimeRemaining = 0;
-    this.energy = 100;
+    this.energy = AI_CONFIG.ENERGY.MAX;
     this.seekCoverTimer = 0;
     this.retreatMode = false;
     this.targetMemory = 0;
@@ -894,8 +894,8 @@ class EnemyAI {
   }
 
   applyShield(amount = 60) {
-    this.shield = Math.min(100, this.shield + amount);
-    this.shieldBubble.setStrength(this.shield / 100);
+    this.shield = Math.min(AI_CONFIG.SHIELD.MAX, this.shield + amount);
+    this.shieldBubble.setStrength(this.shield / AI_CONFIG.SHIELD.MAX);
     this.shieldBubble.hit(this.group.position.clone().add(new THREE.Vector3(0, 4.25, 0)), .55);
     this.onMessage?.(`CPU SHIELD +${amount}`);
   }
@@ -914,7 +914,7 @@ class EnemyAI {
       const shieldImpact = impactPosition || this.group.position.clone().add(new THREE.Vector3(0, 4.25, 0));
       this.shieldBubble.hit(shieldImpact, .4 + Math.min(1, absorbed / 24));
     }
-    this.shieldBubble.setStrength(this.shield / 100);
+    this.shieldBubble.setStrength(this.shield / AI_CONFIG.SHIELD.MAX);
     this.health = Math.max(0, this.health - incomingDamage);
     if (impulse?.lengthSq() > .001) {
       const hitImpulse = _v1.copy(impulse).setY(0).normalize()
@@ -1551,7 +1551,7 @@ class EnemyAI {
       this.shieldBubble.uniforms.uColor.value.setHex(0xff365f);
       this.shieldBubble.uniforms.uRimColor.value.setHex(0xffd2dc);
     }
-    this.shieldBubble.update(dt, spawnProtected ? 1 : this.shield / 100);
+    this.shieldBubble.update(dt, spawnProtected ? 1 : this.shield / AI_CONFIG.SHIELD.MAX);
     this.updateShells(dt);
     this.updateMissileTrails(dt);
 
