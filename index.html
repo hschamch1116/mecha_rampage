@@ -7,8 +7,8 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
-    * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0b1020; font-family: 'Segoe UI', Arial, sans-serif; }
+    * { box-sizing: border-box; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-user-drag: none; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0b1020; font-family: 'Segoe UI', Arial, sans-serif; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
     canvas { display: block; }
     #hud { position: fixed; inset: 0; pointer-events: none; color: white; }
     #playerStatusHud { display: none; position: absolute; }
@@ -59,7 +59,9 @@
     #tacticalMap.danger #nearestEnemyDistance { color:#fff; text-shadow:0 0 8px #ff173d; }
     @keyframes radarDanger { from { filter:none; } to { filter:drop-shadow(0 0 8px #ff173d); } }
     #minimapCanvas { display:block; width: 180px; height: 180px; border-radius:50%; clip-path:circle(50% at 50% 50%); }
-    #fpsCounter { position:absolute; right:18px; top:18px; color:#8ff3ff; font:800 12px Orbitron,sans-serif; text-shadow:0 0 8px #19b9d3; }
+    #fpsCounter { position:fixed; z-index:40; right:18px; top:18px; min-width:124px; padding:8px 10px; border:1px solid rgba(95,223,239,.56); border-left-width:3px; background:rgba(3,12,19,.76); color:#8ff3ff; font:800 11px Orbitron,sans-serif; letter-spacing:.08em; text-align:right; text-shadow:0 0 8px #19b9d3; box-shadow:inset 0 0 16px rgba(40,187,209,.11); pointer-events:none; }
+    #fpsCounter.performance-warn { color:#ffe179; border-color:rgba(255,204,82,.72); text-shadow:0 0 8px #ffb429; }
+    #fpsCounter.performance-critical { color:#ff7180; border-color:rgba(255,71,89,.78); text-shadow:0 0 9px #ff3348; }
     #partsDamageHud { position:absolute; left:18px; bottom:18px; display:grid; grid-template-columns:repeat(5,minmax(36px,1fr)); gap:5px; width:244px; padding:23px 8px 8px; border:1px solid rgba(113,219,232,.34); border-radius:2px; background:linear-gradient(180deg,rgba(4,19,28,.4),rgba(4,11,17,.84)); font:700 8px Orbitron,sans-serif; pointer-events:none; }
     .parts-title { position:absolute; left:8px; top:7px; color:#7ee9f5; font-size:8px; letter-spacing:.16em; white-space:nowrap; }
     .integrity-chip { min-width:36px; padding:3px; border:1px solid currentColor; background:rgba(3,14,21,.88); color:#7ff0ff; font:800 7px Orbitron,sans-serif; text-align:center; }
@@ -80,6 +82,18 @@
     @keyframes hangarPanelEnter { from { opacity:0; transform:translateX(-48px); } to { opacity:1; transform:translateX(0); } }
     #titleScreen { position:fixed; inset:0; z-index:30; display:grid; grid-template-columns:1fr minmax(420px,48vw); align-items:center; color:#eefcff; background:linear-gradient(90deg,rgba(2,7,11,.05) 0 42%,rgba(2,7,11,.78) 64%,rgba(2,7,11,.97)); transition:opacity .55s ease,visibility .55s ease; }
     #titleScreen.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+    #titleScreen.orbiting { cursor:grabbing; }
+    #loadingScreen { position:fixed; inset:0; z-index:70; display:grid; place-items:center; overflow:hidden; color:#ddfbff; background:radial-gradient(circle at 50% 44%,rgba(18,68,84,.38),transparent 34%),linear-gradient(135deg,#02070b 0%,#07131b 55%,#010407 100%); transition:opacity .55s ease,visibility .55s ease; }
+    #loadingScreen.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+    .loading-grid { position:absolute; inset:-40%; opacity:.35; background-image:linear-gradient(rgba(82,218,239,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(82,218,239,.12) 1px,transparent 1px); background-size:30px 30px; transform:perspective(460px) rotateX(62deg) translateY(18%); transform-origin:center; animation:loadingGrid 5s linear infinite; }
+    .loading-core { position:relative; width:min(390px,76vw); padding:32px 30px 28px; border:1px solid rgba(108,234,249,.55); background:rgba(3,14,21,.74); box-shadow:0 0 42px rgba(36,206,230,.18),inset 0 0 28px rgba(51,194,215,.08); font-family:Orbitron,"Segoe UI",sans-serif; }
+    .loading-kicker { color:#73e8f5; font-size:10px; font-weight:900; letter-spacing:.28em; }
+    .loading-title { margin:11px 0 22px; font-size:clamp(22px,4vw,34px); font-weight:1000; letter-spacing:.12em; text-shadow:0 0 16px rgba(96,233,247,.55); }
+    .loading-track { height:7px; overflow:hidden; border:1px solid rgba(118,223,235,.42); background:#061117; }
+    .loading-fill { width:0%; height:100%; background:linear-gradient(90deg,#22b9d2,#b1fbff); box-shadow:0 0 14px #59eaf6; transition:width .3s ease; }
+    .loading-meta { display:flex; justify-content:space-between; margin-top:12px; color:#9bc3ca; font-size:9px; font-weight:800; letter-spacing:.1em; }
+    @keyframes loadingGrid { to { transform:perspective(460px) rotateX(62deg) translateY(23%); } }
+    .title-camera-hint { position:absolute; left:28px; bottom:24px; padding:9px 13px; border-left:2px solid #63e8f4; background:rgba(3,10,15,.64); color:#bdeff5; font:800 9px Orbitron,sans-serif; letter-spacing:.12em; pointer-events:none; }
     .title-panel { grid-column:2; padding:8vw 7vw 8vw 3vw; animation:titlePanelEnter 1s cubic-bezier(.16,.8,.2,1) both; }
     .title-kicker { color:#70e7f5; font:800 12px Orbitron,sans-serif; letter-spacing:.42em; }
     .game-logo { margin:18px 0 8px; font:900 clamp(52px,7.8vw,118px)/.78 Orbitron,sans-serif; letter-spacing:-.08em; transform:perspective(700px) rotateY(-8deg); color:#dffaff; text-shadow:2px 2px 0 #3b8394,5px 5px 0 #173846,9px 9px 0 #08151c,0 0 28px rgba(63,225,247,.52); }
@@ -144,8 +158,10 @@
     .custom-color-presets { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
     .custom-color-swatch { aspect-ratio:1; border:2px solid rgba(255,255,255,.24); border-radius:4px; cursor:pointer; box-shadow:inset 0 0 0 2px rgba(0,0,0,.25); }
     .custom-color-swatch.selected { border-color:#eaffff; box-shadow:0 0 0 2px #55eaff,inset 0 0 0 2px rgba(0,0,0,.3); }
-    .custom-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:22px; }
-    .custom-actions button { padding:12px 8px; border:1px solid #62d9e8; background:#14313a; color:#e8fcff; font:900 10px Orbitron,sans-serif; cursor:pointer; }
+    .custom-actions { display:grid; grid-template-columns:repeat(5, 1fr); gap:5px; margin-top:22px; }
+    .custom-actions button { padding:10px 4px; border:1px solid #62d9e8; background:#14313a; color:#e8fcff; font:900 9px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.04em; }
+    #customExportButton { border-color:#62eaff; color:#8ff3ff; background:#133644; }
+    #customImportButton { border-color:#ffe36a; color:#fff3a1; background:#382f15; }
     #customResetButton { border-color:#ff735f; color:#ffac9f; background:#351816; }
     .custom-camera-hint { position:absolute; left:28px; bottom:24px; padding:10px 14px; border-left:2px solid #62eaff; background:rgba(4,13,18,.72); color:#aeeef6; font:800 10px Orbitron,sans-serif; letter-spacing:.1em; }
     #hangarStatus { margin-top: 11px; color: #7fa0a8; font-size: 11px; text-align: center; }
@@ -191,6 +207,14 @@
     #aimMarker::after { content: ""; position: absolute; width: 5px; height: 5px; left: 6.5px; top: 6.5px; border-radius: 50%; background: #fff3c4; }
     #message { position: absolute; left: 50%; bottom: 50px; transform: translateX(-50%); font-weight: 800; font-size: 22px; text-shadow: 0 3px 10px black; opacity: 0; transition: opacity .2s ease; }
     #pauseButton { position: absolute; right: 18px; top: 18px; pointer-events: auto; border: 1px solid rgba(255,255,255,.24); border-radius: 10px; padding: 10px 16px; color: white; background: rgba(6,10,22,.78); font-weight: 800; cursor: pointer; }
+    #freeCamButton { position: absolute; right: 132px; top: 18px; pointer-events: auto; border: 1px solid rgba(113,219,232,.45); border-radius: 10px; padding: 10px 14px; color: #8ff3ff; background: rgba(6,10,22,.85); font: 800 11px Orbitron, sans-serif; letter-spacing: .08em; cursor: pointer; backdrop-filter: blur(6px); transition: all .16s ease; }
+    #freeCamButton:hover, #freeCamButton.active { border-color: #ffe36a; color: #fff3a1; background: rgba(35,27,3,.92); box-shadow: 0 0 16px rgba(255,203,39,.5); }
+    .free-cam-badge { position: absolute; left: 50%; top: 28px; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; gap: 6px; padding: 12px 26px; border: 1px solid #ffe36a; background: rgba(4, 10, 18, 0.94); color: #fff; font-family: Orbitron, "Segoe UI", sans-serif; border-radius: 6px; box-shadow: 0 0 28px rgba(255,203,39,.45), inset 0 0 16px rgba(255,203,39,.18); backdrop-filter: blur(10px); pointer-events: none; z-index: 100; }
+    .free-cam-badge.active { display: flex; animation: freeCamPulse 2s ease-in-out infinite alternate; }
+    .free-cam-title { font-size: 14px; font-weight: 900; letter-spacing: .15em; color: #ffe36a; text-shadow: 0 0 10px rgba(255,227,106,.8); }
+    .free-cam-controls { display: flex; gap: 16px; font-size: 11px; color: #d0e8fc; letter-spacing: .06em; }
+    .free-cam-controls strong { color: #8ff3ff; font-weight: 800; }
+    @keyframes freeCamPulse { from { border-color: #ffe36a; } to { border-color: #ff9d3b; box-shadow: 0 0 34px rgba(255,157,59,.6); } }
     #visualHudButton { position:absolute; right:18px; top:108px; z-index:4; pointer-events:auto; border:1px solid rgba(169,140,245,.62); border-radius:7px; padding:8px 10px; color:#e8e1ff; background:rgba(24,16,48,.84); font:900 10px Orbitron,sans-serif; letter-spacing:.1em; cursor:pointer; }
     #audioControls { position:absolute; right:18px; top:62px; z-index:4; display:flex; align-items:center; gap:7px; padding:7px 9px; pointer-events:auto; border:1px solid rgba(113,219,232,.38); border-radius:7px; background:rgba(6,10,22,.78); color:#bcebf1; font:800 9px Orbitron,sans-serif; letter-spacing:.08em; }
     #audioControls label { display:flex; align-items:center; gap:4px; }
@@ -294,7 +318,17 @@
   </style>
 </head>
 <body>
+  <section id="loadingScreen" aria-live="polite" aria-label="Game loading">
+    <div class="loading-grid" aria-hidden="true"></div>
+    <div class="loading-core">
+      <div class="loading-kicker">SIEGE WALKER SYSTEM</div>
+      <div class="loading-title">INITIALIZING</div>
+      <div class="loading-track"><div id="loadingFill" class="loading-fill"></div></div>
+      <div class="loading-meta"><span id="loadingStatus">PREPARING HANGAR</span><span id="loadingPercent">0%</span></div>
+    </div>
+  </section>
   <section id="titleScreen" aria-label="Mecha Rampage title screen">
+    <div class="title-camera-hint">DRAG LEFT / RIGHT · MECHA ORBIT</div>
     <div class="title-panel">
       <div class="title-kicker">SIEGE WALKER PROTOCOL</div>
       <h1 class="game-logo" aria-label="MECHA RAMPAGE"><span class="title-word"><i class="title-letter" style="--letter-delay:.16s">M</i><i class="title-letter" style="--letter-delay:.30s">E</i><i class="title-letter" style="--letter-delay:.44s">C</i><i class="title-letter" style="--letter-delay:.58s">H</i><i class="title-letter" style="--letter-delay:.72s">A</i></span><span class="title-rampage">RAMPAGE</span></h1>
@@ -365,6 +399,7 @@
       <label class="settings-row">WINDOW ROUGHNESS <input id="windowRoughness" type="range" min="0" max="0.65" step="0.01" value="0"><output>0.00</output></label>
       <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.2"><output>0.20</output></label>
       <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="1.2"><output>1.20</output></label>
+      <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.72"><output>0.72</output></label>
       <button id="visualSettingsClose" type="button">CLOSE</button>
     </div>
   </section>
@@ -375,11 +410,27 @@
       <h2>MECHA CUSTOM</h2>
       <select id="customPartSelect"></select>
       <div id="customControls"></div>
-      <div class="custom-actions"><button id="customBackButton">BACK</button><button id="customResetButton">RESET</button><button id="customSaveButton">APPLY</button></div>
+      <div class="custom-actions">
+        <button id="customBackButton" type="button">BACK</button>
+        <button id="customExportButton" type="button" title="Save customization to JSON file">SAVE FILE</button>
+        <button id="customImportButton" type="button" title="Load customization from JSON file">LOAD FILE</button>
+        <button id="customResetButton" type="button">RESET</button>
+        <button id="customSaveButton" type="button">APPLY</button>
+      </div>
+      <input type="file" id="customImportInput" accept=".json" style="display:none;">
     </div>
   </section>
   <div id="hud">
-    <div id="fpsCounter">FPS --</div>
+    <div id="freeCamBadge" class="free-cam-badge">
+      <div class="free-cam-title">🎥 FREE CAMERA MODE (PAUSED)</div>
+      <div class="free-cam-controls">
+        <span><strong>W A S D</strong> 이동</span>
+        <span><strong>Space / Ctrl</strong> 상승 / 하강</span>
+        <span><strong>Shift</strong> 고속 비행</span>
+        <span><strong>F / Esc</strong> 카메라 종료</span>
+      </div>
+    </div>
+    <button id="freeCamButton" type="button">프리 카메라 (F)</button>
     <button id="pauseButton" type="button">일시정지 (P)</button>
     <button id="visualHudButton" type="button">VISUAL</button>
     <div id="audioControls" aria-label="사운드 설정">
@@ -497,6 +548,7 @@
       <div id="vsCountdownText">3</div>
     </div>
   </div>
+  <div id="fpsCounter" role="status" aria-live="off">FPS -- · -- ms</div>
 
   <script src="./weapon-system.js"></script>
   <script src="./mecha-rigidbody.js"></script>
@@ -517,6 +569,7 @@
     import * as THREE from 'three';
     import * as CANNON from 'cannon-es';
     import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+    import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
@@ -792,14 +845,115 @@
     renderer.toneMappingExposure = 1.0; // 밝은 낮 시간에 맞춰 노출 값 조정
     document.body.appendChild(renderer.domElement);
 
+    const loadingScreen = document.getElementById('loadingScreen');
+    const loadingFill = document.getElementById('loadingFill');
+    const loadingStatus = document.getElementById('loadingStatus');
+    const loadingPercent = document.getElementById('loadingPercent');
+    function setStartupLoading(progress, status) {
+      const value = Math.round(THREE.MathUtils.clamp(progress, 0, 100));
+      loadingFill.style.width = `${value}%`;
+      loadingPercent.textContent = `${value}%`;
+      loadingStatus.textContent = status;
+    }
+    setStartupLoading(8, 'CALIBRATING RENDERER');
+
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     // 주간 씬에 맞게 Bloom 강도를 소폭 낮춤
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .45, .55, .85);
     composer.addPass(bloomPass);
-    const filmPass = new FilmPass(.14, .28, 648, false);
+    // Fine film grain adds texture without the old CRT-style scanlines.
+    const filmPass = new FilmPass(.075, 0, 0, false);
     composer.addPass(filmPass);
     composer.addPass(new OutputPass());
+
+    function createRainSystem(maxCount = 18000) {
+      const geometry = new THREE.InstancedBufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute([
+        -.5, -.5, 0, .5, -.5, 0, .5, .5, 0, -.5, .5, 0
+      ], 3));
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 1], 2));
+      geometry.setIndex([0, 1, 2, 0, 2, 3]);
+      const seeds = new Float32Array(maxCount * 3);
+      const randoms = new Float32Array(maxCount);
+      for (let i = 0; i < maxCount; i++) {
+        seeds[i * 3] = Math.random();
+        seeds[i * 3 + 1] = Math.random();
+        seeds[i * 3 + 2] = Math.random();
+        randoms[i] = Math.random();
+      }
+      geometry.setAttribute('aSeed', new THREE.InstancedBufferAttribute(seeds, 3));
+      geometry.setAttribute('aRand', new THREE.InstancedBufferAttribute(randoms, 1));
+      const uniforms = {
+        uTime: { value: 0 },
+        uCameraPos: { value: new THREE.Vector3() },
+        uWind: { value: new THREE.Vector3(2.4, 0, .8) },
+        uVolume: { value: new THREE.Vector3(76, 54, 76) },
+        uOpacity: { value: .58 }
+      };
+      const material = new THREE.ShaderMaterial({
+        uniforms,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.NormalBlending,
+        vertexShader: `
+          uniform float uTime;
+          uniform vec3 uCameraPos;
+          uniform vec3 uWind;
+          uniform vec3 uVolume;
+          attribute vec3 aSeed;
+          attribute float aRand;
+          varying vec2 vUv;
+          varying float vRand;
+          void main() {
+            vUv = uv;
+            vRand = aRand;
+            float speed = 28.0 * (.72 + aRand * .55);
+            vec3 origin = uCameraPos - vec3(uVolume.x * .5, uVolume.y * .78, uVolume.z * .5);
+            vec3 base = aSeed * uVolume;
+            vec3 motion = vec3(uWind.x, -speed, uWind.z) * uTime;
+            vec3 drop = mod(base + motion - origin, uVolume) + origin;
+            vec3 velocity = normalize(vec3(uWind.x, -speed, uWind.z));
+            vec3 toCamera = normalize(uCameraPos - drop);
+            vec3 side = normalize(cross(velocity, toCamera));
+            float length = 1.7 * (.72 + aRand * .65);
+            vec3 world = drop + side * position.x * .022 + velocity * position.y * length;
+            gl_Position = projectionMatrix * viewMatrix * vec4(world, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform float uOpacity;
+          varying vec2 vUv;
+          varying float vRand;
+          void main() {
+            float across = smoothstep(0.0, .5, vUv.x) * smoothstep(1.0, .5, vUv.x);
+            float along = smoothstep(0.0, .25, vUv.y) * smoothstep(1.0, .55, vUv.y);
+            float alpha = across * along * uOpacity * (.6 + vRand * .4);
+            gl_FragColor = vec4(vec3(.70, .82, .9), alpha);
+          }
+        `
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.frustumCulled = false;
+      mesh.renderOrder = 8;
+      envGroup.add(mesh);
+      const setIntensity = value => {
+        const amount = THREE.MathUtils.clamp(Number(value), 0, 1);
+        geometry.instanceCount = amount <= 0 ? 0 : Math.max(1, Math.floor(maxCount * amount));
+        uniforms.uOpacity.value = .28 + amount * .48;
+        mesh.visible = amount > 0;
+      };
+      setIntensity(.72);
+      return {
+        mesh,
+        setIntensity,
+        update(dt) {
+          uniforms.uTime.value += dt;
+          uniforms.uCameraPos.value.copy(camera.position);
+        }
+      };
+    }
+    const rainSystem = createRainSystem();
 
     // 앰비언트 라이트(GI 대체): 밝은 스카이 톤과 지면 반사율 적용
     const hemi = new THREE.HemisphereLight(0xffffff, 0xa3b1c6, 0.85);
@@ -1162,6 +1316,21 @@
     concreteTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const sidewalkMat = new THREE.MeshStandardMaterial({ map: concreteTexture, color: 0xc1c0b8, roughness: .92 });
     const curbMat = new THREE.MeshStandardMaterial({ color: 0xa7aaa5, roughness: .88 });
+    const wetSurfaceMaterials = [
+      { material: ground.material, color: 0xb0b7ba, roughness: .9, metalness: .05 },
+      { material: roadMat, color: 0x333e49, roughness: .82, metalness: .18 },
+      { material: sidewalkMat, color: 0xc1c0b8, roughness: .92, metalness: 0 },
+      { material: curbMat, color: 0xa7aaa5, roughness: .88, metalness: 0 }
+    ];
+    function applyWetSurfaceIntensity(value) {
+      const wet = THREE.MathUtils.smoothstep(Number(value), 0, 1);
+      for (const entry of wetSurfaceMaterials) {
+        entry.material.color.setHex(entry.color).multiplyScalar(1 - wet * .38);
+        entry.material.roughness = THREE.MathUtils.lerp(entry.roughness, .16, wet);
+        entry.material.metalness = THREE.MathUtils.lerp(entry.metalness, Math.min(.55, entry.metalness + .28), wet);
+        entry.material.needsUpdate = true;
+      }
+    }
     const roadExtent = (ARENA_SIZE + 16) * .5;
     const verticalSidewalkSegments = [
       [-roadExtent, -70.6], [-61.4, -38.6], [-29.4, roadExtent]
@@ -1307,16 +1476,37 @@
     const { armorMat, armorLightMat, gunmetalMat, accentMat, glowMat, eyeGreenMat,
       warningMat, missilePortMat, hydraulicMat, jointBallMat, jointGlowMat } = mechaMaterials;
 
+    // The walker formerly allocated a rounded, 4-segment geometry for every
+    // armor plate.  The angular military silhouette reads better with hard
+    // edges, shares geometry between matching plates, and greatly cuts both
+    // triangles and shadow-map draw work.
+    const angularMechBoxGeometryCache = new Map();
+    const angularMechCylinderGeometryCache = new Map();
     function mechBox(width, height, depth, material, radius = .12) {
-      const mesh = new THREE.Mesh(new RoundedBoxGeometry(width, height, depth, 4, radius), material);
-      mesh.castShadow = true;
+      const key = `${width}|${height}|${depth}`;
+      let geometry = angularMechBoxGeometryCache.get(key);
+      if (!geometry) {
+        geometry = new THREE.BoxGeometry(width, height, depth);
+        angularMechBoxGeometryCache.set(key, geometry);
+      }
+      const mesh = new THREE.Mesh(geometry, material);
+      // Tiny trim pieces retain their highlights but do not need individual
+      // soft shadows in every shadow-map pass.
+      mesh.castShadow = width * height * depth > .095;
       mesh.receiveShadow = true;
       return mesh;
     }
 
     function mechCylinder(radiusTop, radiusBottom, height, material, segments = 14) {
-      const mesh = new THREE.Mesh(new THREE.CylinderGeometry(radiusTop, radiusBottom, height, segments), material);
-      mesh.castShadow = true;
+      const angularSegments = Math.min(10, segments);
+      const key = `${radiusTop}|${radiusBottom}|${height}|${angularSegments}`;
+      let geometry = angularMechCylinderGeometryCache.get(key);
+      if (!geometry) {
+        geometry = new THREE.CylinderGeometry(radiusTop, radiusBottom, height, angularSegments);
+        angularMechCylinderGeometryCache.set(key, geometry);
+      }
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.castShadow = Math.PI * Math.max(radiusTop, radiusBottom) ** 2 * height > .08;
       mesh.receiveShadow = true;
       return mesh;
     }
@@ -1384,16 +1574,20 @@
     const pelvis = new THREE.Group();
     pelvis.position.fromArray(mechaMeshes.pelvis.position);
     waistRig.add(pelvis);
+    // Keep visible pelvic armor independent from the leg-root container so it
+    // can follow the real hip sockets without dragging both legs with it.
+    const pelvisVisualRig = new THREE.Group();
+    pelvis.add(pelvisVisualRig);
     const pelvisArmor = mechBox(...mechaMeshes.pelvis.size, gunmetalMat, .21);
-    pelvis.add(pelvisArmor);
+    pelvisVisualRig.add(pelvisArmor);
     bindCustomPart('pelvis', pelvisArmor, pelvis);
     const pelvisFrontGuard = mechBox(1.74, .86, .54, armorLightMat, .13);
     pelvisFrontGuard.position.set(0, -.5, 1.36);
     pelvisFrontGuard.rotation.x = -.12;
-    pelvis.add(pelvisFrontGuard);
+    pelvisVisualRig.add(pelvisFrontGuard);
     const pelvisCenterPlate = mechBox(.84, .62, .18, armorMat, .06);
     pelvisCenterPlate.position.set(0, -.55, 1.68);
-    pelvis.add(pelvisCenterPlate);
+    pelvisVisualRig.add(pelvisCenterPlate);
 
     const waistCoreAssembly = new THREE.Group();
     waistCoreAssembly.position.set(0, 0, .9);
@@ -1429,23 +1623,27 @@
       waistCoreAssembly.add(stabilizerRing);
     }
 
+    const hipSocketCarriers = [];
     for (const side of [-1, 1]) {
+      const hipSocketCarrier = new THREE.Group();
+      pelvis.add(hipSocketCarrier);
+      hipSocketCarriers.push(hipSocketCarrier);
       const hipSkirt = mechBox(...mechaMeshes.hipSkirt.size, armorMat, .16);
       hipSkirt.position.set(side * mechaMeshes.hipSkirt.position[0], mechaMeshes.hipSkirt.position[1], mechaMeshes.hipSkirt.position[2]);
       hipSkirt.rotation.z = side * -.08;
-      pelvis.add(hipSkirt);
+      hipSocketCarrier.add(hipSkirt);
       bindCustomPart('hipSkirt', hipSkirt, hipSkirt, side);
       const hipStripe = mechBox(.18, .86, 1.78, accentMat, .04);
       hipStripe.position.set(side * 1.58, -.04, .11);
-      pelvis.add(hipStripe);
+      hipSocketCarrier.add(hipStripe);
       const hipOuterShell = mechBox(.52, .92, 1.42, armorLightMat, .13);
       hipOuterShell.position.set(side * 2.42, -.12, .02);
       hipOuterShell.rotation.z = side * -.13;
-      pelvis.add(hipOuterShell);
+      hipSocketCarrier.add(hipOuterShell);
       const hipCap = mechCylinder(.42, .5, .24, gunmetalMat, 18);
       hipCap.rotation.z = Math.PI / 2;
       hipCap.position.set(side * 2.68, -.12, .02);
-      pelvis.add(hipCap);
+      hipSocketCarrier.add(hipCap);
     }
 
     // WIDE TURRET TORSO -----------------------------------------------------
@@ -1732,12 +1930,19 @@
     auxBarrel.add(auxMuzzle);
 
     // ARTICULATED HEAVY WALKER LEGS ----------------------------------------
-    // waist/hip -> thigh -> knee -> calf -> ankle -> sole
+    // waist/hip -> rear knee -> forward calf -> ankle -> sole
     const playerLegs = [];
+    // Lower the ankle to the end of the calf for a longer reverse-joint
+    // silhouette, then raise the complete leg by the same amount so its sole
+    // remains on the ground plane.
+    const REVERSE_ANKLE_DROP = .22;
+    const REVERSE_LEG_GROUND_OFFSET = -.32;
+    const REVERSE_FOOT_LEVEL_PITCH = .78;
     for (const side of [-1, 1]) {
       const leg = new THREE.Group();
       const legAttachment = side < 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg;
       leg.position.fromArray(legAttachment);
+      leg.position.y += REVERSE_LEG_GROUND_OFFSET;
       pelvis.add(leg);
       playerLegs.push(leg);
       bindCustomPart('legRoot', null, leg, side);
@@ -1754,6 +1959,8 @@
       leg.add(hipJointBand);
 
       const thigh = new THREE.Group();
+      // Reverse-joint stance: thigh drives the knee rearward, then the calf
+      // returns toward the foot to form the animal-like walker silhouette.
       thigh.rotation.x = -.08;
       leg.add(thigh);
       const thighArmor = mechBox(...mechaMeshes.thigh.size, armorMat, .18);
@@ -1773,9 +1980,8 @@
       thigh.add(thighRearPlate);
 
       const knee = new THREE.Group();
-      // Knee sits at the thigh's lower end; the shin begins immediately below it.
-      knee.position.set(0, -2.05, .67);
-      knee.rotation.x = .16;
+      knee.position.set(0, -2.05, -1.24);
+      knee.rotation.x = -.32;
       thigh.add(knee);
       const kneeArmor = mechBox(...mechaMeshes.knee.size, accentMat, .12);
       kneeArmor.position.fromArray(mechaMeshes.knee.position);
@@ -1794,35 +2000,35 @@
       outerKneeArmor.position.x = side * .62;
       knee.add(outerKneeArmor);
       const kneeFacePlate = mechBox(.76, .68, .28, armorLightMat, .09);
-      kneeFacePlate.position.set(0, -.08, 1.12);
-      kneeFacePlate.rotation.x = -.14;
+      kneeFacePlate.position.set(0, -.08, -1.12);
+      kneeFacePlate.rotation.x = .14;
       knee.add(kneeFacePlate);
       addPanelLight(kneeFacePlate, 0, .08, .2, .42, .09, warningMat);
 
       const shin = new THREE.Group();
-      shin.position.set(0, -.08, -.04);
-      shin.rotation.x = .12;
+      shin.position.set(0, -.08, .03);
+      shin.rotation.x = -.5;
       knee.add(shin);
       const calfArmor = mechTaperedBox(...mechaMeshes.calf.size, .58, armorLightMat);
       calfArmor.position.fromArray(mechaMeshes.calf.position);
       shin.add(calfArmor);
       bindCustomPart('calf', calfArmor, calfArmor);
       const shinFrontPlate = mechBox(.82, 1.12, .24, armorMat, .08);
-      shinFrontPlate.position.set(0, -.85, .72);
-      shinFrontPlate.rotation.x = -.08;
+      shinFrontPlate.position.set(0, -.85, .76);
+      shinFrontPlate.rotation.x = .12;
       shin.add(shinFrontPlate);
       const calfOuterShell = mechTaperedBox(.26, 1.36, 1.04, .48, armorMat);
       calfOuterShell.position.set(side * .6, -.94, -.08);
       calfOuterShell.rotation.z = side * -.06;
       shin.add(calfOuterShell);
       const ankleGuard = mechBox(.76, .4, .86, armorLightMat, .09);
-      ankleGuard.position.set(0, -2.48, .02);
-      ankleGuard.rotation.x = .08;
+      ankleGuard.position.set(0, -2.78 - REVERSE_ANKLE_DROP, .02);
+      ankleGuard.rotation.x = -.14;
       shin.add(ankleGuard);
 
       const rearCalf = mechBox(...mechaMeshes.rearCalf.size, gunmetalMat, .09);
       rearCalf.position.fromArray(mechaMeshes.rearCalf.position);
-      rearCalf.rotation.x = -.18;
+      rearCalf.rotation.x = -.42;
       shin.add(rearCalf);
       bindCustomPart('rearCalf', rearCalf, rearCalf);
       const rearCalfVent = mechBox(.5, 1.18, .1, missilePortMat, .025);
@@ -1847,7 +2053,7 @@
 
       const anklePivot = new THREE.Group();
       // The ankle is at the lower end of the calf, rather than intersecting its middle.
-      anklePivot.position.set(0, -2.55, .05);
+      anklePivot.position.set(0, -2.85 - REVERSE_ANKLE_DROP, .05);
       shin.add(anklePivot);
       const ankle = mechCylinder(.42, .48, .55, gunmetalMat, 16);
       ankle.rotation.z = Math.PI / 2;
@@ -1862,6 +2068,7 @@
 
       const foot = new THREE.Group();
       foot.position.set(0, -.18, .08);
+      foot.rotation.x = REVERSE_FOOT_LEVEL_PITCH;
       anklePivot.add(foot);
       const sole = mechBox(...mechaMeshes.foot.size, gunmetalMat, .17);
       sole.position.fromArray(mechaMeshes.foot.position);
@@ -2344,13 +2551,17 @@
     jetpack.position.fromArray(mechaAttachments.backpack);
     const jetpackMat = new THREE.MeshStandardMaterial({ color: 0x1685a6, emissive: 0x063f55, emissiveIntensity: .9, metalness: .78, roughness: .22 });
     const jetFlameMat = new THREE.MeshBasicMaterial({ color: 0x6ff7ff, transparent: true, opacity: .96, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const jetFlameCoreMat = new THREE.MeshBasicMaterial({ color: 0xf7fdff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const jetFlameHaloMat = new THREE.MeshBasicMaterial({ color: 0x238dff, transparent: true, opacity: .34, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     const boosterAccentMat = new THREE.MeshStandardMaterial({ color: 0xff8a24, emissive: 0xb72d04, emissiveIntensity: 1.4, metalness: .62, roughness: .2 });
     const JET_FLAME_BASE_LENGTH = 3.3;
     const jetFlames = [];
     const footBoostFlames = [];
+    const boosterExhaustParticles = [];
     const dashTrailWorld = new THREE.Vector3();
     const dashTrailLocal = new THREE.Vector3();
     const dashFlameUp = new THREE.Vector3(0, 1, 0);
+    const dashExhaustDown = new THREE.Vector3(0, -1, 0);
     const jetpackWorldQuaternion = new THREE.Quaternion();
     const dashBoostLight = new THREE.PointLight(0xff2b18, 0, 20, 2);
     dashBoostLight.position.set(0, 2.8, -2.45);
@@ -2422,8 +2633,26 @@
       flame.visible = false;
       flame.userData.side = side;
       flame.userData.nozzleOrigin = new THREE.Vector3(side * 1.12, 3.05, -2.08);
+      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(.27, JET_FLAME_BASE_LENGTH * .72, 10), jetFlameCoreMat);
+      flameCore.position.y = .18;
+      flame.add(flameCore);
+      const flameHalo = new THREE.Mesh(new THREE.ConeGeometry(.88, JET_FLAME_BASE_LENGTH * 1.12, 12, 1, true), jetFlameHaloMat);
+      flameHalo.position.y = -.06;
+      flame.add(flameHalo);
+      flame.userData.core = flameCore;
+      flame.userData.halo = flameHalo;
       jetpack.add(flame);
       jetFlames.push(flame);
+      for (let particleIndex = 0; particleIndex < 7; particleIndex++) {
+        const exhaust = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(.18, 1),
+          new THREE.MeshBasicMaterial({ color: 0x94a5ad, transparent: true, opacity: 0, depthWrite: false })
+        );
+        exhaust.visible = false;
+        exhaust.userData = { side, phase: particleIndex / 7, lane: (particleIndex % 3) - 1, nozzleOrigin: flame.userData.nozzleOrigin };
+        jetpack.add(exhaust);
+        boosterExhaustParticles.push(exhaust);
+      }
       const radiator = mechBox(.56, 1.5, .18, gunmetalMat, .05);
       radiator.position.set(side * 1.48, 5.48, -2.32);
       radiator.rotation.z = side * -.14;
@@ -2462,6 +2691,9 @@
       footFlame.rotation.z = Math.PI;
       footFlame.position.set(0, -1.28, .18);
       footFlame.visible = false;
+      const footCore = new THREE.Mesh(new THREE.ConeGeometry(.11, 1.05, 8), jetFlameCoreMat);
+      footCore.position.y = .08;
+      footFlame.add(footCore);
       foot.add(footFlame);
       footBoostFlames.push(footFlame);
     }
@@ -2576,6 +2808,7 @@
     damageSmoke.position.set(0, 5.65, -1.7);
     player.add(damageSmoke);
     const damageSmokeParticles = [];
+    const disabledLegFlames = [];
     const damagePartOrigins = {
       head: [0, 1.45, 0], torso: [0, .1, 0], leftArm: [-1.85, .25, 0],
       rightArm: [1.85, .25, 0], legs: [0, -2.55, 0]
@@ -2589,6 +2822,16 @@
       smoke.userData.partKey = ['torso', 'torso', 'head', 'leftArm', 'rightArm', 'legs', 'legs', 'leftArm', 'rightArm', 'torso'][i];
       damageSmoke.add(smoke);
       damageSmokeParticles.push(smoke);
+    }
+    for (let index = 0; index < 10; index++) {
+      const flame = new THREE.Mesh(
+        new THREE.ConeGeometry(.18, .78, 7),
+        new THREE.MeshBasicMaterial({ color: index % 3 ? 0xff4b14 : 0xffc735, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })
+      );
+      flame.visible = false;
+      flame.userData = { side: index % 2 ? -1 : 1, phase: index / 10, lane: (index % 3) - 1 };
+      damageSmoke.add(flame);
+      disabledLegFlames.push(flame);
     }
 
     const playerCameraFadeMeshes = [];
@@ -2626,8 +2869,9 @@
     const hangarGroup = new THREE.Group();
     const maintenanceMechanics = [];
     const robotArmSparks = [];
-    const robotRepairBeams = [];
+    const hangarServiceDrones = [];
     const hangarSteamParticles = [];
+    const hangarVentFans = [];
     const hangarLaunchParticles = [];
     const hangarTunnelLights = [];
     const hangarSearchlights = [];
@@ -2637,8 +2881,12 @@
     let hangarLiftGateLeft = null;
     let hangarLiftGateRight = null;
     let hangarLiftPlatform = null;
-    const TITLE_LIFT_START_Y = -5.0;
+    const TITLE_LIFT_START_Y = -8.6;
     const HANGAR_LIFT_GATE_OPEN_X = 5.9;
+    const HANGAR_LIFT_GATE_CLOSED_X = 0;
+    // The reverse-joint preview has a shorter visual reach than the original
+    // walker rig. Keep its sole pressed onto the maintenance deck only.
+    const HANGAR_STAND_GROUND_OFFSET = -.32;
     scene.add(hangarGroup);
 
     function createHangarScene() {
@@ -2706,7 +2954,7 @@
       const shaftMat = new THREE.MeshStandardMaterial({ color: 0x071015, roughness: .72, metalness: .52, side: THREE.BackSide });
       const shaftTrimMat = new THREE.MeshStandardMaterial({ color: 0x263841, roughness: .28, metalness: .9 });
       const shaftLightMat = new THREE.MeshBasicMaterial({ color: 0x3bcfe0, toneMapped: false });
-      const shaftDepth = 5.35;
+      const shaftDepth = 9.1;
       const shaft = new THREE.Group();
       const shaftFloor = new THREE.Mesh(new THREE.BoxGeometry(8.28, .26, 6.32), shaftMat);
       shaftFloor.position.y = -shaftDepth;
@@ -2724,7 +2972,7 @@
         endWall.position.set(0, -shaftDepth * .5, side * 3.12);
         shaft.add(endWall);
       }
-      for (const y of [-.85, -2.55, -4.25]) {
+      for (const y of [-.85, -2.55, -4.25, -5.95, -7.65]) {
         for (const side of [-1, 1]) {
           const shaftLight = new THREE.Mesh(new THREE.BoxGeometry(.07, .12, 4.9), shaftLightMat);
           shaftLight.position.set(side * 3.98, y, 0);
@@ -2753,14 +3001,38 @@
       hangarLiftPlatform.position.y = TITLE_LIFT_START_Y;
       hangarGroup.add(hangarLiftPlatform);
 
-      // Lower elevator hatch: this opens for the title-screen walker reveal.
+      // Lower elevator hatch: two semi-cylindrical doors sit inside the round
+      // shaft and slide apart along the inner rails for the title reveal.
       const liftGateMat = new THREE.MeshStandardMaterial({ color: 0x1a2a33, roughness: .34, metalness: .86 });
-      hangarLiftGateLeft = new THREE.Mesh(new THREE.BoxGeometry(4.2, .18, 6.4), liftGateMat);
-      hangarLiftGateRight = hangarLiftGateLeft.clone();
-      hangarLiftGateLeft.position.set(-2.1, .04, 0);
-      hangarLiftGateRight.position.set(2.1, .04, 0);
+      const hatchRadius = 4.12;
+      hangarLiftGateLeft = new THREE.Mesh(
+        new THREE.CylinderGeometry(hatchRadius, hatchRadius, .2, 48, 1, false, Math.PI, Math.PI),
+        liftGateMat
+      );
+      hangarLiftGateRight = new THREE.Mesh(
+        new THREE.CylinderGeometry(hatchRadius, hatchRadius, .2, 48, 1, false, 0, Math.PI),
+        liftGateMat
+      );
+      hangarLiftGateLeft.position.set(HANGAR_LIFT_GATE_CLOSED_X, -.08, 0);
+      hangarLiftGateRight.position.set(HANGAR_LIFT_GATE_CLOSED_X, -.08, 0);
       hangarLiftGateLeft.castShadow = hangarLiftGateRight.castShadow = true;
       hangarGroup.add(hangarLiftGateLeft, hangarLiftGateRight);
+      const hatchCollar = new THREE.Mesh(new THREE.RingGeometry(4.1, 4.34, 48), shaftTrimMat);
+      hatchCollar.rotation.x = -Math.PI / 2;
+      hatchCollar.position.y = .026;
+      hangarGroup.add(hatchCollar);
+      for (const gate of [hangarLiftGateLeft, hangarLiftGateRight]) {
+        for (const z of [-2.75, 0, 2.75]) {
+          const rib = new THREE.Mesh(new THREE.BoxGeometry(1.25, .055, .09), hazardMat);
+          rib.position.set(gate === hangarLiftGateLeft ? -2.02 : 2.02, .125, z);
+          gate.add(rib);
+        }
+      }
+      for (const side of [-1, 1]) {
+        const track = new THREE.Mesh(new THREE.BoxGeometry(5.5, .11, .16), shaftTrimMat);
+        track.position.set(side * 5.15, -.02, 0);
+        hangarGroup.add(track);
+      }
       for (const gate of [hangarGateLeft, hangarGateRight]) {
         const stripe = new THREE.Mesh(new THREE.BoxGeometry(1.45, .08, 10.4), hazardMat);
         stripe.position.y = -.25;
@@ -2918,12 +3190,24 @@
       const keySpot = new THREE.SpotLight(0xb9f5ff, 180, 78, Math.PI / 5, .48, 1.2);
       keySpot.position.set(-7.5, 12.5, -8.5);
       keySpot.target = player;
+      keySpot.castShadow = true;
+      keySpot.shadow.mapSize.set(1024, 1024);
+      keySpot.shadow.camera.near = 1;
+      keySpot.shadow.camera.far = 42;
+      keySpot.shadow.bias = -.00012;
+      keySpot.shadow.normalBias = .018;
       const rimSpot = new THREE.SpotLight(0xffa740, 125, 72, Math.PI / 6, .55, 1.3);
       rimSpot.position.set(8.5, 9.5, 7.5);
       rimSpot.target = player;
       const overheadSpot = new THREE.SpotLight(0x84dff2, 140, 68, Math.PI / 6, .68, 1.3);
       overheadSpot.position.set(0, 13.5, 1.5);
       overheadSpot.target = player;
+      overheadSpot.castShadow = true;
+      overheadSpot.shadow.mapSize.set(1024, 1024);
+      overheadSpot.shadow.camera.near = 1;
+      overheadSpot.shadow.camera.far = 38;
+      overheadSpot.shadow.bias = -.0001;
+      overheadSpot.shadow.normalBias = .016;
       hangarGroup.add(keySpot, rimSpot, overheadSpot);
       const hangarFill = new THREE.PointLight(0xc9efff, 62, 68, 1.4);
       hangarFill.position.set(0, 6.2, 5.5);
@@ -3044,31 +3328,64 @@
         hangarGroup.add(mechanic);
       });
 
+      const robotDarkMat = new THREE.MeshStandardMaterial({ color: 0x101a21, roughness: .28, metalness: .9 });
+      const robotHydraulicMat = new THREE.MeshStandardMaterial({ color: 0x8d9ca2, roughness: .22, metalness: .96 });
+      const robotGlowMat = new THREE.MeshBasicMaterial({ color: 0x60e9f5, toneMapped: false });
       for (const [index, [x, z]] of [[-4.55, 2.35], [4.55, 2.35], [-4.4, -2.35], [4.4, -2.35]].entries()) {
         const robot = new THREE.Group();
         robot.position.set(x, 0, z);
         robot.rotation.y = Math.atan2(-x, -z);
+        const anchorPlate = new THREE.Mesh(new RoundedBoxGeometry(1.75, .2, 1.75, 2, .08), robotDarkMat);
+        anchorPlate.position.y = .1;
         const base = new THREE.Mesh(new THREE.CylinderGeometry(.72, .92, .55, 14), steelMat);
         base.position.y = .28;
+        const turntable = new THREE.Mesh(new THREE.TorusGeometry(.76, .07, 6, 16), robotHydraulicMat);
+        turntable.rotation.x = Math.PI / 2;
+        turntable.position.y = .6;
+        const shoulderHousing = new THREE.Mesh(new RoundedBoxGeometry(1.18, .82, .9, 2, .12), robotDarkMat);
+        shoulderHousing.position.y = 1.05;
         const shoulder = new THREE.Mesh(new THREE.SphereGeometry(.48, 12, 8), hazardMat);
         shoulder.position.y = 1.05;
         const lowerPivot = new THREE.Group();
         lowerPivot.position.y = 1.05;
         const lowerArm = new THREE.Mesh(new RoundedBoxGeometry(.42, 2.7, .48, 3, .12), steelMat);
         lowerArm.position.y = 1.25;
+        for (const side of [-1, 1]) {
+          const lowerRail = new THREE.Mesh(new THREE.BoxGeometry(.12, 2.3, .13), robotDarkMat);
+          lowerRail.position.set(side * .31, 1.25, .16);
+          lowerPivot.add(lowerRail);
+          const lowerPiston = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 1.78, 8), robotHydraulicMat);
+          lowerPiston.position.set(side * .26, 1.28, -.2);
+          lowerPiston.rotation.z = side * .12;
+          lowerPivot.add(lowerPiston);
+        }
         const elbow = new THREE.Mesh(new THREE.SphereGeometry(.38, 12, 8), hazardMat);
         elbow.position.y = 2.6;
+        const elbowHousing = new THREE.Mesh(new RoundedBoxGeometry(.92, .58, .82, 2, .1), robotDarkMat);
+        elbowHousing.position.y = 2.6;
         const upperPivot = new THREE.Group();
         upperPivot.position.y = 2.6;
         const upperArm = new THREE.Mesh(new RoundedBoxGeometry(.34, 2.25, .38, 3, .1), steelMat);
         upperArm.position.y = 1.02;
+        for (const side of [-1, 1]) {
+          const upperRail = new THREE.Mesh(new THREE.BoxGeometry(.1, 1.9, .12), robotDarkMat);
+          upperRail.position.set(side * .26, 1.02, .12);
+          upperPivot.add(upperRail);
+          const upperPiston = new THREE.Mesh(new THREE.CylinderGeometry(.055, .055, 1.5, 8), robotHydraulicMat);
+          upperPiston.position.set(side * .2, 1.05, -.16);
+          upperPivot.add(upperPiston);
+        }
         const toolHead = new THREE.Mesh(new THREE.CylinderGeometry(.22, .3, .72, 10), toolMat);
         toolHead.position.y = 2.25;
+        const wrist = new THREE.Mesh(new RoundedBoxGeometry(.68, .4, .62, 2, .08), robotDarkMat);
+        wrist.position.y = 2.07;
+        const scanner = new THREE.Mesh(new THREE.BoxGeometry(.28, .11, .34), robotGlowMat);
+        scanner.position.set(0, 2.46, .3);
         const toolLight = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), visorMat);
         toolLight.position.y = 2.62;
-        upperPivot.add(upperArm, toolHead, toolLight);
-        lowerPivot.add(lowerArm, elbow, upperPivot);
-        robot.add(base, shoulder, lowerPivot);
+        upperPivot.add(upperArm, wrist, toolHead, scanner, toolLight);
+        lowerPivot.add(lowerArm, elbow, elbowHousing, upperPivot);
+        robot.add(anchorPlate, base, turntable, shoulderHousing, shoulder, lowerPivot);
         robot.userData = {
           isRobotArm: true,
           lowerPivot,
@@ -3086,18 +3403,6 @@
         maintenanceMechanics.push(robot);
         hangarGroup.add(robot);
       }
-      for (const robot of maintenanceMechanics) {
-        const positions = new Float32Array(6);
-        const geometry = new THREE.BufferGeometry();
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const beam = new THREE.Line(
-          geometry,
-          new THREE.LineBasicMaterial({ color: 0x8ff8ff, transparent: true, opacity: .72, blending: THREE.AdditiveBlending, depthWrite: false })
-        );
-        beam.userData = { robot, contact: new THREE.Vector3(), tool: new THREE.Vector3() };
-        robotRepairBeams.push(beam);
-        hangarGroup.add(beam);
-      }
       const sparkGeo = new THREE.BoxGeometry(.025, .025, .28);
       const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffc34a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
       for (let i = 0; i < 24; i++) {
@@ -3113,6 +3418,32 @@
         hangarGroup.add(spark);
       }
 
+      const droneBodyMat = new THREE.MeshStandardMaterial({ color: 0x293b45, roughness: .32, metalness: .86 });
+      const droneCargoMat = new THREE.MeshStandardMaterial({ color: 0x68777d, roughness: .45, metalness: .68 });
+      const droneWheelMat = new THREE.MeshStandardMaterial({ color: 0x0a0d10, roughness: .76, metalness: .18 });
+      const droneLightMat = new THREE.MeshBasicMaterial({ color: 0x6cefff, toneMapped: false });
+      for (const [index, phase] of [.06, .39, .72].entries()) {
+        const drone = new THREE.Group();
+        const chassis = new THREE.Mesh(new RoundedBoxGeometry(1.4, .34, 1.05, 2, .1), droneBodyMat);
+        chassis.position.y = .34;
+        const cargo = new THREE.Mesh(new RoundedBoxGeometry(.88, .58, .7, 2, .08), droneCargoMat);
+        cargo.position.y = .78;
+        const scanner = new THREE.Mesh(new THREE.BoxGeometry(.42, .08, .12), droneLightMat);
+        scanner.position.set(0, .52, -.56);
+        drone.add(chassis, cargo, scanner);
+        for (const side of [-1, 1]) {
+          for (const front of [-1, 1]) {
+            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .13, 10), droneWheelMat);
+            wheel.rotation.z = Math.PI / 2;
+            wheel.position.set(side * .56, .18, front * .36);
+            drone.add(wheel);
+          }
+        }
+        drone.userData = { phase, speed: .042 + index * .007, cargo, scanner };
+        hangarServiceDrones.push(drone);
+        hangarGroup.add(drone);
+      }
+
       const steamGeo = new THREE.IcosahedronGeometry(.34, 1);
       const steamMat = new THREE.MeshBasicMaterial({ color: 0xc9d9dd, transparent: true, opacity: 0, depthWrite: false });
       for (let i = 0; i < 24; i++) {
@@ -3125,6 +3456,39 @@
         hangarSteamParticles.push(steam);
         hangarGroup.add(steam);
       }
+      // Repeating industrial exhaust fans give the long hangar walls a clear
+      // factory rhythm without adding dynamic lights or shadow cost.
+      const ventHousingMat = new THREE.MeshStandardMaterial({ color: 0x1d2b31, roughness: .4, metalness: .9 });
+      const ventBladeMat = new THREE.MeshStandardMaterial({ color: 0x536870, roughness: .28, metalness: .82 });
+      for (const side of [-1, 1]) {
+        for (const z of [-4.6, 0, 4.6]) {
+          const fan = new THREE.Group();
+          fan.position.set(side * 7.08, 6.15, z);
+          fan.rotation.z = side * Math.PI / 2;
+          const housing = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, .28, 18), ventHousingMat);
+          const rim = new THREE.Mesh(new THREE.TorusGeometry(.9, .09, 8, 22), hazardMat);
+          rim.rotation.x = Math.PI / 2;
+          const rotor = new THREE.Group();
+          rotor.position.y = .17;
+          const hub = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, .18, 12), ventBladeMat);
+          for (let bladeIndex = 0; bladeIndex < 5; bladeIndex++) {
+            // Rotor spins around local Y.  Put each blade in its X/Z face
+            // plane, not along the shaft, so it reads as a real fan blade.
+            const blade = new THREE.Mesh(new RoundedBoxGeometry(.68, .18, .1, 2, .03), ventBladeMat);
+            blade.position.set(.43, 0, .035);
+            blade.rotation.y = .34;
+            const bladePivot = new THREE.Group();
+            bladePivot.rotation.y = bladeIndex * Math.PI * .4;
+            bladePivot.add(blade);
+            rotor.add(bladePivot);
+          }
+          rotor.add(hub);
+          fan.add(housing, rim, rotor);
+          fan.userData = { rotor, phase: z * .22 + side, speed: .9 + Math.abs(z) * .035 };
+          hangarVentFans.push(fan);
+          hangarGroup.add(fan);
+        }
+      }
     }
 
     function enterHangar() {
@@ -3133,8 +3497,8 @@
       hangarLaunchTime = 0;
       if (hangarGateLeft) hangarGateLeft.position.x = -3.9;
       if (hangarGateRight) hangarGateRight.position.x = 3.9;
-      if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = titleActive ? -2.1 : -HANGAR_LIFT_GATE_OPEN_X;
-      if (hangarLiftGateRight) hangarLiftGateRight.position.x = titleActive ? 2.1 : HANGAR_LIFT_GATE_OPEN_X;
+      if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : -HANGAR_LIFT_GATE_OPEN_X;
+      if (hangarLiftGateRight) hangarLiftGateRight.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : HANGAR_LIFT_GATE_OPEN_X;
       if (hangarLiftPlatform) hangarLiftPlatform.position.y = titleActive ? TITLE_LIFT_START_Y : 0;
       for (const particle of hangarLaunchParticles) {
         particle.visible = false;
@@ -3161,7 +3525,7 @@
       hangarGroup.visible = true;
       for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems]) item.visible = false;
       player.visible = true;
-      player.position.set(0, titleActive ? TITLE_LIFT_START_Y * hangarGroup.scale.y : 0, 0);
+      player.position.set(0, titleActive ? TITLE_LIFT_START_Y * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET : HANGAR_STAND_GROUND_OFFSET, 0);
       player.rotation.set(0, Math.PI, 0);
       enemyAI?.group && (enemyAI.group.visible = false);
       enemyAI2?.group && (enemyAI2.group.visible = false);
@@ -3179,11 +3543,11 @@
         const reveal = THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.35);
         const gateOpen = THREE.MathUtils.smoothstep(reveal, .04, .64);
         const liftProgress = THREE.MathUtils.smoothstep(reveal, .10, 1);
-        if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = -2.1 - gateOpen * 3.8;
-        if (hangarLiftGateRight) hangarLiftGateRight.position.x = 2.1 + gateOpen * 3.8;
+        if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = -gateOpen * HANGAR_LIFT_GATE_OPEN_X;
+        if (hangarLiftGateRight) hangarLiftGateRight.position.x = gateOpen * HANGAR_LIFT_GATE_OPEN_X;
         if (hangarLiftPlatform) hangarLiftPlatform.position.y = THREE.MathUtils.lerp(TITLE_LIFT_START_Y, 0, liftProgress);
         // Keep the walker locked to the whole rising plate, not just a vertical pose offset.
-        player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y;
+        player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET;
         player.rotation.y = Math.PI + (reveal < .995 ? Math.sin(now * .65) * .08 * (1 - reveal) : 0);
       }
       for (const mechanic of maintenanceMechanics) {
@@ -3209,29 +3573,39 @@
           mechanic.position.z = mechanic.userData.basePosition.z;
         }
       }
-      player.updateWorldMatrix(true, true);
-      for (const beam of robotRepairBeams) {
-        const robot = beam.userData.robot;
-        robot.userData.toolLight.updateWorldMatrix(true, false);
-        robot.userData.toolLight.getWorldPosition(beam.userData.tool);
-        beam.userData.contact.copy(robot.userData.repairTarget);
-        player.localToWorld(beam.userData.contact);
-        const positions = beam.geometry.attributes.position.array;
-        positions[0] = beam.userData.tool.x; positions[1] = beam.userData.tool.y; positions[2] = beam.userData.tool.z;
-        positions[3] = beam.userData.contact.x; positions[4] = beam.userData.contact.y; positions[5] = beam.userData.contact.z;
-        beam.geometry.attributes.position.needsUpdate = true;
-        beam.material.opacity = hangarLaunching ? 0 : .48 + Math.sin(now * 13 + robot.userData.phase) * .28;
-      }
       for (const spark of robotArmSparks) {
         const arm = maintenanceMechanics[spark.userData.armIndex];
-        const repairBeam = robotRepairBeams[spark.userData.armIndex];
         const life = (now * 3.8 + spark.userData.phase) % 1;
-        // Contact is in world space; sparks live under the scaled hangar group.
-        spark.userData.origin.copy(repairBeam.userData.contact);
+        // Sparks now emit directly from the industrial tool head: no visible
+        // repair beam is drawn across the title composition.
+        arm.userData.toolLight.updateWorldMatrix(true, false);
+        arm.userData.toolLight.getWorldPosition(spark.userData.origin);
         hangarGroup.worldToLocal(spark.userData.origin);
         spark.position.copy(spark.userData.origin).addScaledVector(spark.userData.direction, life * .55);
         spark.scale.setScalar(.55 + (1 - life) * 1.5);
         spark.material.opacity = hangarLaunching ? 0 : Math.sin(life * Math.PI) * .85;
+      }
+      for (const drone of hangarServiceDrones) {
+        const loop = (now * drone.userData.speed + drone.userData.phase) % 1;
+        const edge = loop * 4;
+        const lane = 5.65;
+        let x = 0;
+        let z = 0;
+        let heading = 0;
+        if (edge < 1) {
+          x = -lane + edge * lane * 2; z = -4.8; heading = Math.PI / 2;
+        } else if (edge < 2) {
+          x = lane; z = -4.8 + (edge - 1) * 9.6; heading = 0;
+        } else if (edge < 3) {
+          x = lane - (edge - 2) * lane * 2; z = 4.8; heading = -Math.PI / 2;
+        } else {
+          x = -lane; z = 4.8 - (edge - 3) * 9.6; heading = Math.PI;
+        }
+        drone.position.set(x, .02, z);
+        drone.rotation.y = heading;
+        const scanPulse = .78 + Math.sin(now * 7 + drone.userData.phase * 12) * .22;
+        drone.userData.scanner.scale.x = scanPulse;
+        drone.userData.cargo.position.y = .78 + Math.sin(now * 3 + drone.userData.phase * 8) * .025;
       }
       for (const light of hangarTunnelLights) {
         const pulse = .68 + Math.sin(now * 5.4 + (light.userData.phase || light.position.y)) * .32;
@@ -3261,6 +3635,10 @@
         alarm.light.intensity = warningPulse * 32;
         alarm.beacon.material.opacity = .2 + warningPulse * .8;
         alarm.beacon.scale.setScalar(.92 + warningPulse * .22);
+      }
+      for (const fan of hangarVentFans) {
+        const speed = hangarLaunching ? fan.userData.speed * 2.2 : fan.userData.speed;
+        fan.userData.rotor.rotation.y = now * speed * 7 + fan.userData.phase;
       }
       for (const steam of hangarSteamParticles) {
         const life = (now * .26 + steam.userData.phase) % 1;
@@ -3322,6 +3700,7 @@
     }
 
     createHangarScene();
+    setStartupLoading(34, 'ASSEMBLING HANGAR SYSTEMS');
     // Enlarge the hangar volume without enlarging the walker or maintenance crew.
     hangarGroup.scale.set(2, 2, 2);
     for (const worker of maintenanceMechanics) worker.scale.setScalar(.5);
@@ -3402,6 +3781,10 @@ let landingRecoveryTimer = 0;
     let enemyAI = null;
     let enemyAI2 = null;
     let paused = false;
+    let freeCamActive = false;
+    const freeCamPos = new THREE.Vector3();
+    let freeCamYaw = 0;
+    let freeCamPitch = 0;
     let jetpackEquipped = false;
     let jetpackTimeRemaining = 0;
     let boostEnergy = PLAYER_MAX_ENERGY;
@@ -3425,6 +3808,9 @@ let landingRecoveryTimer = 0;
     let hangarCameraYaw = 0;
     let hangarCameraDragging = false;
     let hangarCameraPointerX = 0;
+    let titleCameraYaw = 0;
+    let titleCameraDragging = false;
+    let titleCameraPointerX = 0;
     let titleActive = true;
     let titleRevealTime = 0;
     let hangarLaunching = false;
@@ -3485,6 +3871,7 @@ let landingRecoveryTimer = 0;
     });
     const explosionEffects = [];
     const burningEffects = [];
+    const burningEffectPool = [];
     const mechDeathEffects = [];
     const footstepEffects = [];
     const footstepDecals = [];
@@ -3501,6 +3888,136 @@ let landingRecoveryTimer = 0;
     const explosionCoreMatBase = new THREE.MeshBasicMaterial({ color: 0xfff4c2, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
     const explosionSmokeMatBase = new THREE.MeshBasicMaterial({ color: 0x37383a, transparent: true, opacity: .42, depthWrite: false });
     const explosionSparkMatBase = new THREE.MeshBasicMaterial({ color: 0xffa13b, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
+    const explosionParticleDummy = new THREE.Object3D();
+    const explosionSmokeParticles = [];
+    const explosionSparkParticles = [];
+    const EXPLOSION_SMOKE_CAPACITY = 48;
+    const EXPLOSION_SPARK_CAPACITY = 72;
+    const explosionSmokeInstances = new THREE.InstancedMesh(
+      explosionSmokeGeo,
+      explosionSmokeMatBase,
+      EXPLOSION_SMOKE_CAPACITY
+    );
+    const explosionSparkInstances = new THREE.InstancedMesh(
+      explosionSparkGeo,
+      explosionSparkMatBase,
+      EXPLOSION_SPARK_CAPACITY
+    );
+    for (const batch of [explosionSmokeInstances, explosionSparkInstances]) {
+      batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      batch.frustumCulled = false;
+      batch.castShadow = false;
+      batch.receiveShadow = false;
+      scene.add(batch);
+    }
+    explosionParticleDummy.scale.setScalar(0);
+    explosionParticleDummy.updateMatrix();
+    for (let index = 0; index < EXPLOSION_SMOKE_CAPACITY; index++) {
+      explosionSmokeInstances.setMatrixAt(index, explosionParticleDummy.matrix);
+    }
+    for (let index = 0; index < EXPLOSION_SPARK_CAPACITY; index++) {
+      explosionSparkInstances.setMatrixAt(index, explosionParticleDummy.matrix);
+    }
+    explosionSmokeInstances.instanceMatrix.needsUpdate = true;
+    explosionSparkInstances.instanceMatrix.needsUpdate = true;
+    // Fracture effects never participate in gameplay collision.  Keep them in
+    // a small, reusable GPU instance pool rather than allocating meshes,
+    // materials, geometries and Cannon bodies for every impact.
+    const FRACTURE_CULL_DISTANCE = 118;
+    const fractureDummy = new THREE.Object3D();
+    const fractureBatches = [];
+    function createFractureBatch(geometry, material, capacity) {
+      const mesh = new THREE.InstancedMesh(geometry, material, capacity);
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.frustumCulled = false; // instances travel outside their source bounds
+      mesh.castShadow = false;
+      mesh.receiveShadow = false;
+      const batch = { mesh, capacity, active: Array(capacity).fill(null), cursor: 0, dirty: true };
+      fractureDummy.scale.setScalar(0);
+      fractureDummy.updateMatrix();
+      for (let index = 0; index < capacity; index++) mesh.setMatrixAt(index, fractureDummy.matrix);
+      mesh.instanceMatrix.needsUpdate = true;
+      scene.add(mesh);
+      fractureBatches.push(batch);
+      return batch;
+    }
+    const fractureRubbleBatch = createFractureBatch(
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.MeshStandardMaterial({ color: 0x9b9b9b, roughness: .9, metalness: .05, vertexColors: true }),
+      96
+    );
+    const fractureGlassBatch = createFractureBatch(
+      new THREE.TetrahedronGeometry(1, 0),
+      new THREE.MeshPhysicalMaterial({ color: 0x9aefff, emissive: 0x1c8da8, emissiveIntensity: .42, transparent: true, opacity: .72, roughness: .04, metalness: .15, transmission: .12, side: THREE.DoubleSide, vertexColors: true, depthWrite: false }),
+      96
+    );
+    const fractureDustBatch = createFractureBatch(
+      new THREE.IcosahedronGeometry(1, 1),
+      new THREE.MeshBasicMaterial({ color: 0xb9aaa0, transparent: true, opacity: .25, depthWrite: false, vertexColors: true }),
+      72
+    );
+    function hideFractureInstance(batch, index) {
+      fractureDummy.scale.setScalar(0);
+      fractureDummy.updateMatrix();
+      batch.mesh.setMatrixAt(index, fractureDummy.matrix);
+      batch.active[index] = null;
+      batch.dirty = true;
+    }
+    function spawnFractureInstance(batch, position, velocity, angularVelocity, size, life, color) {
+      if (position.distanceToSquared(camera.position) > FRACTURE_CULL_DISTANCE * FRACTURE_CULL_DISTANCE) return;
+      let index = batch.active.findIndex(item => item === null);
+      if (index < 0) index = batch.cursor++ % batch.capacity;
+      const particle = {
+        position: position.clone(), velocity, angularVelocity,
+        rotation: new THREE.Euler(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI),
+        size, life, maxLife: life
+      };
+      batch.active[index] = particle;
+      batch.mesh.setColorAt(index, color);
+      batch.dirty = true;
+    }
+    function updateFractureInstances(dt) {
+      for (const batch of fractureBatches) {
+        for (let index = 0; index < batch.capacity; index++) {
+          const particle = batch.active[index];
+          if (!particle) continue;
+          particle.life -= dt;
+          if (particle.life <= 0 || particle.position.distanceToSquared(camera.position) > FRACTURE_CULL_DISTANCE * FRACTURE_CULL_DISTANCE) {
+            hideFractureInstance(batch, index);
+            continue;
+          }
+          particle.velocity.y -= 11 * dt;
+          particle.position.addScaledVector(particle.velocity, dt);
+          if (particle.position.y < .05) {
+            particle.position.y = .05;
+            particle.velocity.y *= -.18;
+            particle.velocity.x *= .7;
+            particle.velocity.z *= .7;
+          }
+          particle.rotation.x += particle.angularVelocity.x * dt;
+          particle.rotation.y += particle.angularVelocity.y * dt;
+          particle.rotation.z += particle.angularVelocity.z * dt;
+          const lifeRatio = particle.life / particle.maxLife;
+          fractureDummy.position.copy(particle.position);
+          fractureDummy.rotation.copy(particle.rotation);
+          fractureDummy.scale.setScalar(particle.size * Math.max(.08, lifeRatio));
+          fractureDummy.updateMatrix();
+          batch.mesh.setMatrixAt(index, fractureDummy.matrix);
+          batch.dirty = true;
+        }
+        if (batch.dirty) {
+          batch.mesh.instanceMatrix.needsUpdate = true;
+          if (batch.mesh.instanceColor) batch.mesh.instanceColor.needsUpdate = true;
+          batch.dirty = false;
+        }
+      }
+    }
+    function clearFractureInstances() {
+      for (const batch of fractureBatches) {
+        for (let index = 0; index < batch.capacity; index++) hideFractureInstance(batch, index);
+        batch.mesh.instanceMatrix.needsUpdate = true;
+      }
+    }
     const missileTrailGeo = new THREE.SphereGeometry(.16, 6, 5);
     const missileTrailMatBase = new THREE.MeshBasicMaterial({ color: 0x73ff94, transparent: true, opacity: .8, depthWrite: false, blending: THREE.AdditiveBlending });
     const missileTrailPool = [];
@@ -3565,10 +4082,14 @@ let landingRecoveryTimer = 0;
       }
     }
 
+    addEventListener('selectstart', e => e.preventDefault());
     addEventListener('keydown', e => {
       keys[e.code] = true;
       if (/^Digit[1-4]$/.test(e.code) && !e.repeat && !customizerActive) {
         activateWeaponPreset(Number(e.code.slice(-1)));
+      }
+      if (e.code === 'KeyF' && !e.repeat && !customizerActive && !hangarActive && !titleActive) {
+        toggleFreeCamera();
       }
       if (e.code === 'KeyR') resetGame();
       if (e.code === 'KeyP' && !e.repeat) togglePause();
@@ -3582,7 +4103,7 @@ let landingRecoveryTimer = 0;
     });
     addEventListener('keyup', e => keys[e.code] = false);
     document.addEventListener('click', e => {
-      if (e.target.closest('#pauseButton, #visualHudButton, #visualSettings, #audioControls')) return;
+      if (e.target.closest('#pauseButton, #freeCamButton, #visualHudButton, #visualSettings, #audioControls')) return;
       if (e.target.closest('#hangarOverlay') || hangarActive || hangarLaunching) return;
       if (!paused) {
         document.getElementById('centerHint').classList.add('is-hidden');
@@ -3590,6 +4111,7 @@ let landingRecoveryTimer = 0;
       }
     });
     document.getElementById('pauseButton').addEventListener('click', togglePause);
+    document.getElementById('freeCamButton').addEventListener('click', toggleFreeCamera);
     addEventListener('pointerlockchange', () => {
       const hint = document.getElementById('centerHint');
       const shouldHide = !!document.pointerLockElement || battleStarted || battleCountdownActive;
@@ -3605,6 +4127,12 @@ let landingRecoveryTimer = 0;
     });
     addEventListener('mousemove', e => {
       if (!document.pointerLockElement) return;
+      if (freeCamActive) {
+        freeCamYaw -= e.movementX * .0025;
+        freeCamPitch -= e.movementY * .002;
+        freeCamPitch = THREE.MathUtils.clamp(freeCamPitch, -Math.PI / 2 + 0.01, Math.PI / 2 - 0.01);
+        return;
+      }
       yaw -= e.movementX * .0025;
       pitch -= e.movementY * .002;
       // Allow steep downward aiming for aerial combat while keeping the
@@ -3668,6 +4196,12 @@ let landingRecoveryTimer = 0;
     const healthSprites = [];
     const buildingBounds = [];
     const buildingWindowSystems = new Map();
+    // Authoritative PCG profiles.  The gameplay blocks remain individually
+    // registered, while this data controls each tower's repeatable silhouette.
+    const buildingProfiles = new Map();
+    // Temporary visual review mode: keep the glass facade and structural core,
+    // but omit the individual, breakable opaque wall tiles.
+    const ENABLE_BREAKABLE_FACADE_PANELS = false;
     const BUILDING_HEALTH_MULTIPLIER = 2;
     let stability = 100;
     const collapsingBuildings = new Set();
@@ -3837,17 +4371,40 @@ let landingRecoveryTimer = 0;
       color: 0x4d0905, emissive: 0xff280d, emissiveIntensity: 3.5, roughness: .3
     });
 
+    function createBuildingProfile(buildingId, x, z) {
+      let seed = (Math.imul(buildingId + 1, 0x9E3779B1) ^ Math.imul(Math.round(x), 0x85EBCA6B) ^ Math.imul(Math.round(z), 0xC2B2AE35)) >>> 0;
+      const random = () => {
+        seed = (seed + 0x6D2B79F5) >>> 0;
+        let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+      };
+      return {
+        floors: 9 + Math.floor(random() * 10),
+        baseScale: .95 + random() * .12,
+        silhouette: Math.floor(random() * 4),
+        setbackStart: .42 + random() * .27,
+        setbackAmount: .12 + random() * .16,
+        facadeOffset: Math.floor(random() * wallMaterials.length),
+        accentVariant: Math.floor(random() * 8)
+      };
+    }
+
     function getFloorScale(floor, totalFloors, buildingId) {
       const ratio = floor / Math.max(1, totalFloors - 1);
-      const type = buildingId % 4;
+      const profile = buildingProfiles.get(buildingId);
+      const type = profile?.silhouette ?? buildingId % 4;
+      const baseScale = profile?.baseScale ?? 1;
+      const setbackStart = profile?.setbackStart ?? .62;
+      const setbackAmount = profile?.setbackAmount ?? .18;
       if (type === 0) {
-        if (ratio > .78) return .72;
-        if (ratio > .48) return .86;
-        return 1;
+        if (ratio > Math.min(.86, setbackStart + .3)) return baseScale * (1 - setbackAmount * 1.75);
+        if (ratio > setbackStart) return baseScale * (1 - setbackAmount);
+        return baseScale;
       }
-      if (type === 1) return ratio > .62 ? .76 : 1;
-      if (type === 2) return THREE.MathUtils.lerp(1, .78, ratio);
-      return 1;
+      if (type === 1) return baseScale * (ratio > setbackStart ? 1 - setbackAmount * 1.55 : 1);
+      if (type === 2) return baseScale * THREE.MathUtils.lerp(1, 1 - setbackAmount * 1.3, ratio);
+      return baseScale * (ratio > setbackStart ? 1 - setbackAmount * .45 : 1);
     }
 
     function addInstancedDetails(group, geometry, material, transforms) {
@@ -3892,7 +4449,8 @@ let landingRecoveryTimer = 0;
       windowOpacity: ['opacity', .9],
       windowRoughness: ['roughness', 0],
       bloomStrength: ['bloom', .2],
-      toneExposure: ['exposure', 1.2]
+      toneExposure: ['exposure', 1.2],
+      rainIntensity: ['rain', .72]
     };
     const applyVisualSetting = (key, value) => {
       const amount = key === 'windowColor' ? String(value) : Number(value);
@@ -3909,6 +4467,10 @@ let landingRecoveryTimer = 0;
       if (key === 'windowRoughness') transparentWindowMat.roughness = amount;
       if (key === 'bloomStrength') bloomPass.strength = amount;
       if (key === 'toneExposure') renderer.toneMappingExposure = amount;
+      if (key === 'rainIntensity') {
+        rainSystem.setIntensity(amount);
+        applyWetSurfaceIntensity(amount);
+      }
       transparentWindowMat.needsUpdate = true;
       localStorage.setItem('mechaVisualSettings', JSON.stringify(visualSettings));
     };
@@ -3951,18 +4513,6 @@ let landingRecoveryTimer = 0;
       const entranceFrame = new THREE.Mesh(new RoundedBoxGeometry(3.8, 2.45, .28, 3, .08), facadeFrameMat);
       entranceFrame.position.set(0, baseY + 1.28, 5.88);
       facadeDecor.add(entranceFrame);
-      const leftDoor = new THREE.Mesh(new THREE.BoxGeometry(1.28, 1.95, .12), transparentWindowMat);
-      leftDoor.position.set(-.7, baseY + 1.17, 6.05);
-      facadeDecor.add(leftDoor);
-      const rightDoor = leftDoor.clone();
-      rightDoor.position.x = .7;
-      facadeDecor.add(rightDoor);
-      const entranceLight = new THREE.Mesh(
-        new THREE.BoxGeometry(2.6, .08, .09),
-        transparentWindowMat
-      );
-      entranceLight.position.set(0, baseY + 2.28, 6.12);
-      facadeDecor.add(entranceLight);
       const loadingDoor = new THREE.Mesh(new THREE.BoxGeometry(3.4, 2.15, .18), serviceMetalMat);
       loadingDoor.position.set(1.9, baseY + 1.12, -5.92);
       facadeDecor.add(loadingDoor);
@@ -4050,25 +4600,54 @@ let landingRecoveryTimer = 0;
       };
       for (let floor = 0; floor < floors; floor++) {
         const floorScale = getFloorScale(floor, floors, buildingId);
+        // A small overlap avoids hairline seams between neighboring panes.
+        const windowOverlapScale = floorScale * 1.12;
         const localY = -coreHeight * .5 + 1.1 + floor * 1.55;
         const frontZ = 5.05 * floorScale + .72;
         const sideX = 5.52 * floorScale + .72;
         for (let column = 0; column < 5; column++) {
           const x = (column - 2) * 2.18 * floorScale;
-          addWindow(x, localY, frontZ, 0, floorScale);
-          addWindow(x, localY, -frontZ, 0, floorScale);
+          addWindow(x, localY, frontZ, 0, windowOverlapScale);
+          addWindow(x, localY, -frontZ, 0, windowOverlapScale);
         }
         for (let column = 0; column < 4; column++) {
           const z = (column - 1.5) * 2.18 * floorScale;
-          addWindow(sideX, localY, z, Math.PI / 2, floorScale);
-          addWindow(-sideX, localY, z, Math.PI / 2, floorScale);
+          addWindow(sideX, localY, z, Math.PI / 2, windowOverlapScale);
+          addWindow(-sideX, localY, z, Math.PI / 2, windowOverlapScale);
+        }
+        // L-shaped corner glass, measured from the real ends of the two pane
+        // runs.  Each filler stops at the perpendicular pane plane, so the
+        // join is a clean 90-degree corner rather than a crossed '+' overlap.
+        const frontRunEnd = 4.36 * floorScale + 1.12 * windowOverlapScale;
+        const sideRunEnd = 3.27 * floorScale + 1.12 * windowOverlapScale;
+        const cornerFrontX = (frontRunEnd + sideX) * .5;
+        const cornerSideZ = (sideRunEnd + frontZ) * .5;
+        const cornerFrontScale = Math.max(.08, (sideX - frontRunEnd) / 2.24);
+        const cornerSideScale = Math.max(.08, (frontZ - sideRunEnd) / 2.24);
+        for (const sx of [-1, 1]) {
+          for (const sz of [-1, 1]) {
+            addWindow(sx * cornerFrontX, localY, sz * frontZ, 0, cornerFrontScale);
+            addWindow(sx * sideX, localY, sz * cornerSideZ, Math.PI / 2, cornerSideScale);
+          }
         }
       }
+      // Lobby glass joins the same authoritative window batch instead of
+      // creating three extra transparent meshes per building.
+      const baseY = -coreHeight * .5;
+      transparentWindows.push(
+        { position: [-.7, baseY + 1.17, 6.05], scale: [1.28 / 2.24, 1.95 / 1.46, .12 / .2] },
+        { position: [.7, baseY + 1.17, 6.05], scale: [1.28 / 2.24, 1.95 / 1.46, .12 / .2] },
+        { position: [0, baseY + 2.28, 6.12], scale: [2.6 / 2.24, .08 / 1.46, .09 / .2] }
+      );
       const windowGeometry = new THREE.BoxGeometry(2.24, 1.46, .2);
       const windowMesh = addInstancedDetails(facadeDecor, windowGeometry, transparentWindowMat, transparentWindows);
+      windowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      windowMesh.count = transparentWindows.length;
+      windowMesh.userData.isWindowBatch = true;
       buildingWindowSystems.set(buildingId, {
         mesh: windowMesh,
-        active: new Uint8Array(transparentWindows.length).fill(1)
+        active: new Uint8Array(transparentWindows.length).fill(1),
+        lobbyStart: transparentWindows.length - 3
       });
       const floorBands = [];
       for (let floor = 1; floor < floors; floor++) {
@@ -4097,6 +4676,7 @@ let landingRecoveryTimer = 0;
       cannonPhysics.clearDynamics();
       for (const piece of debris) scene.remove(piece);
       debris.length = 0;
+      clearFractureInstances();
       for (const item of powerItems) scene.remove(item);
       powerItems.length = 0;
       for (const item of jetpackItems) scene.remove(item);
@@ -4119,6 +4699,7 @@ let landingRecoveryTimer = 0;
       healthSprites.length = 0;
       buildingBounds.length = 0;
       buildingWindowSystems.clear();
+      buildingProfiles.clear();
       stability = 100;
       collapsingBuildings.clear();
       buildingCollapseStates.clear();
@@ -4138,11 +4719,14 @@ let landingRecoveryTimer = 0;
       const frontCols = 5;
       const sideCols = 4;
       buildingPositions.forEach(([offsetX, offsetZ], buildingId) => {
-        const floors = 8 + Math.floor(Math.random() * 10);
-        const facadeIndex = buildingId % wallMaterials.length;
-        buildingBounds.push({ buildingId, x: offsetX, z: offsetZ, halfX: 6.25, halfZ: 6.05 });
+        const profile = createBuildingProfile(buildingId, offsetX, offsetZ);
+        buildingProfiles.set(buildingId, profile);
+        const floors = profile.floors;
+        const facadeIndex = (buildingId + profile.facadeOffset) % wallMaterials.length;
+        const boundScale = profile.baseScale;
+        buildingBounds.push({ buildingId, x: offsetX, z: offsetZ, halfX: 6.25 * boundScale, halfZ: 6.05 * boundScale });
 
-        for (let y = 0; y < floors; y++) {
+        if (ENABLE_BREAKABLE_FACADE_PANELS) for (let y = 0; y < floors; y++) {
           const yPosition = 1.1 + y * 1.55;
           const isLobbyFloor = y < 2;
           const floorScale = getFloorScale(y, floors, buildingId);
@@ -4214,7 +4798,7 @@ let landingRecoveryTimer = 0;
         
         // Upgrade: Corner trims with integrated Neon Strip Lights
         const cornerGeo = new THREE.BoxGeometry(.34, coreHeight + .5, .34);
-        const neonColor = buildingId % 3 === 0 ? 0x00f3ff : (buildingId % 3 === 1 ? 0xff007f : 0xffaa00);
+        const neonColor = profile.accentVariant % 3 === 0 ? 0x00f3ff : (profile.accentVariant % 3 === 1 ? 0xff007f : 0xffaa00);
         const neonMat = new THREE.MeshStandardMaterial({
           color: neonColor,
           emissive: neonColor,
@@ -4240,8 +4824,8 @@ let landingRecoveryTimer = 0;
         // Holographic neon billboards give every tower a readable city identity.
         {
           const texts = ["NEO-SEOUL", "MECHA LAB", "RAMPAGE V5", "SHIELD STN", "AMMO DEPOT", "DANGER ZONE", "CYBERCITY", "AI CORE"];
-          const text = texts[buildingId % texts.length];
-          const colorStr = buildingId % 3 === 0 ? "#00f3ff" : (buildingId % 3 === 1 ? "#ff007f" : "#ffaa00");
+          const text = texts[profile.accentVariant % texts.length];
+          const colorStr = profile.accentVariant % 3 === 0 ? "#00f3ff" : (profile.accentVariant % 3 === 1 ? "#ff007f" : "#ffaa00");
           
           const billCanvas = document.createElement('canvas');
           billCanvas.width = 256;
@@ -4278,7 +4862,7 @@ let landingRecoveryTimer = 0;
           const billboard = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 3.2), billMat);
           
           // Project from one of the sides: 0, PI/2, PI, 3PI/2
-          const sideAngle = (buildingId % 4) * (Math.PI / 2);
+          const sideAngle = (profile.accentVariant % 4) * (Math.PI / 2);
           billboard.rotation.y = sideAngle;
           
           const radiusX = 5.85;
@@ -4291,7 +4875,7 @@ let landingRecoveryTimer = 0;
           
           // Bracket connector
           facadeDecor.add(billboard);
-          if (buildingId % 3 === 0) {
+          if (profile.accentVariant % 3 === 0) {
             const secondBoard = billboard.clone();
             const secondAngle = sideAngle + Math.PI / 2;
             secondBoard.scale.setScalar(.7);
@@ -4306,7 +4890,7 @@ let landingRecoveryTimer = 0;
         }
 
         // Upgrade: Sci-Fi Exterior Steel Trusses for industrial look
-        if (buildingId % 2 === 1) {
+        if (profile.accentVariant % 2 === 1) {
           const trussMat = new THREE.MeshStandardMaterial({ color: 0x333c44, roughness: 0.3, metalness: 0.85 });
           const pylonGeo = new THREE.BoxGeometry(.2, coreHeight, .2);
           for (const [x, z] of [[-5.62, -5.72], [5.62, -5.72], [-5.62, 5.72], [5.62, 5.72]]) {
@@ -4339,6 +4923,10 @@ let landingRecoveryTimer = 0;
         facadeDecor.add(canopy);
 
         addRealisticFacadeDetails({ facadeDecor, buildingId, floors, coreHeight });
+        // Purely visual facade detail is static relative to this building.
+        // Merge only that layer; registered blocks, collision and breakable
+        // window batches remain separate gameplay objects.
+        optimizeStaticVisualDrawCalls(facadeDecor);
 
         facadeDecor.traverse(object => {
           if (object === facadeDecor) return;
@@ -5168,6 +5756,45 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       sessionStorage.setItem('reopenMechaCustomizer', '1');
       location.reload();
     });
+    document.getElementById('customExportButton').addEventListener('click', () => {
+      plantCustomizerFeet();
+      const jsonStr = JSON.stringify(customDraft, null, 2);
+      localStorage.setItem('mechaCustomization', jsonStr);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'mecha-preset.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showMessage('CONFIG EXPORTED TO mecha-preset.json');
+    });
+    document.getElementById('customImportButton').addEventListener('click', () => {
+      document.getElementById('customImportInput').click();
+    });
+    document.getElementById('customImportInput').addEventListener('change', event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (importedData && typeof importedData === 'object') {
+            localStorage.setItem('mechaCustomization', JSON.stringify(importedData));
+            sessionStorage.setItem('reopenMechaCustomizer', '1');
+            showMessage('PRESET FILE LOADED');
+            setTimeout(() => location.reload(), 300);
+          } else {
+            alert('Invalid mecha preset JSON file.');
+          }
+        } catch (err) {
+          alert('Error reading JSON file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    });
     document.getElementById('customResetButton').addEventListener('click', () => {
       localStorage.removeItem('mechaCustomization');
       sessionStorage.setItem('reopenMechaCustomizer', '1');
@@ -5257,6 +5884,15 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       customCameraDistance = THREE.MathUtils.clamp(customCameraDistance + event.deltaY * .012, 9, 24);
     }, { passive: false });
     const hangarOverlay = document.getElementById('hangarOverlay');
+    const titleScreen = document.getElementById('titleScreen');
+    titleScreen.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || !titleActive) return;
+      if (event.target.closest('.title-panel, button')) return;
+      titleCameraDragging = true;
+      titleCameraPointerX = event.clientX;
+      titleScreen.classList.add('orbiting');
+      titleScreen.setPointerCapture?.(event.pointerId);
+    });
     hangarOverlay.addEventListener('pointerdown', event => {
       if (event.button !== 0 || !hangarActive || titleActive || hangarLaunching) return;
       if (event.target.closest('.hangar-loadout, button, select, input')) return;
@@ -5265,12 +5901,19 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       hangarOverlay.setPointerCapture?.(event.pointerId);
     });
     addEventListener('pointermove', event => {
+      if (titleCameraDragging) {
+        const deltaX = event.clientX - titleCameraPointerX;
+        titleCameraPointerX = event.clientX;
+        titleCameraYaw = THREE.MathUtils.clamp(titleCameraYaw - deltaX * .0045, -.58, .58);
+      }
       if (!hangarCameraDragging) return;
       const deltaX = event.clientX - hangarCameraPointerX;
       hangarCameraPointerX = event.clientX;
       hangarCameraYaw = THREE.MathUtils.clamp(hangarCameraYaw - deltaX * .004, -.42, .42);
     });
     addEventListener('pointerup', () => {
+      titleCameraDragging = false;
+      titleScreen.classList.remove('orbiting');
       hangarCameraDragging = false;
     });
     document.getElementById('titleStartButton').addEventListener('click', event => {
@@ -5279,6 +5922,7 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       playGameSound('ui');
       startTitleHangarBgm();
       titleActive = false;
+      titleCameraDragging = false;
       hangarCameraYaw = 0;
       player.position.y = 0;
       player.rotation.y = Math.PI;
@@ -5298,13 +5942,14 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       playGameSound('ui');
       startTitleHangarBgm();
       titleActive = true;
+      titleCameraYaw = 0;
       hangarCameraYaw = 0;
       titleRevealTime = 0;
       player.position.y = TITLE_LIFT_START_Y * hangarGroup.scale.y;
       if (hangarGateLeft) hangarGateLeft.position.x = -3.9;
       if (hangarGateRight) hangarGateRight.position.x = 3.9;
-      if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = -2.1;
-      if (hangarLiftGateRight) hangarLiftGateRight.position.x = 2.1;
+      if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = HANGAR_LIFT_GATE_CLOSED_X;
+      if (hangarLiftGateRight) hangarLiftGateRight.position.x = HANGAR_LIFT_GATE_CLOSED_X;
       if (hangarLiftPlatform) hangarLiftPlatform.position.y = TITLE_LIFT_START_Y;
       document.getElementById('titleScreen').classList.remove('hidden');
       document.getElementById('hangarOverlay').classList.add('hidden');
@@ -5407,6 +6052,7 @@ document.getElementById('customBackButton').addEventListener('click', () => {
           hitBlock = null;
         }
       }
+      shatterWindowAlongRay(origin, direction, hitDistance, direction, 1.3);
       const end = origin.clone().addScaledVector(direction, hitDistance);
       const beam = new THREE.Mesh(
         new THREE.CylinderGeometry(weaponStats.radius, weaponStats.radius, hitDistance, 8),
@@ -5641,38 +6287,112 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       }
     }
 
-    function breakFacadeWindow(block, impulseDir) {
-      if (!block.userData.isFacadePanel) return;
-      const system = buildingWindowSystems.get(block.userData.buildingId);
-      if (!system?.mesh) return;
-
-      system.mesh.updateWorldMatrix(true, false);
-      const blockWorld = block.getWorldPosition(new THREE.Vector3());
+    function shatterWindowInstance(system, index, impulseDir) {
+      if (!system?.mesh || !system.active[index]) return false;
       const instanceMatrix = new THREE.Matrix4();
       const worldMatrix = new THREE.Matrix4();
       const windowWorld = new THREE.Vector3();
+      system.mesh.updateWorldMatrix(true, false);
+      system.mesh.getMatrixAt(index, instanceMatrix);
+      worldMatrix.multiplyMatrices(system.mesh.matrixWorld, instanceMatrix);
+      windowWorld.setFromMatrixPosition(worldMatrix);
+      system.mesh.setMatrixAt(index, new THREE.Matrix4().makeScale(0, 0, 0));
+      system.mesh.instanceMatrix.needsUpdate = true;
+      system.active[index] = 0;
+      spawnGlassParticles(windowWorld, impulseDir);
+      return true;
+    }
+
+    function shatterWindowNear(position, impulseDir, maxDistance = 1.5, buildingId = null) {
+      let closestSystem = null;
       let closestIndex = -1;
-      let closestDistanceSq = 2.4 * 2.4;
-      for (let index = 0; index < system.active.length; index++) {
-        if (!system.active[index]) continue;
-        system.mesh.getMatrixAt(index, instanceMatrix);
-        worldMatrix.multiplyMatrices(system.mesh.matrixWorld, instanceMatrix);
-        windowWorld.setFromMatrixPosition(worldMatrix);
-        const distanceSq = windowWorld.distanceToSquared(blockWorld);
-        if (distanceSq < closestDistanceSq) {
-          closestDistanceSq = distanceSq;
+      let closestDistanceSq = maxDistance * maxDistance;
+      const instanceMatrix = new THREE.Matrix4();
+      const worldMatrix = new THREE.Matrix4();
+      const windowWorld = new THREE.Vector3();
+      for (const [systemBuildingId, system] of buildingWindowSystems) {
+        if (buildingId !== null && systemBuildingId !== buildingId) continue;
+        system.mesh.updateWorldMatrix(true, false);
+        for (let index = 0; index < system.active.length; index++) {
+          if (!system.active[index]) continue;
+          system.mesh.getMatrixAt(index, instanceMatrix);
+          worldMatrix.multiplyMatrices(system.mesh.matrixWorld, instanceMatrix);
+          windowWorld.setFromMatrixPosition(worldMatrix);
+          const distanceSq = windowWorld.distanceToSquared(position);
+          if (distanceSq < closestDistanceSq) {
+            closestDistanceSq = distanceSq;
+            closestSystem = system;
+            closestIndex = index;
+          }
+        }
+      }
+      return closestIndex >= 0 && shatterWindowInstance(closestSystem, closestIndex, impulseDir);
+    }
+
+    function shatterWindowsInRadius(position, impulseDir, radius, maxCount = Infinity) {
+      if (radius <= 0 || maxCount <= 0) return 0;
+      const candidates = [];
+      const radiusSq = radius * radius;
+      const instanceMatrix = new THREE.Matrix4();
+      const worldMatrix = new THREE.Matrix4();
+      const windowWorld = new THREE.Vector3();
+      for (const system of buildingWindowSystems.values()) {
+        system.mesh.updateWorldMatrix(true, false);
+        for (let index = 0; index < system.active.length; index++) {
+          if (!system.active[index]) continue;
+          system.mesh.getMatrixAt(index, instanceMatrix);
+          worldMatrix.multiplyMatrices(system.mesh.matrixWorld, instanceMatrix);
+          windowWorld.setFromMatrixPosition(worldMatrix);
+          const distanceSq = windowWorld.distanceToSquared(position);
+          if (distanceSq <= radiusSq) candidates.push({ system, index, distanceSq });
+        }
+      }
+      candidates.sort((a, b) => a.distanceSq - b.distanceSq);
+      let shattered = 0;
+      for (const candidate of candidates.slice(0, maxCount)) {
+        if (shatterWindowInstance(candidate.system, candidate.index, impulseDir)) shattered++;
+      }
+      return shattered;
+    }
+
+    function shatterWindowAlongRay(origin, direction, maxDistance, impulseDir, radius = 1.25) {
+      let closestSystem = null;
+      let closestIndex = -1;
+      let closestAlong = maxDistance;
+      const instanceMatrix = new THREE.Matrix4();
+      const worldMatrix = new THREE.Matrix4();
+      const windowWorld = new THREE.Vector3();
+      for (const system of buildingWindowSystems.values()) {
+        system.mesh.updateWorldMatrix(true, false);
+        for (let index = 0; index < system.active.length; index++) {
+          if (!system.active[index]) continue;
+          system.mesh.getMatrixAt(index, instanceMatrix);
+          worldMatrix.multiplyMatrices(system.mesh.matrixWorld, instanceMatrix);
+          windowWorld.setFromMatrixPosition(worldMatrix);
+          const toWindow = windowWorld.clone().sub(origin);
+          const along = toWindow.dot(direction);
+          if (along < 0 || along >= closestAlong) continue;
+          if (toWindow.addScaledVector(direction, -along).lengthSq() > radius * radius) continue;
+          closestAlong = along;
+          closestSystem = system;
           closestIndex = index;
         }
       }
-      if (closestIndex < 0) return;
+      return closestIndex >= 0 && shatterWindowInstance(closestSystem, closestIndex, impulseDir);
+    }
 
-      system.mesh.getMatrixAt(closestIndex, instanceMatrix);
-      worldMatrix.multiplyMatrices(system.mesh.matrixWorld, instanceMatrix);
-      windowWorld.setFromMatrixPosition(worldMatrix);
-      system.mesh.setMatrixAt(closestIndex, new THREE.Matrix4().makeScale(0, 0, 0));
-      system.mesh.instanceMatrix.needsUpdate = true;
-      system.active[closestIndex] = 0;
-      spawnGlassParticles(windowWorld, impulseDir);
+    function breakFacadeWindow(block, impulseDir) {
+      if (!block.userData.isFacadePanel) return false;
+      const blockWorld = block.getWorldPosition(new THREE.Vector3());
+      return shatterWindowNear(blockWorld, impulseDir, 2.4, block.userData.buildingId);
+    }
+
+    function shatterWindowAlongSegment(from, to, impulseDir, radius = 1.35) {
+      const direction = to.clone().sub(from);
+      const distance = direction.length();
+      if (distance < .001) return shatterWindowNear(to, impulseDir, radius);
+      direction.multiplyScalar(1 / distance);
+      return shatterWindowAlongRay(from, direction, distance, impulseDir, radius);
     }
 
     function damageBlock(block, damage, impulseDir) {
@@ -6549,22 +7269,18 @@ document.getElementById('customBackButton').addEventListener('click', () => {
     function spawnVehicleFragments(vehicle, impulseDirection) {
       const center = vehicle.position.clone().add(new THREE.Vector3(0, .8, 0));
       for (let i = 0; i < 9; i++) {
-        const geo = i % 3 === 0 ? staticVehicleCylinderGeo : staticVehicleBoxGeos[i % 3];
-        const piece = new THREE.Mesh(
-          geo,
-          staticVehicleFragmentMats[i % staticVehicleFragmentMats.length]
-        );
-        piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * .8, (Math.random() - .5) * 2.3));
-        piece.castShadow = true;
-        piece.userData.velocity = impulseDirection.clone().multiplyScalar(3 + Math.random() * 5).add(new THREE.Vector3(
+        const position = center.clone().add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * .8, (Math.random() - .5) * 2.3));
+        const velocity = impulseDirection.clone().multiplyScalar(3 + Math.random() * 5).add(new THREE.Vector3(
           (Math.random() - .5) * 8,
           5 + Math.random() * 8,
           (Math.random() - .5) * 8
         ));
-        piece.userData.angularVelocity = new THREE.Vector3(Math.random() * 10, Math.random() * 10, Math.random() * 10);
-        piece.userData.life = 4.5;
-        scene.add(piece);
-        debris.push(piece);
+        spawnFractureInstance(
+          fractureRubbleBatch, position, velocity,
+          new THREE.Vector3(Math.random() * 10, Math.random() * 10, Math.random() * 10),
+          .28 + Math.random() * .32, 2.7,
+          staticVehicleFragmentMats[i % staticVehicleFragmentMats.length].color
+        );
       }
     }
 
@@ -7285,6 +8001,11 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       if (projectileHitsVehicle(position, velocity, 'cpu')) return true;
       if (projectileHitsStreetlight(position, velocity)) return true;
       if (projectileHitsTree(position, velocity)) return true;
+      const glassImpulse = velocity.clone().normalize();
+      if (shatterWindowNear(position, glassImpulse, 1.45)) {
+        spawnExplosionEffect(position, .55);
+        return true;
+      }
       for (const block of blocks) {
         if (block.userData.removed) continue;
         if (Math.abs(block.position.x - position.x) > 7 || Math.abs(block.position.z - position.z) > 7) continue;
@@ -7453,31 +8174,26 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       const count = isGlass ? 11 : block.userData.isColumn ? 6 : 4;
       for (let i = 0; i < count; i++) {
         const size = isGlass ? .13 + Math.random() * .2 : block.userData.isColumn ? .36 + Math.random() * .18 : .28 + Math.random() * .17;
-        const piece = new THREE.Mesh(
-          isGlass ? new THREE.TetrahedronGeometry(size, 0) : new THREE.BoxGeometry(size, size, size),
-          isGlass
-            ? new THREE.MeshPhysicalMaterial({ color: 0x9aefff, emissive: 0x1c8da8, emissiveIntensity: .42, transparent: true, opacity: .78, roughness: .04, metalness: .15, transmission: .12, side: THREE.DoubleSide })
-            : new THREE.MeshStandardMaterial({ color: baseColor, roughness: .9, metalness: .05 })
-        );
-        piece.position.copy(origin).add(new THREE.Vector3(
+        const position = origin.clone().add(new THREE.Vector3(
           (Math.random() - .5) * 1.1,
           (Math.random() - .5) * 1.1,
           (Math.random() - .5) * 1.1
         ));
-        piece.castShadow = false;
-        piece.userData.velocity = impulseDir.clone().multiplyScalar(4 + Math.random() * 5).add(new THREE.Vector3(
+        const velocity = impulseDir.clone().multiplyScalar(4 + Math.random() * 5).add(new THREE.Vector3(
           (Math.random() - .5) * 5,
           3 + Math.random() * 6,
           (Math.random() - .5) * 5
         ));
-        piece.userData.angularVelocity = new THREE.Vector3(
+        const angularVelocity = new THREE.Vector3(
           (Math.random() - .5) * 15,
           (Math.random() - .5) * 15,
           (Math.random() - .5) * 15
         );
-        piece.userData.life = isGlass ? 2.4 : 2;
-        scene.add(piece);
-        debris.push(piece);
+        spawnFractureInstance(
+          isGlass ? fractureGlassBatch : fractureRubbleBatch,
+          position, velocity, angularVelocity, size, isGlass ? 2.1 : 1.75,
+          isGlass ? new THREE.Color(0x9aefff) : baseColor
+        );
       }
     }
 
@@ -7496,22 +8212,11 @@ document.getElementById('customBackButton').addEventListener('click', () => {
     function spawnCollapseDust(center, scale = 1, count = 12) {
       for (let i = 0; i < count; i++) {
         const size = (1.35 + Math.random() * 2.5) * scale;
-        const dust = new THREE.Mesh(
-          new THREE.IcosahedronGeometry(1, 1),
-          new THREE.MeshBasicMaterial({ color: 0xb9aaa0, transparent: true, opacity: .2 + Math.random() * .14, depthWrite: false })
-        );
         const angle = Math.random() * Math.PI * 2;
         const radius = Math.random() * (3.4 + scale * 3.8);
-        dust.position.copy(center).add(new THREE.Vector3(Math.cos(angle) * radius, .2 + Math.random() * (1.15 + scale), Math.sin(angle) * radius));
-        dust.scale.setScalar(size);
-        dust.userData.isDustCloud = true;
-        dust.userData.baseScale = size;
-        dust.userData.baseOpacity = dust.material.opacity;
-        dust.userData.life = 1.35 + Math.random() * .9;
-        dust.userData.maxLife = dust.userData.life;
-        dust.userData.drift = new THREE.Vector3(Math.cos(angle) * (.45 + Math.random() * .9), .3 + Math.random() * .75, Math.sin(angle) * (.45 + Math.random() * .9));
-        scene.add(dust);
-        debris.push(dust);
+        const position = center.clone().add(new THREE.Vector3(Math.cos(angle) * radius, .2 + Math.random() * (1.15 + scale), Math.sin(angle) * radius));
+        const velocity = new THREE.Vector3(Math.cos(angle) * (.45 + Math.random() * .9), .3 + Math.random() * .75, Math.sin(angle) * (.45 + Math.random() * .9));
+        spawnFractureInstance(fractureDustBatch, position, velocity, new THREE.Vector3(), size, 1.35 + Math.random() * .9, new THREE.Color(0xb9aaa0));
       }
     }
 
@@ -7640,6 +8345,21 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         );
         smoke.scale.setScalar(burning ? .5 + life * 1.1 : .55 + life * 2.4);
         smoke.material.opacity = partDamage * Math.sin(life * Math.PI) * (burning ? .78 : .42);
+      });
+      const legsDisabledVisual = partHealth.legs <= 0;
+      disabledLegFlames.forEach((flame, index) => {
+        const data = flame.userData;
+        const life = (smokeTime * 2.4 + data.phase) % 1;
+        flame.visible = legsDisabledVisual;
+        if (!legsDisabledVisual) return;
+        flame.position.set(
+          data.side * (.78 + data.lane * .16 + Math.sin(life * 11 + index) * .09),
+          damagePartOrigins.legs[1] - .18 + life * .72,
+          -.05 + Math.cos(life * 9 + index) * .18
+        );
+        const scale = .52 + (1 - life) * .72;
+        flame.scale.set(scale * .72, scale * (1.15 + life * .7), scale * .72);
+        flame.material.opacity = Math.sin(life * Math.PI) * (.64 + (index % 3) * .09);
       });
       if (playerDestroyed) return;
       for (let index = 0; index < laserCooldowns.length; index++) {
@@ -7827,6 +8547,8 @@ if (!wasGrounded && grounded) {
       jetpack.visible = true;
       jetFlameMat.color.setHex(dashJetsActive ? 0xff2b18 : 0x55e7ff);
       jetFlameMat.opacity = dashJetsActive ? 1 : .9;
+      jetFlameCoreMat.color.setHex(dashJetsActive ? 0xffffc4 : 0xf7fdff);
+      jetFlameHaloMat.color.setHex(dashJetsActive ? 0xff541d : 0x238dff);
       dashBoostLight.intensity = dashJetsActive ? 72 : 0;
       if (dashJetsActive) {
         jetpack.updateWorldMatrix(true, false);
@@ -7859,6 +8581,20 @@ if (!wasGrounded && grounded) {
         flame.scale.set(width, dashJetsActive ? 1.18 + jitter * .36 : .9 + jitter * .52, width);
         flame.rotation.set(dashJetsActive ? .22 : 0, 0, Math.PI);
       }
+      const exhaustDirection = dashJetsActive ? dashTrailLocal : dashExhaustDown;
+      const exhaustTime = performance.now() * .001;
+      for (const exhaust of boosterExhaustParticles) {
+        exhaust.visible = jetsActive;
+        if (!jetsActive) continue;
+        const data = exhaust.userData;
+        const life = (exhaustTime * (dashJetsActive ? 2.4 : 1.35) + data.phase) % 1;
+        const travel = .45 + life * (dashJetsActive ? 3.7 : 2.1);
+        exhaust.position.copy(data.nozzleOrigin).addScaledVector(exhaustDirection, travel);
+        exhaust.position.x += data.lane * (.05 + life * .34);
+        exhaust.position.z += Math.sin(life * 9 + data.phase * 14) * (.08 + life * .18);
+        exhaust.scale.setScalar(.42 + life * (dashJetsActive ? 1.7 : 1.15));
+        exhaust.material.opacity = Math.sin(life * Math.PI) * (dashJetsActive ? .3 : .2);
+      }
       document.getElementById('boostText').textContent = Math.ceil(boostEnergy);
       document.getElementById('jetpackText').textContent = jetpackEquipped
         ? `EQUIPPED ${Math.ceil(jetpackTimeRemaining)}s`
@@ -7874,7 +8610,10 @@ if (!wasGrounded && grounded) {
       const speedRatio = THREE.MathUtils.clamp(actualGroundSpeed / 9.5, 0, 3.3);
       // Advance the gait by distance traveled, not clock time. This preserves
       // believable foot speed through acceleration, braking and heavy impacts.
-      if (walking) walkCycle += actualGroundSpeed * dt * .76 * (isReversing ? -1 : 1);
+      // Restore the deliberate heavy cadence while retaining the extended
+      // stride range that keeps the feet capable of covering ground.
+      const gaitDistanceRate = .58;
+      if (walking) walkCycle += actualGroundSpeed * dt * gaitDistanceRate * (isReversing ? -1 : 1);
       const movementBlendTarget = walking ? THREE.MathUtils.clamp(actualGroundSpeed / 3.2, .18, 1) : 0;
       walkBlend = THREE.MathUtils.lerp(walkBlend, movementBlendTarget, 1 - Math.exp(-(walking ? 6.5 : 4.8) * dt));
       const strideScale = THREE.MathUtils.lerp(.68, 1.28, Math.min(1, speedRatio)) * (dashing ? 1.08 : 1);
@@ -7884,7 +8623,8 @@ if (!wasGrounded && grounded) {
       const gaitFore = [0, 0];
       const gaitStance = [0, 0];
       const gaitSwing = [0, 0];
-      const stanceDuration = .62;
+      const stanceDuration = .76;
+      const WALK_STEP_LIFT = .62;
       for (let index = 0; index < 2; index++) {
         const phase = gaitCycles[index];
         if (phase < stanceDuration) {
@@ -7896,13 +8636,19 @@ if (!wasGrounded && grounded) {
           const swingEase = swingProgress * swingProgress * (3 - 2 * swingProgress);
           gaitSwing[index] = swingProgress;
           gaitFore[index] = -1 + swingEase * 2;
-          gaitLift[index] = Math.pow(Math.sin(swingProgress * Math.PI), .9) * walkBlend;
+          // A clear lifted transfer step keeps the reverse-joint walker from
+          // skating while the opposite foot remains the weight-bearing point.
+          gaitLift[index] = Math.pow(Math.sin(swingProgress * Math.PI), 1.28) * WALK_STEP_LIFT * walkBlend;
         }
       }
       const leftLift = gaitLift[0];
       const rightLift = gaitLift[1];
       for (let index = 0; index < gaitCycles.length; index++) {
         const airborneNow = walking && gaitCycles[index] >= stanceDuration;
+        if (!airborneNow && walking && !footPlantWorld[index]) {
+          player.updateWorldMatrix(true, true);
+          footPlantWorld[index] = playerLegs[index].userData.joints.foot.getWorldPosition(new THREE.Vector3());
+        }
         if (footWasAirborne[index] && !airborneNow && grounded && walkBlend > .38) {
           lastFootstepIndex = index;
           playGameSound('footstep');
@@ -7952,30 +8698,50 @@ if (!wasGrounded && grounded) {
       const jointBlend = 1 - Math.exp(-(dashing ? 15 : 8.5 + Math.min(4.5, speedRatio * 3.2)) * dt);
       playerLegs[0].rotation.x = THREE.MathUtils.lerp(playerLegs[0].rotation.x, 0, jointBlend);
       playerLegs[1].rotation.x = THREE.MathUtils.lerp(playerLegs[1].rotation.x, 0, jointBlend);
-      playerLegs[0].position.x = THREE.MathUtils.lerp(playerLegs[0].position.x, mechaAttachments.leftLeg[0], jointBlend * .35);
-      playerLegs[1].position.x = THREE.MathUtils.lerp(playerLegs[1].position.x, mechaAttachments.rightLeg[0], jointBlend * .35);
-      playerLegs[0].position.y = THREE.MathUtils.lerp(playerLegs[0].position.y, mechaAttachments.leftLeg[1] + leftLift * .38 - impactNow * .16, jointBlend);
-      playerLegs[1].position.y = THREE.MathUtils.lerp(playerLegs[1].position.y, mechaAttachments.rightLeg[1] + rightLift * .38 - impactNow * .16, jointBlend);
+      // A foot remains a true support point from its heel strike until the
+      // opposite, forward foot has landed. Only the released foot receives a
+      // new local stride target.
+      const leftFootSupporting = walking && !!footPlantWorld[0] && !footWasAirborne[0];
+      const rightFootSupporting = walking && !!footPlantWorld[1] && !footWasAirborne[1];
+      // Keep the planted stance wide, but sweep the airborne foot a little
+      // inward so the stride reads as a deliberate, heavy transfer of weight.
+      const leftStepInward = -Math.sign(mechaAttachments.leftLeg[0]) * leftLift * .78;
+      const rightStepInward = -Math.sign(mechaAttachments.rightLeg[0]) * rightLift * .78;
+      const leftTargetX = leftFootSupporting ? playerLegs[0].position.x : mechaAttachments.leftLeg[0] + leftStepInward;
+      const rightTargetX = rightFootSupporting ? playerLegs[1].position.x : mechaAttachments.rightLeg[0] + rightStepInward;
+      const leftTargetY = leftFootSupporting ? playerLegs[0].position.y : mechaAttachments.leftLeg[1] + REVERSE_LEG_GROUND_OFFSET + leftLift * .98 - impactNow * .16;
+      const rightTargetY = rightFootSupporting ? playerLegs[1].position.y : mechaAttachments.rightLeg[1] + REVERSE_LEG_GROUND_OFFSET + rightLift * .98 - impactNow * .16;
+      playerLegs[0].position.x = THREE.MathUtils.lerp(playerLegs[0].position.x, leftTargetX, jointBlend * .35);
+      playerLegs[1].position.x = THREE.MathUtils.lerp(playerLegs[1].position.x, rightTargetX, jointBlend * .35);
+      playerLegs[0].position.y = THREE.MathUtils.lerp(playerLegs[0].position.y, leftTargetY, jointBlend);
+      playerLegs[1].position.y = THREE.MathUtils.lerp(playerLegs[1].position.y, rightTargetY, jointBlend);
       const turnStrideScale = THREE.MathUtils.lerp(.28, 1, turnStability);
-      playerLegs[0].position.z = THREE.MathUtils.lerp(playerLegs[0].position.z, mechaAttachments.leftLeg[2] + gaitFore[0] * .28 * strideScale * walkBlend * turnStrideScale, jointBlend);
-      playerLegs[1].position.z = THREE.MathUtils.lerp(playerLegs[1].position.z, mechaAttachments.rightLeg[2] + gaitFore[1] * .28 * strideScale * walkBlend * turnStrideScale, jointBlend);
+      // At top speed this yields a full front-to-back step span of about 10.0.
+      const strideReach = THREE.MathUtils.lerp(.9, 3.90625, Math.min(1, speedRatio));
+      const leftTargetZ = leftFootSupporting ? playerLegs[0].position.z : mechaAttachments.leftLeg[2] + gaitFore[0] * strideReach * strideScale * walkBlend * turnStrideScale;
+      const rightTargetZ = rightFootSupporting ? playerLegs[1].position.z : mechaAttachments.rightLeg[2] + gaitFore[1] * strideReach * strideScale * walkBlend * turnStrideScale;
+      playerLegs[0].position.z = THREE.MathUtils.lerp(playerLegs[0].position.z, leftTargetZ, jointBlend);
+      playerLegs[1].position.z = THREE.MathUtils.lerp(playerLegs[1].position.z, rightTargetZ, jointBlend);
       for (let index = 0; index < playerLegs.length; index++) {
         const joints = playerLegs[index].userData.joints;
         const lift = gaitLift[index];
         const legSwing = gaitFore[index] * strideScale * walkBlend;
-        const swingToeUp = Math.sin(gaitSwing[index] * Math.PI) * (gaitSwing[index] > 0 ? walkBlend : 0);
+        const swingToeUp = Math.sin(gaitSwing[index] * Math.PI) * (gaitSwing[index] > 0 ? walkBlend * .38 : 0);
         const stanceRoll = THREE.MathUtils.smoothstep(gaitStance[index], .55, 1) * walkBlend;
         const heelStrike = gaitCycles[index] < stanceDuration
           ? Math.exp(-Math.pow(gaitStance[index] / .11, 2)) * walkBlend
           : 0;
         const kneeBend = lift * .92 + impactNow * .24 + stanceRoll * .12 + (dashing ? .14 : 0);
-        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, -.12 - legSwing * .58, jointBlend);
-        joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, .22 + kneeBend, jointBlend);
-        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, .18 - kneeBend * .52, jointBlend);
-        joints.rearCalf.rotation.x = THREE.MathUtils.lerp(joints.rearCalf.rotation.x, -.18 - kneeBend * .28, jointBlend);
-        const anklePitch = -.08 + legSwing * .07 + kneeBend * .16 - swingToeUp * .18 + stanceRoll * .1;
+        // Reverse-joint gait: a restrained thigh drives the rear knee, then
+        // the shin and ankle counter-rotate to compress and extend the leg.
+        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, -.08 - legSwing * .28, jointBlend);
+        joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, -.32 - kneeBend - legSwing * .18, jointBlend);
+        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, -.5 + kneeBend * .78 + legSwing * .28, jointBlend);
+        joints.rearCalf.rotation.x = THREE.MathUtils.lerp(joints.rearCalf.rotation.x, -.42 + kneeBend * .44 + legSwing * .18, jointBlend);
+        const reverseAnkleDrive = legSwing * .42 - kneeBend * .44 + stanceRoll * .18;
+        const anklePitch = .12 + reverseAnkleDrive;
         joints.ankle.rotation.x = THREE.MathUtils.lerp(joints.ankle.rotation.x, anklePitch, jointBlend);
-        const footPitch = -swingToeUp * .24 + stanceRoll * .13 - heelStrike * .16 - kneeBend * .06;
+        const footPitch = REVERSE_FOOT_LEVEL_PITCH - reverseAnkleDrive * .76 + stanceRoll * .08 - heelStrike * .1;
         joints.foot.rotation.x = THREE.MathUtils.lerp(joints.foot.rotation.x, footPitch, jointBlend);
         const toeCurl = stanceRoll * .38 - swingToeUp * .1;
         for (const toePivot of joints.toePivots) {
@@ -8005,15 +8771,17 @@ if (!wasGrounded && grounded) {
             const currentFootWorld = joints.foot.getWorldPosition(new THREE.Vector3());
             const plantDelta = footPlantWorld[index].clone().sub(currentFootWorld);
             plantDelta.y = 0;
-            // Release a planted foot before it can drag the whole leg behind the hip.
-            // At high speed the leash is shorter so the next step begins sooner.
-            const maxPlantReach = THREE.MathUtils.lerp(1.35, .82, Math.min(1, speedRatio));
+            // Do not release the stance foot early: it is the weight-bearing
+            // anchor until its own swing phase begins.
+            const maxPlantReach = THREE.MathUtils.lerp(3.6, 5.7, Math.min(1, speedRatio));
             if (plantDelta.length() > maxPlantReach) {
               footPlantWorld[index] = null;
             } else {
               const parentInverseRotation = leg.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
               plantDelta.applyQuaternion(parentInverseRotation);
-              const maxCorrection = THREE.MathUtils.lerp(.24, .16, Math.min(1, speedRatio));
+              // Scale the correction by travelled distance so a lower frame
+              // rate cannot make the planted sole lag and skate across ground.
+              const maxCorrection = THREE.MathUtils.clamp(actualGroundSpeed * dt * 1.5 + .06, .12, .42);
               leg.position.x += THREE.MathUtils.clamp(plantDelta.x, -maxCorrection, maxCorrection) * stanceWeight;
               leg.position.z += THREE.MathUtils.clamp(plantDelta.z, -maxCorrection, maxCorrection) * stanceWeight;
             }
@@ -8021,7 +8789,7 @@ if (!wasGrounded && grounded) {
             const baseLegX = baseAttachment[0];
             const baseLegZ = baseAttachment[2];
             leg.position.x = THREE.MathUtils.clamp(leg.position.x, baseLegX - .42, baseLegX + .42);
-            leg.position.z = THREE.MathUtils.clamp(leg.position.z, baseLegZ - .92, baseLegZ + .92);
+            leg.position.z = THREE.MathUtils.clamp(leg.position.z, baseLegZ - 5.0, baseLegZ + 5.0);
             leg.updateWorldMatrix(true, true);
           }
           const heelWorld = joints.foot.localToWorld(new THREE.Vector3(0, -.31, -.72));
@@ -8038,7 +8806,7 @@ if (!wasGrounded && grounded) {
           leg.updateWorldMatrix(true, true);
           const soleWorld = leg.userData.joints.foot.localToWorld(new THREE.Vector3(0, -.31, 0));
           const soleGround = (heelGround + frontGround) * .5;
-          const correction = THREE.MathUtils.clamp(soleGround - soleWorld.y, -.24, .24) * stanceWeight;
+          const correction = THREE.MathUtils.clamp(soleGround - soleWorld.y, -.5, .5) * stanceWeight;
           leg.position.y += correction;
           leg.updateWorldMatrix(true, true);
           for (const toePivot of joints.toePivots) {
@@ -8074,24 +8842,59 @@ if (!wasGrounded && grounded) {
       const footPlant = Math.pow(Math.abs(Math.cos(walkCycle)), 8) * walkBlend;
       const pelvisSide = Math.sin(walkCycle) * walkBlend;
       const pelvisTwist = Math.sin(walkCycle * .5) * walkBlend * turnStability;
+      // Turn the pelvis toward the moving foot. The hip sockets then travel
+      // into the transfer step instead of sliding straight sideways apart.
+      const pelvisStepYaw = (rightLift - leftLift) * .72;
+      const supportShift = leftLift > .025 ? .16 : rightLift > .025 ? -.16 : 0;
       const legJointLean = THREE.MathUtils.clamp((rightLift - leftLift) * .19 + pelvisSide * -.045, -.12, .12);
-      pelvis.position.x = THREE.MathUtils.lerp(pelvis.position.x, mechaMeshes.pelvis.position[0] + pelvisSide * .09, 1 - Math.exp(-10 * dt));
-      pelvis.position.y = THREE.MathUtils.lerp(pelvis.position.y, mechaMeshes.pelvis.position[1] - footPlant * .09 - impactNow * .1, 1 - Math.exp(-12 * dt));
-      pelvis.position.z = THREE.MathUtils.lerp(pelvis.position.z, mechaMeshes.pelvis.position[2] - Math.cos(walkCycle * 2) * .025 * walkBlend, 1 - Math.exp(-9 * dt));
+      // The pelvic armor follows the average hip socket travel.  That keeps
+      // both ball joints seated during the stride instead of leaving the body
+      // visually behind one of the legs.
+      const hipFollowX = ((playerLegs[0].position.x - mechaAttachments.leftLeg[0]) + (playerLegs[1].position.x - mechaAttachments.rightLeg[0])) * .5;
+      const hipFollowY = ((playerLegs[0].position.y - mechaAttachments.leftLeg[1] - REVERSE_LEG_GROUND_OFFSET) + (playerLegs[1].position.y - mechaAttachments.rightLeg[1] - REVERSE_LEG_GROUND_OFFSET)) * .5;
+      const hipFollowZ = ((playerLegs[0].position.z - mechaAttachments.leftLeg[2]) + (playerLegs[1].position.z - mechaAttachments.rightLeg[2])) * .5;
+      pelvis.position.x = THREE.MathUtils.lerp(pelvis.position.x, mechaMeshes.pelvis.position[0] + supportShift + pelvisSide * .025, 1 - Math.exp(-8 * dt));
+      pelvis.position.y = THREE.MathUtils.lerp(pelvis.position.y, mechaMeshes.pelvis.position[1] - footPlant * .08 - impactNow * .13, 1 - Math.exp(-12 * dt));
+      pelvis.position.z = THREE.MathUtils.lerp(pelvis.position.z, mechaMeshes.pelvis.position[2] - Math.cos(walkCycle * 2) * .016 * walkBlend, 1 - Math.exp(-9 * dt));
+      // The pelvic shell follows the average of both actual hip roots, while
+      // each outer socket carrier follows its own hip. This keeps the armor
+      // physically seated around the ball joints through a turning stride.
+      const pelvisVisualFollow = 1 - Math.exp(-14 * dt);
+      pelvisVisualRig.position.x = THREE.MathUtils.lerp(pelvisVisualRig.position.x, THREE.MathUtils.clamp(hipFollowX * .72, -.24, .24), pelvisVisualFollow);
+      pelvisVisualRig.position.y = THREE.MathUtils.lerp(pelvisVisualRig.position.y, THREE.MathUtils.clamp(hipFollowY * .62, -.16, .16), pelvisVisualFollow);
+      pelvisVisualRig.position.z = THREE.MathUtils.lerp(pelvisVisualRig.position.z, THREE.MathUtils.clamp(hipFollowZ * .4, -.28, .28), pelvisVisualFollow);
+      const leftHipPitch = playerLegs[0].userData.joints.thigh.rotation.x;
+      const rightHipPitch = playerLegs[1].userData.joints.thigh.rotation.x;
+      const pelvisHipPitch = (leftHipPitch + rightHipPitch) * .5;
+      const pelvisHipRoll = (rightHipPitch - leftHipPitch) * .3;
+      pelvisVisualRig.rotation.x = THREE.MathUtils.lerp(pelvisVisualRig.rotation.x, pelvisHipPitch * .18, pelvisVisualFollow);
+      pelvisVisualRig.rotation.y = THREE.MathUtils.lerp(pelvisVisualRig.rotation.y, pelvisStepYaw * .58, pelvisVisualFollow);
+      pelvisVisualRig.rotation.z = THREE.MathUtils.lerp(pelvisVisualRig.rotation.z, THREE.MathUtils.clamp(pelvisHipRoll, -.1, .1), pelvisVisualFollow);
+      for (let index = 0; index < hipSocketCarriers.length; index++) {
+        const attachment = index === 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg;
+        const leg = playerLegs[index];
+        const carrier = hipSocketCarriers[index];
+        carrier.position.x = THREE.MathUtils.lerp(carrier.position.x, leg.position.x - attachment[0], pelvisVisualFollow);
+        carrier.position.y = THREE.MathUtils.lerp(carrier.position.y, leg.position.y - attachment[1] - REVERSE_LEG_GROUND_OFFSET, pelvisVisualFollow);
+        carrier.position.z = THREE.MathUtils.lerp(carrier.position.z, leg.position.z - attachment[2], pelvisVisualFollow);
+      }
       pelvis.rotation.x = THREE.MathUtils.lerp(pelvis.rotation.x, Math.cos(walkCycle * 2) * .018 * walkBlend - impactNow * .035, 1 - Math.exp(-9 * dt));
-      pelvis.rotation.y = THREE.MathUtils.lerp(pelvis.rotation.y, pelvisTwist * .045, 1 - Math.exp(-8 * dt));
+      // The pelvis mesh may yaw with the stride, but its parent must stay
+      // forward-facing so the two hip roots and legs do not inherit that yaw.
+      pelvis.rotation.y = THREE.MathUtils.lerp(pelvis.rotation.y, 0, 1 - Math.exp(-12 * dt));
       pelvis.rotation.z = THREE.MathUtils.lerp(pelvis.rotation.z, -pelvisSide * .035, 1 - Math.exp(-9 * dt));
       // Carry the hip gait through the waist so the leg joints remain mechanically seated.
       waistRig.rotation.x = THREE.MathUtils.lerp(waistRig.rotation.x, pelvis.rotation.x * .42, 1 - Math.exp(-10 * dt));
-      waistRig.rotation.y = THREE.MathUtils.lerp(waistRig.rotation.y, pelvis.rotation.y * .8, 1 - Math.exp(-9 * dt));
+      waistRig.rotation.y = THREE.MathUtils.lerp(waistRig.rotation.y, 0, 1 - Math.exp(-12 * dt));
       waistRig.rotation.z = THREE.MathUtils.lerp(waistRig.rotation.z, legJointLean, 1 - Math.exp(-10 * dt));
       // The illuminated waist core counter-rotates to isolate the aiming torso
       // from the heavy side-to-side movement of the hips.
-      waistCoreAssembly.position.x = THREE.MathUtils.lerp(waistCoreAssembly.position.x, -pelvisSide * .035, 1 - Math.exp(-12 * dt));
-      waistCoreAssembly.position.y = THREE.MathUtils.lerp(waistCoreAssembly.position.y, footPlant * .035, 1 - Math.exp(-12 * dt));
-      waistCoreAssembly.rotation.x = THREE.MathUtils.lerp(waistCoreAssembly.rotation.x, -pelvis.rotation.x * .55, 1 - Math.exp(-13 * dt));
-      waistCoreAssembly.rotation.y = THREE.MathUtils.lerp(waistCoreAssembly.rotation.y, -pelvis.rotation.y * .7, 1 - Math.exp(-13 * dt));
-      waistCoreAssembly.rotation.z = THREE.MathUtils.lerp(waistCoreAssembly.rotation.z, -pelvis.rotation.z * .72, 1 - Math.exp(-13 * dt));
+      waistCoreAssembly.position.x = THREE.MathUtils.lerp(waistCoreAssembly.position.x, pelvisVisualRig.position.x * .72 - pelvisSide * .025, 1 - Math.exp(-12 * dt));
+      waistCoreAssembly.position.y = THREE.MathUtils.lerp(waistCoreAssembly.position.y, pelvisVisualRig.position.y * .72 + footPlant * .03, 1 - Math.exp(-12 * dt));
+      waistCoreAssembly.position.z = THREE.MathUtils.lerp(waistCoreAssembly.position.z, .9 + pelvisVisualRig.position.z * .55, 1 - Math.exp(-12 * dt));
+      waistCoreAssembly.rotation.x = THREE.MathUtils.lerp(waistCoreAssembly.rotation.x, -pelvis.rotation.x * .55 + pelvisVisualRig.rotation.x * .45, 1 - Math.exp(-13 * dt));
+      waistCoreAssembly.rotation.y = THREE.MathUtils.lerp(waistCoreAssembly.rotation.y, -pelvis.rotation.y * .7 + pelvisVisualRig.rotation.y * .5, 1 - Math.exp(-13 * dt));
+      waistCoreAssembly.rotation.z = THREE.MathUtils.lerp(waistCoreAssembly.rotation.z, -pelvis.rotation.z * .72 + pelvisVisualRig.rotation.z * .55, 1 - Math.exp(-13 * dt));
       const coreCompression = 1 - footPlant * .035 - impactNow * .06;
       waistCoreAssembly.scale.y = THREE.MathUtils.lerp(waistCoreAssembly.scale.y, coreCompression, 1 - Math.exp(-15 * dt));
       const suspensionBounce = bodyBounceOffset * upperMotionBlend;
@@ -8130,6 +8933,7 @@ if (!wasGrounded && grounded) {
 
     function updateDebris(dt) {
       updateBuildingCollapses(dt);
+      updateFractureInstances(dt);
       cannonPhysics.syncKinematic('player', player, playerRadius, MECH_HEIGHT, !playerDestroyed && player.visible);
       if (enemyAI?.group) {
         cannonPhysics.syncKinematic('enemy-1', enemyAI.group, 2.05, 8.4, enemyAI.alive && enemyAI.group.visible);
@@ -8271,6 +9075,15 @@ if (!wasGrounded && grounded) {
           shells.splice(i, 1);
           continue;
         }
+        const glassImpulse = shell.userData.velocity.clone().normalize();
+        if (shatterWindowAlongSegment(shellPrevPos, shell.position, glassImpulse, 1.45)) {
+          const glassBlastRadius = shell.userData.level > 0 ? 1.45 + shell.userData.level * 1.2 : 0;
+          if (glassBlastRadius > 0) shatterWindowsInRadius(shell.position, glassImpulse, glassBlastRadius, 2 + shell.userData.level * 5);
+          spawnExplosionEffect(shell.position, shell.userData.level > 0 ? glassBlastRadius : .7);
+          scene.remove(shell);
+          shells.splice(i, 1);
+          continue;
+        }
         shell.rotation.x += 12 * dt;
         let hitBlock = null;
         for (const block of blocks) {
@@ -8319,6 +9132,9 @@ if (!wasGrounded && grounded) {
             damageBlock(hitBlock, shell.userData.damage, impulse);
           }
           if (shell.userData.level > 0) {
+            // Power shells carry their building splash into the glass-only
+            // facade as well, with a count and radius scaled by power level.
+            shatterWindowsInRadius(shell.position, impulse, blastRadius * 1.18, 3 + shell.userData.level * 6);
             for (const block of blocks) {
               if (block === hitBlock || block.userData.core || block.userData.removed) continue;
               if (Math.abs(block.position.x - shell.position.x) > blastRadius || Math.abs(block.position.z - shell.position.z) > blastRadius) continue;
@@ -8359,24 +9175,48 @@ if (!wasGrounded && grounded) {
       const ring = new THREE.Mesh(explosionRingGeo, ringMat);
       ring.rotation.x = -Math.PI / 2;
       const hotCore = new THREE.Mesh(explosionHotCoreGeo, coreMat);
-      const smokePuffs = [];
-      for (let i = 0; i < 2; i++) {
-        const puffMat = explosionSmokeMatBase.clone();
-        if (i % 2) puffMat.color.setHex(0x2b3034);
-        const puff = new THREE.Mesh(explosionSmokeGeo, puffMat);
-        smokePuffs.push(puff);
-      }
-      const sparks = [];
-      for (let i = 0; i < 3; i++) {
-        const sparkMat = explosionSparkMatBase.clone();
-        if (i % 3 === 0) sparkMat.color.setHex(0xffffff);
-        const spark = new THREE.Mesh(explosionSparkGeo, sparkMat);
-        sparks.push(spark);
-      }
       const group = new THREE.Group();
-      group.add(sphere, ring, hotCore, ...smokePuffs, ...sparks);
-      group.userData = { sphere, ring, hotCore, smokePuffs, sparks };
+      group.add(sphere, ring, hotCore);
+      group.userData = { sphere, ring, hotCore };
       return group;
+    }
+    for (let index = 0; index < 10; index++) explosionPool.push(createExplosionMeshGroup());
+
+    function pushExplosionInstanceParticle(collection, capacity, particle) {
+      if (collection.length >= capacity) collection.shift();
+      collection.push(particle);
+    }
+
+    function spawnExplosionInstanceParticles(position, radius) {
+      for (let index = 0; index < 2; index++) {
+        const direction = new THREE.Vector3(
+          Math.random() - .5,
+          Math.random() * .75 + .15,
+          Math.random() - .5
+        ).normalize();
+        pushExplosionInstanceParticle(explosionSmokeParticles, EXPLOSION_SMOKE_CAPACITY, {
+          position: position.clone().addScaledVector(direction, radius * .16),
+          velocity: direction.multiplyScalar(radius * 1.5),
+          elapsed: 0,
+          duration: .68,
+          radius
+        });
+      }
+      for (let index = 0; index < 3; index++) {
+        const direction = new THREE.Vector3(
+          Math.random() - .5,
+          Math.random() * .8,
+          Math.random() - .5
+        ).normalize();
+        pushExplosionInstanceParticle(explosionSparkParticles, EXPLOSION_SPARK_CAPACITY, {
+          position: position.clone(),
+          velocity: direction.clone().multiplyScalar(radius * 8),
+          quaternion: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction),
+          elapsed: 0,
+          duration: .68,
+          radius
+        });
+      }
     }
 
     function spawnExplosionEffect(position, radius) {
@@ -8403,28 +9243,14 @@ if (!wasGrounded && grounded) {
       group.userData.duration = .68;
       group.userData.radius = radius;
 
-      group.userData.smokePuffs.forEach(puff => {
-        const direction = new THREE.Vector3(Math.random() - .5, Math.random() * .75 + .15, Math.random() - .5).normalize();
-        puff.userData.direction = direction;
-        puff.position.copy(direction).multiplyScalar(.16);
-      });
-
-      group.userData.sparks.forEach(spark => {
-        const direction = new THREE.Vector3(Math.random() - .5, Math.random() * .8, Math.random() - .5).normalize();
-        spark.userData.direction = direction;
-        spark.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction);
-        spark.position.set(0, 0, 0);
-      });
-
       scene.add(group);
       explosionEffects.push(group);
+      spawnExplosionInstanceParticles(position, radius);
       if (radius >= 2.5) spawnBurningEffect(position, radius);
     }
 
-    function spawnBurningEffect(position, radius) {
-      if (burningEffects.length >= 8) return;
+    function createBurningEffectGroup() {
       const group = new THREE.Group();
-      group.position.copy(position);
       const flames = [];
       const smoke = [];
       for (let i = 0; i < 3; i++) {
@@ -8439,8 +9265,21 @@ if (!wasGrounded && grounded) {
         smoke.push(puff);
       }
       group.add(...flames, ...smoke);
+      group.userData = { flames, smoke };
+      return group;
+    }
+    for (let index = 0; index < 8; index++) burningEffectPool.push(createBurningEffectGroup());
+
+    function spawnBurningEffect(position, radius) {
+      if (burningEffects.length >= 8) return;
+      const group = burningEffectPool.pop();
+      if (!group) return;
+      group.position.copy(position);
       group.scale.setScalar(THREE.MathUtils.clamp(radius * .34, .55, 1.8));
-      group.userData = { elapsed: 0, duration: 5 + Math.random() * 3, radius: THREE.MathUtils.clamp(radius * .34, .9, 2.8), flames, smoke, phase: Math.random() * 10 };
+      group.userData.elapsed = 0;
+      group.userData.duration = 5 + Math.random() * 3;
+      group.userData.radius = THREE.MathUtils.clamp(radius * .34, .9, 2.8);
+      group.userData.phase = Math.random() * 10;
       scene.add(group);
       burningEffects.push(group);
     }
@@ -8629,6 +9468,56 @@ if (!wasGrounded && grounded) {
     }
 
     function updateExplosionEffects(dt) {
+      for (let index = explosionSmokeParticles.length - 1; index >= 0; index--) {
+        const particle = explosionSmokeParticles[index];
+        particle.elapsed += dt;
+        particle.position.addScaledVector(particle.velocity, dt);
+        if (particle.elapsed >= particle.duration) explosionSmokeParticles.splice(index, 1);
+      }
+      for (let index = explosionSparkParticles.length - 1; index >= 0; index--) {
+        const particle = explosionSparkParticles[index];
+        particle.elapsed += dt;
+        particle.position.addScaledVector(particle.velocity, dt);
+        particle.velocity.y -= 7.5 * dt;
+        if (particle.elapsed >= particle.duration) explosionSparkParticles.splice(index, 1);
+      }
+      for (let index = 0; index < EXPLOSION_SMOKE_CAPACITY; index++) {
+        const particle = explosionSmokeParticles[index];
+        if (particle) {
+          const t = particle.elapsed / particle.duration;
+          explosionParticleDummy.position.copy(particle.position);
+          explosionParticleDummy.quaternion.identity();
+          explosionParticleDummy.scale.setScalar(particle.radius * (.6 + t * 2.8) * Math.sin(t * Math.PI));
+        } else {
+          explosionParticleDummy.position.set(0, -1000, 0);
+          explosionParticleDummy.quaternion.identity();
+          explosionParticleDummy.scale.setScalar(0);
+        }
+        explosionParticleDummy.updateMatrix();
+        explosionSmokeInstances.setMatrixAt(index, explosionParticleDummy.matrix);
+      }
+      for (let index = 0; index < EXPLOSION_SPARK_CAPACITY; index++) {
+        const particle = explosionSparkParticles[index];
+        if (particle) {
+          const t = particle.elapsed / particle.duration;
+          explosionParticleDummy.position.copy(particle.position);
+          explosionParticleDummy.quaternion.copy(particle.quaternion);
+          explosionParticleDummy.scale.set(
+            particle.radius * Math.max(0, 1 - t * 1.45),
+            particle.radius * Math.max(0, 1 - t * 1.45),
+            particle.radius
+          );
+        } else {
+          explosionParticleDummy.position.set(0, -1000, 0);
+          explosionParticleDummy.quaternion.identity();
+          explosionParticleDummy.scale.setScalar(0);
+        }
+        explosionParticleDummy.updateMatrix();
+        explosionSparkInstances.setMatrixAt(index, explosionParticleDummy.matrix);
+      }
+      explosionSmokeInstances.instanceMatrix.needsUpdate = true;
+      explosionSparkInstances.instanceMatrix.needsUpdate = true;
+
       for (let i = explosionEffects.length - 1; i >= 0; i--) {
         const effect = explosionEffects[i];
         effect.userData.elapsed += dt;
@@ -8640,15 +9529,6 @@ if (!wasGrounded && grounded) {
         effect.userData.hotCore.material.opacity = Math.pow(1 - t, 3);
         effect.userData.hotCore.scale.setScalar(.7 + t * 1.8);
         if (effect.userData.flashLight) effect.userData.flashLight.intensity *= Math.exp(-13 * dt);
-        for (const puff of effect.userData.smokePuffs) {
-          puff.position.addScaledVector(puff.userData.direction, dt * 1.5);
-          puff.scale.setScalar(.6 + t * 2.8);
-          puff.material.opacity = Math.sin(t * Math.PI) * .34;
-        }
-        for (const spark of effect.userData.sparks) {
-          spark.position.addScaledVector(spark.userData.direction, dt * 8);
-          spark.material.opacity = Math.max(0, 1 - t * 1.45);
-        }
         if (t >= 1) {
           scene.remove(effect);
           explosionEffects.splice(i, 1);
@@ -8680,8 +9560,8 @@ if (!wasGrounded && grounded) {
         }
         if (life >= 1) {
           scene.remove(fire);
-          fire.traverse(object => object.material?.dispose());
           burningEffects.splice(i, 1);
+          burningEffectPool.push(fire);
         }
       }
     }
@@ -9004,6 +9884,7 @@ if (!wasGrounded && grounded) {
     }
 
     function updateCamera(dt) {
+      if (freeCamActive) return;
       updateBodyCameraFade();
       if (customizerActive) {
         const targetPos = player.position.clone().add(new THREE.Vector3(0, 4.35, 0));
@@ -9018,11 +9899,15 @@ if (!wasGrounded && grounded) {
         return;
       }
       if (titleActive) {
-        // Keep the title camera above the hangar: the lift and walker rise into
-        // its frame from the visible shaft instead of dragging the camera below.
+        // Orbit around the rising walker while keeping it in the left third,
+        // leaving the right side clear for the title panel.
         const drift = reducedMotion ? 0 : Math.sin(performance.now() * .00045) * .32;
-        const targetPos = new THREE.Vector3(-.9, -1.45, 0);
-        const camPos = new THREE.Vector3(6.4 + drift, 10.8, -19.6);
+        const revealFocus = THREE.MathUtils.smoothstep(titleRevealTime, .35, 3.25);
+        const targetPos = new THREE.Vector3(-3.0, THREE.MathUtils.lerp(-1.45, 4.25, revealFocus), 0);
+        const orbitOffset = new THREE.Vector3(6.4 + drift, 10.8, -19.6)
+          .applyAxisAngle(new THREE.Vector3(0, 1, 0), titleCameraYaw);
+        const camPos = targetPos.clone().add(orbitOffset);
+        camPos.y = 10.8;
         const riseShake = reducedMotion ? 0 : THREE.MathUtils.clamp((3.35 - titleRevealTime) / 3.35, 0, 1) * .18;
         if (riseShake > 0) {
           camPos.x += (Math.random() - .5) * riseShake;
@@ -9451,6 +10336,9 @@ if (!wasGrounded && grounded) {
       waistRig.rotation.set(0, 0, 0);
       pelvis.position.fromArray(mechaMeshes.pelvis.position);
       pelvis.rotation.set(0, 0, 0);
+      pelvisVisualRig.position.set(0, 0, 0);
+      pelvisVisualRig.rotation.set(0, 0, 0);
+      for (const carrier of hipSocketCarriers) carrier.position.set(0, 0, 0);
       waistCoreAssembly.position.set(0, 0, .9);
       waistCoreAssembly.rotation.set(0, 0, 0);
       waistCoreAssembly.scale.set(1, 1, 1);
@@ -9644,6 +10532,19 @@ if (!wasGrounded && grounded) {
 
 function detachDisabledMechPart(partKey, impactPosition = null) {
   if (disabledMechParts.has(partKey)) return;
+  if (partKey === 'legs') {
+    // Legs stay mounted as a disabled, burning assembly.  Movement, dash and
+    // jump already key off partHealth.legs, so no geometry needs to fly away.
+    disabledMechParts.add(partKey);
+    for (const leg of playerLegs) leg.userData.disabled = true;
+    const leftLegPosition = playerLegs[0].getWorldPosition(new THREE.Vector3());
+    const rightLegPosition = playerLegs[1].getWorldPosition(new THREE.Vector3());
+    spawnExplosionEffect(leftLegPosition, 1.05);
+    spawnExplosionEffect(rightLegPosition, 1.05);
+    shake = Math.max(shake, .28);
+    showMessage('LEGS DISABLED // MOBILITY OFFLINE');
+    return;
+  }
   const sources = partKey === 'head' ? [headGroup]
     : partKey === 'torso' ? [body]
     : partKey === 'leftArm' ? [weaponPods[0], laserCannonMountLeft, shoulderWeaponMounts[0]]
@@ -9694,6 +10595,7 @@ function restoreDisabledMechParts() {
   for (const [source, wasVisible] of disabledMechPartSources) source.visible = wasVisible;
   disabledMechPartSources.clear();
   disabledMechParts.clear();
+  for (const leg of playerLegs) leg.userData.disabled = false;
 }
 
 function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPosition = null) {
@@ -9782,13 +10684,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         const leg = playerLegs[index];
         leg.rotation.x = 0;
         leg.position.fromArray(index === 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg);
+        leg.position.y += REVERSE_LEG_GROUND_OFFSET;
         const joints = leg.userData.joints;
-        joints.thigh.rotation.x = -.12;
-        joints.knee.rotation.x = .22;
-        joints.shin.rotation.x = .18;
-        joints.rearCalf.rotation.x = -.18;
-        joints.ankle.rotation.x = -.08;
-        joints.foot.rotation.x = 0;
+        joints.thigh.rotation.x = -.08;
+        joints.knee.rotation.x = -.32;
+        joints.shin.rotation.x = -.5;
+        joints.rearCalf.rotation.x = -.42;
+        joints.ankle.rotation.x = .12;
+        joints.foot.rotation.x = REVERSE_FOOT_LEVEL_PITCH;
       }
       body.position.y = BODY_LOCAL_BASE_Y;
       body.rotation.x = 0;
@@ -9797,6 +10700,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       waistRig.rotation.set(0, 0, 0);
       pelvis.position.fromArray(mechaMeshes.pelvis.position);
       pelvis.rotation.set(0, 0, 0);
+      pelvisVisualRig.position.set(0, 0, 0);
+      pelvisVisualRig.rotation.set(0, 0, 0);
+      for (const carrier of hipSocketCarriers) carrier.position.set(0, 0, 0);
       waistCoreAssembly.position.set(0, 0, .9);
       waistCoreAssembly.rotation.set(0, 0, 0);
       waistCoreAssembly.scale.set(1, 1, 1);
@@ -9846,7 +10752,58 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       messageTimer = setTimeout(() => el.style.opacity = 0, 700);
     }
 
+    function toggleFreeCamera() {
+      if (customizerActive || titleActive || hangarActive || hangarLaunching) return;
+      freeCamActive = !freeCamActive;
+      const badge = document.getElementById('freeCamBadge');
+      const btn = document.getElementById('freeCamButton');
+      if (freeCamActive) {
+        freeCamPos.copy(camera.position);
+        freeCamYaw = yaw;
+        freeCamPitch = pitch;
+        if (badge) badge.classList.add('active');
+        if (btn) btn.classList.add('active');
+        renderer.domElement.requestPointerLock();
+        showMessage('FREE CAMERA MODE (PAUSED)');
+      } else {
+        if (badge) badge.classList.remove('active');
+        if (btn) btn.classList.remove('active');
+        showMessage('FREE CAMERA EXIT · RESUMED');
+      }
+    }
+
+    function updateFreeCamera(dt) {
+      if (!freeCamActive) return;
+      const flySpeed = (keys['ShiftLeft'] || keys['ShiftRight']) ? 110 : 38;
+      const moveDist = flySpeed * dt;
+      
+      const forward = new THREE.Vector3(
+        -Math.sin(freeCamYaw) * Math.cos(freeCamPitch),
+        Math.sin(freeCamPitch),
+        -Math.cos(freeCamYaw) * Math.cos(freeCamPitch)
+      ).normalize();
+      
+      const right = new THREE.Vector3(
+        Math.cos(freeCamYaw),
+        0,
+        -Math.sin(freeCamYaw)
+      ).normalize();
+      
+      const up = new THREE.Vector3(0, 1, 0);
+      
+      if (keys['KeyW']) freeCamPos.addScaledVector(forward, moveDist);
+      if (keys['KeyS']) freeCamPos.addScaledVector(forward, -moveDist);
+      if (keys['KeyA']) freeCamPos.addScaledVector(right, -moveDist);
+      if (keys['KeyD']) freeCamPos.addScaledVector(right, moveDist);
+      if (keys['Space'] || keys['KeyE']) freeCamPos.addScaledVector(up, moveDist);
+      if (keys['ControlLeft'] || keys['ControlRight'] || keys['KeyC'] || keys['KeyQ']) freeCamPos.addScaledVector(up, -moveDist);
+      
+      camera.position.copy(freeCamPos);
+      camera.rotation.set(freeCamPitch, freeCamYaw, 0, 'YXZ');
+    }
+
     function togglePause() {
+      if (freeCamActive) toggleFreeCamera();
       paused = !paused;
       document.getElementById('pauseButton').textContent = paused ? '계속하기 (P)' : '일시정지 (P)';
       document.getElementById('pauseOverlay').classList.toggle('active', paused);
@@ -9856,6 +10813,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
 
     function resetGame() {
+      if (freeCamActive) toggleFreeCamera();
       currentLevel = 1;
       arenaHalfSize = 82;
       verticalVelocity = 0;
@@ -9878,13 +10836,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       for (let index = 0; index < playerLegs.length; index++) {
         const leg = playerLegs[index];
         leg.position.fromArray(index === 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg);
+        leg.position.y += REVERSE_LEG_GROUND_OFFSET;
         const joints = leg.userData.joints;
-        joints.thigh.rotation.x = -.12;
-        joints.knee.rotation.x = .22;
-        joints.shin.rotation.x = .18;
-        joints.rearCalf.rotation.x = -.18;
-        joints.ankle.rotation.x = -.08;
-        joints.foot.rotation.x = 0;
+        joints.thigh.rotation.x = -.08;
+        joints.knee.rotation.x = -.32;
+        joints.shin.rotation.x = -.5;
+        joints.rearCalf.rotation.x = -.42;
+        joints.ankle.rotation.x = .12;
+        joints.foot.rotation.x = REVERSE_FOOT_LEVEL_PITCH;
       }
       for (const pod of weaponPods) pod.rotation.z = 0;
       for (const barrels of gatlingBarrelGroups) barrels.rotation.z = 0;
@@ -9901,6 +10860,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       waistRig.rotation.set(0, 0, 0);
       pelvis.position.fromArray(mechaMeshes.pelvis.position);
       pelvis.rotation.set(0, 0, 0);
+      pelvisVisualRig.position.set(0, 0, 0);
+      pelvisVisualRig.rotation.set(0, 0, 0);
+      for (const carrier of hipSocketCarriers) carrier.position.set(0, 0, 0);
       waistCoreAssembly.position.set(0, 0, .9);
       waistCoreAssembly.rotation.set(0, 0, 0);
       waistCoreAssembly.scale.set(1, 1, 1);
@@ -9963,16 +10925,16 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       laserBeams.length = 0;
       for (const effect of explosionEffects) {
         scene.remove(effect);
-        effect.traverse(object => {
-          object.material?.dispose();
-        });
+        explosionPool.push(effect);
       }
       explosionEffects.length = 0;
       for (const fire of burningEffects) {
         scene.remove(fire);
-        fire.traverse(object => object.material?.dispose());
+        burningEffectPool.push(fire);
       }
       burningEffects.length = 0;
+      explosionSmokeParticles.length = 0;
+      explosionSparkParticles.length = 0;
       for (const effect of mechDeathEffects) {
         scene.remove(effect);
         effect.traverse(object => {
@@ -10002,6 +10964,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
 
     createBuilding();
+    setStartupLoading(76, 'BUILDING CITY DEFENSE GRID');
     player.position.copy(getFormationSpawn('player'));
     enemyAI = new EnemyAI({
       scene,
@@ -10072,6 +11035,82 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
     updateHUD();
 
+    function mergeStaticVisualChildren(parent) {
+      const buckets = new Map();
+      for (const child of [...parent.children]) {
+        if (!child.isMesh || child.isInstancedMesh || child.isSkinnedMesh || child.material.transparent || child.material.isShaderMaterial) continue;
+        // Customizer bindings, hit parts, and dynamic meshes keep their own
+        // objects. Everything else is static relative to this parent.
+        if (child.userData.customPartName || child.userData.customSnapPart || child.userData.dynamicMechPart) continue;
+        child.updateMatrix();
+        // BufferGeometryUtils requires exactly the same indexed/non-indexed
+        // layout and vertex attributes.  Keep incompatible-but-same-material
+        // pieces as individual meshes rather than producing merge warnings.
+        const attributes = Object.entries(child.geometry.attributes)
+          .map(([name, attribute]) => `${name}:${attribute.itemSize}:${attribute.normalized ? 1 : 0}`)
+          .sort()
+          .join(',');
+        const geometryLayout = `${child.geometry.index ? 'indexed' : 'flat'}|${attributes}`;
+        const key = `${child.material.uuid}|${child.castShadow}|${child.receiveShadow}|${geometryLayout}`;
+        (buckets.get(key) || buckets.set(key, []).get(key)).push(child);
+      }
+      for (const meshes of buckets.values()) {
+        if (meshes.length < 2) continue;
+        const geometries = meshes.map(mesh => mesh.geometry.clone().applyMatrix4(mesh.matrix));
+        const geometry = mergeGeometries(geometries, false);
+        geometries.forEach(item => item.dispose());
+        if (!geometry) continue;
+        const merged = new THREE.Mesh(geometry, meshes[0].material);
+        merged.castShadow = meshes[0].castShadow;
+        merged.receiveShadow = meshes[0].receiveShadow;
+        merged.name = 'MergedStaticVisualDetail';
+        meshes.forEach(mesh => parent.remove(mesh));
+        parent.add(merged);
+      }
+    }
+    function optimizeStaticVisualDrawCalls(root) {
+      const groups = [];
+      root.traverse(node => { if (node.isGroup) groups.push(node); });
+      // Deepest-first preserves every local transform while merging details.
+      for (let index = groups.length - 1; index >= 0; index--) mergeStaticVisualChildren(groups[index]);
+    }
+    optimizeStaticVisualDrawCalls(body);
+    optimizeStaticVisualDrawCalls(pelvis);
+    optimizeStaticVisualDrawCalls(headGroup);
+    for (const leg of playerLegs) optimizeStaticVisualDrawCalls(leg);
+    optimizeStaticVisualDrawCalls(roadDetailGroup);
+    optimizeStaticVisualDrawCalls(futureBackdrop);
+
+    function getRenderBudgetStats(root) {
+      const stats = { meshes: 0, instances: 0, triangles: 0 };
+      root.traverse(object => {
+        if (!object.isMesh || !object.geometry) return;
+        const triangles = object.geometry.index
+          ? object.geometry.index.count / 3
+          : object.geometry.attributes.position.count / 3;
+        const instances = object.isInstancedMesh ? object.count : 1;
+        stats.meshes++;
+        stats.instances += instances;
+        stats.triangles += Math.round(triangles * instances);
+      });
+      return stats;
+    }
+    // Kept as a read-only diagnostic hook for profiling in the browser console.
+    window.getRenderBudgetReport = () => ({
+      mainMecha: getRenderBudgetStats(player),
+      destructibleBuildings: getRenderBudgetStats(building),
+      environment: getRenderBudgetStats(envGroup),
+      traffic: getRenderBudgetStats(trafficGroup),
+      hangar: getRenderBudgetStats(hangarGroup),
+      scene: getRenderBudgetStats(scene),
+      renderer: { ...renderer.info.render }
+    });
+    const renderBudgetSnapshot = window.getRenderBudgetReport();
+    // DOM data makes this same read-only report available to automated visual
+    // checks without putting a profiler overlay into the game view.
+    document.getElementById('fpsCounter').dataset.renderBudget = JSON.stringify(renderBudgetSnapshot);
+    setStartupLoading(92, 'VERIFYING RENDER BUDGET');
+
     const clock = new THREE.Clock();
     let fpsFrames = 0;
     let fpsElapsed = 0;
@@ -10079,12 +11118,23 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       requestAnimationFrame(animate);
       const rawDt = clock.getDelta();
       const dt = Math.min(rawDt, .033);
+      rainSystem.update(dt);
       fpsFrames++;
       fpsElapsed += rawDt;
       if (fpsElapsed >= .5) {
-        document.getElementById('fpsCounter').textContent = `FPS ${Math.round(fpsFrames / fpsElapsed)}`;
+        const fpsCounter = document.getElementById('fpsCounter');
+        const fps = Math.round(fpsFrames / fpsElapsed);
+        const frameMs = (fpsElapsed * 1000 / fpsFrames).toFixed(1);
+        fpsCounter.textContent = `FPS ${fps} · ${frameMs} ms · DC ${renderer.info.render.calls}`;
+        fpsCounter.classList.toggle('performance-warn', fps < 50 && fps >= 30);
+        fpsCounter.classList.toggle('performance-critical', fps < 30);
         fpsFrames = 0;
         fpsElapsed = 0;
+      }
+      if (freeCamActive) {
+        updateFreeCamera(dt);
+        composer.render();
+        return;
       }
       if (!paused) {
         for (const layer of cloudLayers) {
@@ -10146,6 +11196,12 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       composer.render();
     }
     animate();
+    // The title is only exposed after the initialized scene has produced two
+    // real frames, avoiding a blank canvas flash on slower GPUs.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      setStartupLoading(100, 'SYSTEMS ONLINE');
+      window.setTimeout(() => loadingScreen.classList.add('hidden'), 280);
+    }));
 
     addEventListener('resize', () => {
       camera.aspect = innerWidth / innerHeight;
