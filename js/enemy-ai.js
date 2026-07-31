@@ -482,9 +482,9 @@ class EnemyAI {
     const group = new THREE.Group();
     group.userData.unitClass = '8M ASSAULT PLATFORM';
 
-    const armor = new THREE.MeshStandardMaterial({ color: 0x551923, roughness: .31, metalness: .8 });
-    const armorLight = new THREE.MeshStandardMaterial({ color: 0x9a3947, roughness: .29, metalness: .72 });
-    const glow = new THREE.MeshStandardMaterial({ color: 0xff4964, emissive: 0xb3092d, emissiveIntensity: 2.7, roughness: .16, metalness: .28 });
+    const armor = new THREE.MeshStandardMaterial({ color: 0x941423, roughness: .31, metalness: .8 });
+    const armorLight = new THREE.MeshStandardMaterial({ color: 0xeb3445, roughness: .29, metalness: .72 });
+    const glow = new THREE.MeshStandardMaterial({ color: 0xff2e43, emissive: 0xd60927, emissiveIntensity: 2.7, roughness: .16, metalness: .28 });
     const dark = new THREE.MeshStandardMaterial({ color: 0x11151c, roughness: .27, metalness: .9 });
     const brass = new THREE.MeshStandardMaterial({ color: 0xe18a37, roughness: .32, metalness: .74 });
     const hydraulic = new THREE.MeshStandardMaterial({ color: 0xb0b6bc, roughness: .22, metalness: .92 });

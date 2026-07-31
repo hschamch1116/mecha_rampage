@@ -6201,8 +6201,54 @@ let landingRecoveryTimer = 0;
       }
       mechaAttachments.leftLeg = [-2.02, -0.07, 0];
       mechaAttachments.rightLeg = [2.02, -0.07, 0];
-      playerLegs[0].position.set(-2.02, -0.07 + REVERSE_LEG_GROUND_OFFSET, 0);
-      playerLegs[1].position.set(2.02, -0.07 + REVERSE_LEG_GROUND_OFFSET, 0);
+
+      if (typeof mechaGaitController?.reset === 'function') {
+        mechaGaitController.reset();
+      }
+
+      for (let index = 0; index < playerLegs.length; index++) {
+        const leg = playerLegs[index];
+        if (!leg) continue;
+        const posX = index === 0 ? -2.02 : 2.02;
+        leg.position.set(posX, -0.07 + REVERSE_LEG_GROUND_OFFSET, 0);
+        leg.rotation.set(0, 0, 0);
+
+        const joints = leg.userData?.joints;
+        if (joints) {
+          if (joints.thigh) joints.thigh.rotation.set(-0.08, 0, 0);
+          if (joints.knee) joints.knee.rotation.set(-0.32, 0, 0);
+          if (joints.shin) joints.shin.rotation.set(-0.5, 0, 0);
+          if (joints.rearCalf) joints.rearCalf.rotation.set(-0.42, 0, 0);
+          if (joints.ankle) joints.ankle.rotation.set(0.12, 0, 0);
+          if (joints.foot) joints.foot.rotation.set(REVERSE_FOOT_LEVEL_PITCH, 0, 0);
+        }
+      }
+
+      if (typeof body !== 'undefined') {
+        body.position.y = BODY_LOCAL_BASE_Y;
+        body.rotation.set(0, 0, 0);
+      }
+      if (typeof upperBodyPivot !== 'undefined') upperBodyPivot.rotation.set(0, 0, 0);
+      if (typeof headGroup !== 'undefined') headGroup.rotation.set(0, 0, 0);
+      if (typeof waistRig !== 'undefined') {
+        waistRig.position.set(0, UPPER_PIVOT_Y, 0);
+        waistRig.rotation.set(0, 0, 0);
+      }
+      if (typeof pelvis !== 'undefined' && mechaMeshes?.pelvis?.position) {
+        pelvis.position.fromArray(mechaMeshes.pelvis.position);
+        pelvis.rotation.set(0, 0, 0);
+      }
+      if (typeof pelvisVisualRig !== 'undefined') {
+        pelvisVisualRig.position.set(0, 0, 0);
+        pelvisVisualRig.rotation.set(0, 0, 0);
+      }
+      if (typeof hipSocketCarriers !== 'undefined' && Array.isArray(hipSocketCarriers)) {
+        for (const carrier of hipSocketCarriers) {
+          carrier.position.set(0, 0, 0);
+          carrier.rotation.set(0, 0, 0);
+        }
+      }
+
       player.updateWorldMatrix(true, true);
     }
     document.getElementById('customToggleJointsButton').addEventListener('click', () => {
@@ -11492,7 +11538,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     enemyAI2.group.traverse(object => {
       if (!object.isMesh || !object.material?.color) return;
       object.material = object.material.clone();
-      object.material.color.offsetHSL(.08, .04, .03);
+      object.material.color.offsetHSL(-0.04, 0.05, -0.06);
     });
     enemyAI2.group.position.copy(getFormationSpawn('enemy', 1));
     enemyAI2.alive = false;
