@@ -4,6 +4,7 @@
 [![Physics](https://img.shields.io/badge/Physics-Cannon.js-blue.svg)](https://github.com/schteppe/cannon.js)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#라이선스)
 [![AI Powered](https://img.shields.io/badge/AI-Codex%205.6%20Terra%20%7C%20Gemini%203.6%20Flash-purple.svg)](AI_UTILIZATION_DOC.md)
+[![Version](https://img.shields.io/badge/Version-V5.3_Hangar_GDI_Eagle-gold.svg)](#최근-변경-이력-changelog)
 
 **Mecha Rampage: Siege Walker V5**는 브라우저에서 별도의 빌드 도구 설치 없이 즉시 구동되는 **고품질 3D 메카 액션 시뮬레이션 게임**입니다.
 
