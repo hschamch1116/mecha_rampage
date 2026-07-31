@@ -53,13 +53,15 @@
     #weaponCooldownRight .weapon-cooldown-fill { transform-origin: right center; }
     #damageDirection { position: absolute; left: 50%; top: 50%; width: 38px; height: 31px; opacity: 0; transform: translate(-50%, -50%) rotate(var(--damage-angle, 0rad)) translateY(-151px); transform-origin: center; background: linear-gradient(#ff173f, #ffad57); clip-path: polygon(0 0, 100% 0, 50% 100%); filter: drop-shadow(0 0 13px #ff173d); transition: opacity .12s ease; }
     #damageDirection::after { content:'ATTACK'; position:absolute; left:50%; top:-15px; transform:translateX(-50%); color:#ff735e; font:900 8px Orbitron,sans-serif; letter-spacing:.08em; }
-    #tacticalMap { position: absolute; right: 18px; top: 66px; width: 196px; height:196px; box-sizing:border-box; padding:7px; border: 1px solid rgba(113,219,232,.58); border-radius: 50%; overflow: hidden; background: rgba(4,10,15,.78); color: #ccecf0; font-family: Orbitron, sans-serif; opacity: 0; transition: opacity .16s ease; }
+    #tacticalMap { position: absolute; right: 18px; top: 18px; width: 196px; height:196px; box-sizing:border-box; padding:7px; border: 1px solid rgba(113,219,232,.58); border-radius: 50%; overflow: hidden; background: rgba(4,10,15,.78); color: #ccecf0; font-family: Orbitron, sans-serif; opacity: 0; transition: opacity .16s ease; }
     #tacticalMap.active { opacity: 1; }
     #tacticalMap.danger { border-color:#ff3048; box-shadow:0 0 24px rgba(255,35,59,.7),inset 0 0 24px rgba(255,35,59,.22); animation:radarDanger .38s ease-in-out infinite alternate; }
     #tacticalMap.danger #nearestEnemyDistance { color:#fff; text-shadow:0 0 8px #ff173d; }
     @keyframes radarDanger { from { filter:none; } to { filter:drop-shadow(0 0 8px #ff173d); } }
     #minimapCanvas { display:block; width: 180px; height: 180px; border-radius:50%; clip-path:circle(50% at 50% 50%); }
-    #fpsCounter { position:fixed; z-index:40; right:18px; top:18px; min-width:124px; padding:8px 10px; border:1px solid rgba(95,223,239,.56); border-left-width:3px; background:rgba(3,12,19,.76); color:#8ff3ff; font:800 11px Orbitron,sans-serif; letter-spacing:.08em; text-align:right; text-shadow:0 0 8px #19b9d3; box-shadow:inset 0 0 16px rgba(40,187,209,.11); pointer-events:none; }
+    #fpsCounter { position:fixed; z-index:40; right:18px; top:224px; min-width:124px; padding:8px 10px; border:1px solid rgba(95,223,239,.56); border-left-width:3px; background:rgba(3,12,19,.76); color:#8ff3ff; font:800 11px Orbitron,sans-serif; letter-spacing:.08em; text-align:right; text-shadow:0 0 8px #19b9d3; box-shadow:inset 0 0 16px rgba(40,187,209,.11); pointer-events:none; }
+    #hudControlsBar { position: fixed; left: 160px; top: 18px; z-index: 10; display: flex; align-items: center; gap: 8px; pointer-events: auto; }
+    #pauseButton, #freeCamButton, #visualHudButton, #audioControls { position: static !important; }
     #fpsCounter.performance-warn { color:#ffe179; border-color:rgba(255,204,82,.72); text-shadow:0 0 8px #ffb429; }
     #fpsCounter.performance-critical { color:#ff7180; border-color:rgba(255,71,89,.78); text-shadow:0 0 9px #ff3348; }
     #partsDamageHud { position:absolute; left:18px; bottom:18px; display:grid; grid-template-columns:repeat(5,minmax(36px,1fr)); gap:5px; width:244px; padding:23px 8px 8px; border:1px solid rgba(113,219,232,.34); border-radius:2px; background:linear-gradient(180deg,rgba(4,19,28,.4),rgba(4,11,17,.84)); font:700 8px Orbitron,sans-serif; pointer-events:none; }
@@ -73,6 +75,8 @@
     #criticalDangerAlert { position:absolute; left:50%; top:96px; transform:translateX(-50%); display:none; padding:8px 15px; border:1px solid #ff4559; background:rgba(65,4,12,.78); color:#fff0e8; font:900 12px Orbitron,sans-serif; letter-spacing:.16em; text-shadow:0 0 9px #ff243f; box-shadow:0 0 20px rgba(255,37,62,.45); animation:criticalDangerPulse .52s ease-in-out infinite alternate; }
     #criticalDangerAlert.active { display:block; }
     @keyframes criticalDangerPulse { to { transform:translateX(-50%) scale(1.045); background:rgba(122,7,20,.92); box-shadow:0 0 34px rgba(255,37,62,.82); } }
+    #hitFlashOverlay { position: fixed; inset: 0; z-index: 9998; pointer-events: none; box-shadow: inset 0 0 60px rgba(255, 30, 40, 0.45); background: radial-gradient(circle at center, transparent 65%, rgba(255, 20, 40, 0.22) 100%); opacity: 0; transition: opacity 0.05s ease-out; }
+    #hitFlashOverlay.heavy { box-shadow: inset 0 0 110px rgba(255, 0, 30, 0.85), inset 0 0 180px rgba(255, 0, 50, 0.65); background: radial-gradient(circle at center, transparent 40%, rgba(255, 0, 30, 0.42) 100%); }
     #centerHint.is-hidden { opacity: 0; visibility: hidden; }
     @keyframes energyAlert { to { box-shadow: 0 0 24px rgba(255, 54, 78, .6), inset 0 1px 0 rgba(255,255,255,.12); } }
     @media (max-width: 640px) { #playerStatusHud { left: 12px; bottom: 12px; width: calc(100vw - 24px); padding: 11px 12px; } .panel { transform: scale(.84); transform-origin: top left; } #mechVitalsRing { bottom: 76px; width: 184px; height: 184px; } .weapon-cooldown-hud { bottom: 18px; width: calc(50vw - 18px); padding: 8px; } #weaponCooldownLeft { left: 12px; } #weaponCooldownRight { right: 12px; } #partsDamageHud { display:none; } #tacticalMap { right: 10px; top: 58px; width: 152px; height:152px; padding:7px; } #minimapCanvas { width:136px; height:136px; } #navReadout { left:20px; right:20px; bottom:13px; font-size:7px; } }
@@ -107,7 +111,37 @@
     @keyframes titlePanelEnter { from { opacity:0; transform:translateX(52px); } to { opacity:1; transform:translateX(0); } }
     @keyframes titleButtonPulse { to { border-color:#e7feff; box-shadow:inset 0 0 28px rgba(90,233,249,.28),0 0 34px rgba(50,215,236,.5); } }
     body.hangar-mode #hud { opacity: 0; }
-    .hangar-loadout { align-self: stretch; display: flex; flex-direction: column; padding: clamp(28px, 5vh, 62px) 34px 30px; overflow-y:auto; border-right: 1px solid rgba(107,216,231,.22); background: rgba(6,12,17,.46); backdrop-filter: blur(12px); }
+    .hangar-loadout { align-self: stretch; display: flex; flex-direction: column; padding: clamp(28px, 5vh, 62px) 34px 30px; overflow-y:auto; border-right: 1px solid rgba(107,216,231,.22); background: rgba(6,12,17,.46); backdrop-filter: blur(12px); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease; }
+    .hangar-loadout.swiped-left { transform: translateX(-115%); opacity: 0; pointer-events: none; }
+
+    /* Mode Selection Modal Styling */
+    .mode-select-modal { position: fixed; inset: 0; z-index: 25; display: flex; align-items: center; justify-content: center; background: rgba(3, 8, 13, 0.78); backdrop-filter: blur(16px); opacity: 1; visibility: visible; transition: opacity 0.4s ease, visibility 0.4s ease; }
+    .mode-select-modal.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .mode-modal-content { width: min(840px, 92vw); padding: 40px 36px 32px; background: rgba(8, 16, 24, 0.94); border: 1px solid rgba(100, 220, 240, 0.4); box-shadow: 0 0 50px rgba(0, 200, 230, 0.25), inset 0 0 30px rgba(100, 220, 240, 0.08); border-radius: 8px; text-align: center; font-family: Orbitron, sans-serif; animation: modalPop 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes modalPop { from { opacity: 0; transform: scale(0.92) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    .mode-kicker { color: #6ee5f2; font-size: 11px; font-weight: 800; letter-spacing: 0.3em; }
+    .mode-title { color: #e8fcff; font-size: 32px; font-weight: 900; margin: 8px 0 6px; letter-spacing: 0.1em; text-shadow: 0 0 16px rgba(100,230,250,0.5); }
+    .mode-subtitle { color: #9bb5bd; font-size: 13px; margin-bottom: 28px; }
+    .mode-cards-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .mode-card { position: relative; display: flex; flex-direction: column; align-items: center; padding: 30px 22px 24px; border-radius: 6px; cursor: pointer; text-align: center; transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease; background: rgba(14, 26, 36, 0.85); border: 2px solid rgba(100, 200, 220, 0.25); color: #e2f5f8; }
+    .mode-card:hover { transform: translateY(-6px) scale(1.02); }
+    .mode-deathmatch { border-color: rgba(255, 75, 90, 0.4); }
+    .mode-deathmatch:hover { border-color: #ff3b53; box-shadow: 0 12px 36px rgba(255, 59, 83, 0.38), inset 0 0 20px rgba(255, 59, 83, 0.15); background: linear-gradient(145deg, rgba(38, 14, 18, 0.9), rgba(16, 24, 34, 0.9)); }
+    .mode-ctf { border-color: rgba(33, 207, 255, 0.4); }
+    .mode-ctf:hover { border-color: #21cfff; box-shadow: 0 12px 36px rgba(33, 207, 255, 0.38), inset 0 0 20px rgba(33, 207, 255, 0.15); background: linear-gradient(145deg, rgba(12, 32, 46, 0.9), rgba(16, 24, 34, 0.9)); }
+    .mode-card-icon { font-size: 38px; margin-bottom: 12px; }
+    .mode-card-badge { font-size: 9px; font-weight: 800; letter-spacing: 0.18em; color: #88c5d0; margin-bottom: 6px; }
+    .mode-card-title { font-size: 22px; font-weight: 900; letter-spacing: 0.08em; margin: 0 0 10px; color: #ffffff; }
+    .mode-deathmatch .mode-card-title { color: #ff8595; }
+    .mode-ctf .mode-card-title { color: #7de8ff; }
+    .mode-card-desc { font-size: 12px; color: #9bb1b8; line-height: 1.55; margin-bottom: 20px; flex-grow: 1; }
+    .mode-card-action { width: 100%; padding: 12px; font-size: 12px; font-weight: 900; letter-spacing: 0.14em; border-radius: 4px; transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease; }
+    .mode-deathmatch .mode-card-action { background: rgba(255, 59, 83, 0.2); border: 1px solid #ff3b53; color: #ffacb7; }
+    .mode-deathmatch:hover .mode-card-action { background: #ff3b53; color: #ffffff; box-shadow: 0 0 16px rgba(255, 59, 83, 0.6); }
+    .mode-ctf .mode-card-action { background: rgba(33, 207, 255, 0.2); border: 1px solid #21cfff; color: #a1f0ff; }
+    .mode-ctf:hover .mode-card-action { background: #21cfff; color: #05141c; box-shadow: 0 0 16px rgba(33, 207, 255, 0.6); }
+    .mode-back-btn { background: none; border: 1px solid rgba(120, 180, 200, 0.3); color: #88abb5; font: 800 10px Orbitron, monospace; padding: 10px 20px; cursor: pointer; border-radius: 4px; letter-spacing: 0.12em; transition: all 0.2s ease; }
+    .mode-back-btn:hover { border-color: #6ee5f2; color: #e0fcff; background: rgba(110, 229, 242, 0.1); }
     .hangar-kicker { margin-bottom: 10px; color: #71d6e4; font: 800 11px/1 Orbitron, sans-serif; letter-spacing: .18em; }
     .hangar-title { margin: 0; max-width: 360px; font: 900 clamp(28px, 4vw, 48px)/.98 Orbitron, sans-serif; letter-spacing: -.04em; }
     .hangar-copy { max-width: 36ch; margin: 16px 0 25px; color: #a8bac1; font-size: 14px; line-height: 1.55; }
@@ -158,8 +192,9 @@
     .custom-color-presets { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:14px; }
     .custom-color-swatch { aspect-ratio:1; border:2px solid rgba(255,255,255,.24); border-radius:4px; cursor:pointer; box-shadow:inset 0 0 0 2px rgba(0,0,0,.25); }
     .custom-color-swatch.selected { border-color:#eaffff; box-shadow:0 0 0 2px #55eaff,inset 0 0 0 2px rgba(0,0,0,.3); }
-    .custom-actions { display:grid; grid-template-columns:repeat(5, 1fr); gap:5px; margin-top:22px; }
-    .custom-actions button { padding:10px 4px; border:1px solid #62d9e8; background:#14313a; color:#e8fcff; font:900 9px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.04em; }
+    .custom-actions { display:grid; grid-template-columns:repeat(6, 1fr); gap:4px; margin-top:22px; }
+    .custom-actions button { padding:10px 2px; border:1px solid #62d9e8; background:#14313a; color:#e8fcff; font:900 8.5px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.02em; }
+    #customToggleJointsButton { border-color:#d580ff; color:#f1d4ff; background:#291436; }
     #customExportButton { border-color:#62eaff; color:#8ff3ff; background:#133644; }
     #customImportButton { border-color:#ffe36a; color:#fff3a1; background:#382f15; }
     #customResetButton { border-color:#ff735f; color:#ffac9f; background:#351816; }
@@ -382,13 +417,40 @@
       <div class="hangar-actions">
         <button id="customizeMechaButton" type="button">CUSTOMIZE MECHA</button>
         <button id="visualSettingsButton" type="button">VISUAL SETTINGS</button>
-        <button id="battleStartButton" type="button">BATTLE START</button>
+        <button id="battleStartButton" type="button">WEAPONS READY ▶</button>
         <button id="returnTitleButton" type="button">RETURN TO TITLE</button>
         <div id="hangarStatus" aria-live="polite">1 LASER · 2 CANNON · 3 HOMING · 4 HOMING</div>
       </div>
     </div>
     <div class="hangar-view-label">LIVE MAINTENANCE VIEW</div>
   </section>
+
+  <!-- ====== OPERATION MODE SELECTION MODAL ====== -->
+  <div id="modeSelectModal" class="mode-select-modal hidden" aria-label="Select Game Mode">
+    <div class="mode-modal-content">
+      <div class="mode-kicker">TACTICAL OPERATION MODE</div>
+      <h2 class="mode-title">SELECT GAME MODE</h2>
+      <p class="mode-subtitle">참가할 작전 모드를 선택하여 워커를 전장에 출격시키십시오.</p>
+      <div class="mode-cards-container">
+        <button id="modeBtnDeathmatch" type="button" class="mode-card mode-deathmatch">
+          <div class="mode-card-icon">⚔️</div>
+          <div class="mode-card-badge">STANDARD COMBAT</div>
+          <h3 class="mode-card-title">DEATHMATCH</h3>
+          <p class="mode-card-desc">전장의 모든 적 메카를 총력전으로 파괴하고 포인트를 획득하는 모드입니다.</p>
+          <div class="mode-card-action">SELECT & LAUNCH</div>
+        </button>
+
+        <button id="modeBtnCTF" type="button" class="mode-card mode-ctf">
+          <div class="mode-card-icon">🚩</div>
+          <div class="mode-card-badge">OBJECTIVE OPERATION</div>
+          <h3 class="mode-card-title">CAPTURE THE FLAG</h3>
+          <p class="mode-card-desc">적진의 깃발을 침투 탈취하여 아군 진영으로 안전하게 수송하는 모드입니다.</p>
+          <div class="mode-card-action">SELECT & LAUNCH</div>
+        </button>
+      </div>
+      <button id="modeBackToLoadout" type="button" class="mode-back-btn">◀ RE-CUSTOMIZE WEAPONS (무기 다시 설정)</button>
+    </div>
+  </div>
   <section id="visualSettings" aria-label="Visual settings">
     <div class="settings-panel">
       <h2>VISUAL SETTINGS</h2>
@@ -412,6 +474,8 @@
       <div id="customControls"></div>
       <div class="custom-actions">
         <button id="customBackButton" type="button">BACK</button>
+        <button id="customWalkTestButton" type="button" style="border:1px solid #ffe37a; background:rgba(255,200,40,.22); color:#fff3a8; font-weight:700; cursor:pointer;" title="Test gait walk animation in customizer studio">WALK TEST ▶</button>
+        <button id="customToggleJointsButton" type="button" title="Toggle visibility of all mecha ball joints">HIDE JOINTS</button>
         <button id="customExportButton" type="button" title="Save customization to JSON file">SAVE FILE</button>
         <button id="customImportButton" type="button" title="Load customization from JSON file">LOAD FILE</button>
         <button id="customResetButton" type="button">RESET</button>
@@ -420,6 +484,19 @@
       <input type="file" id="customImportInput" accept=".json" style="display:none;">
     </div>
   </section>
+  <!-- ====== GAIT TUNING PANEL (Real-time T-Rex Walk Adjustment) ====== -->
+  <div id="gaitTuningPanel" style="display:none; position:fixed; top:12px; right:12px; width:280px; max-height:90vh; overflow-y:auto; background:rgba(8,14,22,0.92); border:1px solid #2a5d6a; border-radius:8px; padding:14px 16px; z-index:10001; font-family:'Orbitron',monospace; color:#9fd8ff; font-size:11px; backdrop-filter:blur(8px);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; color:#62eaff; font-size:13px; letter-spacing:0.12em;">🦖 GAIT TUNING</h3>
+      <button id="gaitTuningClose" style="background:none; border:1px solid #ff5544; color:#ff8877; padding:2px 8px; cursor:pointer; font:bold 10px monospace; border-radius:3px;">✕</button>
+    </div>
+    <div id="gaitSliders"></div>
+    <div style="margin-top:10px; display:flex; gap:6px;">
+      <button id="gaitResetBtn" style="flex:1; padding:8px; border:1px solid #ff735f; background:#351816; color:#ffac9f; font:bold 9px Orbitron,monospace; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">RESET DEFAULT</button>
+      <button id="gaitCopyBtn" style="flex:1; padding:8px; border:1px solid #62eaff; background:#133644; color:#8ff3ff; font:bold 9px Orbitron,monospace; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">COPY VALUES</button>
+    </div>
+  </div>
+  <button id="gaitTuningToggle" type="button" style="position:fixed; top:18px; right:228px; z-index:10000; padding:8px 14px; border:1px solid #62eaff; background:rgba(8,14,22,0.85); color:#9fd8ff; font:bold 10px Orbitron,monospace; cursor:pointer; border-radius:4px; letter-spacing:0.08em; backdrop-filter:blur(6px);">🦖 GAIT</button>
   <div id="hud">
     <div id="freeCamBadge" class="free-cam-badge">
       <div class="free-cam-title">🎥 FREE CAMERA MODE (PAUSED)</div>
@@ -430,18 +507,21 @@
         <span><strong>F / Esc</strong> 카메라 종료</span>
       </div>
     </div>
-    <button id="freeCamButton" type="button">프리 카메라 (F)</button>
-    <button id="pauseButton" type="button">일시정지 (P)</button>
-    <button id="visualHudButton" type="button">VISUAL</button>
-    <div id="audioControls" aria-label="사운드 설정">
-      <label>MASTER <input id="masterVolume" type="range" min="0" max="1" step="0.01" value="0.82"></label>
-      <label>BGM <input id="bgmVolume" type="range" min="0" max="1" step="0.01" value="0.38"></label>
-      <label>SFX <input id="sfxVolume" type="range" min="0" max="1" step="0.01" value="0.80"></label>
-      <button id="audioMuteButton" type="button" aria-pressed="false">SOUND</button>
+    <div id="hudControlsBar">
+      <button id="pauseButton" type="button">일시정지 (P)</button>
+      <button id="freeCamButton" type="button">프리 카메라 (F)</button>
+      <button id="visualHudButton" type="button">VISUAL</button>
+      <div id="audioControls" aria-label="사운드 설정">
+        <label>MASTER <input id="masterVolume" type="range" min="0" max="1" step="0.01" value="0.82"></label>
+        <label>BGM <input id="bgmVolume" type="range" min="0" max="1" step="0.01" value="0.38"></label>
+        <label>SFX <input id="sfxVolume" type="range" min="0" max="1" step="0.01" value="0.80"></label>
+        <button id="audioMuteButton" type="button" aria-pressed="false">SOUND</button>
+      </div>
     </div>
     <div id="matchBoard">
       <div id="matchTimer">03:00</div>
       <div id="killScore">PLAYER <span id="playerKillsText">0</span> : <span id="cpuKillsText">0</span> CPU</div>
+      <div id="ctfScore" style="display:none; font-size:12px; font-weight:800; color:#ffdb4d; margin-top:2px;">FLAG <span id="playerFlagScoreText" style="color:#7ff6ff">0</span> : <span id="cpuFlagScoreText" style="color:#ff8b98">0</span></div>
       <div id="matchStateText">LEVEL 1 · BATTLE IN PROGRESS</div>
     </div>
     <div id="playerStatusHud" aria-label="Player combat status">
@@ -477,6 +557,7 @@
       <div id="damageDirection"></div>
     </div>
     <div id="spawnProtectionHud" aria-live="polite"></div>
+    <div id="hitFlashOverlay" aria-hidden="true"></div>
     <div id="criticalDangerAlert" aria-live="assertive">DANGER // CRITICAL DAMAGE</div>
     <div id="roundTransition" aria-live="assertive"></div>
     <div id="timeWarning" aria-live="assertive"></div>
@@ -550,12 +631,14 @@
   </div>
   <div id="fpsCounter" role="status" aria-live="off">FPS -- · -- ms</div>
 
-  <script src="./weapon-system.js"></script>
-  <script src="./mecha-rigidbody.js"></script>
-  <script src="./cannon-physics.js"></script>
-  <script src="./enemy-ai.js"></script>
-  <script src="./mecha-character.js"></script>
-  <script src="./audio-manager.js"></script>
+  <script src="./js/mecha-config-store.js"></script>
+  <script src="./js/weapon-system.js"></script>
+  <script src="./js/mecha-rigidbody.js"></script>
+  <script src="./js/cannon-physics.js"></script>
+  <script src="./js/enemy-ai.js"></script>
+  <script src="./js/mecha-character.js"></script>
+  <script src="./js/mecha-gait-controller.js"></script>
+  <script src="./js/audio-manager.js"></script>
   <script type="importmap">
   {
     "imports": {
@@ -583,6 +666,15 @@
     });
     const EnemyAI = window.createEnemyAIClass(THREE);
     const MechaRigidBody = window.createMechaRigidBodyClass(THREE);
+    (function enforce1920x1080WindowSize() {
+      try {
+        if (typeof window !== 'undefined' && window.resizeTo) {
+          window.resizeTo(1920, 1080);
+        }
+      } catch (e) {
+        // Browser security policy may prevent resizing windows not opened via window.open
+      }
+    })();
 
     const scene = new THREE.Scene();
     const cannonPhysics = window.createCannonPhysicsContext(CANNON, THREE);
@@ -674,6 +766,262 @@
       return position.distanceToSquared(getFormationSpawn(team, 0)) <= SAFE_ZONE_RADIUS * SAFE_ZONE_RADIUS;
     }
     createSafeZones();
+
+    // --- CAPTURE THE FLAG (CTF) MODE GLOBALS ---
+    let currentGameMode = 'deathmatch'; // 'deathmatch' | 'ctf'
+    let ctfPlayerFlagScore = 0;
+    let ctfCpuFlagScore = 0;
+    // Flag states: 'base' | 'carried_by_player' | 'carried_by_cpu' | 'dropped'
+    let enemyFlagState = 'base';
+    const enemyFlagDroppedPos = new THREE.Vector3();
+    let playerFlagState = 'base';
+    const playerFlagDroppedPos = new THREE.Vector3();
+
+    let playerBackpackFlag = null;
+    let enemyBackpackFlag = null;
+    let enemyBaseFlagGroup = null;
+    let playerBaseFlagGroup = null;
+    let droppedEnemyFlagMesh = null;
+    let droppedPlayerFlagMesh = null;
+
+    function createFlagMesh(flagColorHex, isBackpack = false) {
+      const group = new THREE.Group();
+      const scale = isBackpack ? 0.65 : 1.0;
+      
+      const poleHeight = 4.6 * scale;
+      const poleRadius = 0.07 * scale;
+      const segments = 8;
+      const segHeight = poleHeight / segments;
+
+      const poleMatTeam = new THREE.MeshStandardMaterial({ color: flagColorHex, roughness: 0.34, metalness: 0.05 });
+      const poleMatWhite = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.34, metalness: 0.05 });
+
+      // Striped Pole (alternating team color & white)
+      for (let i = 0; i < segments; i++) {
+        const cylinderGeo = new THREE.CylinderGeometry(poleRadius, poleRadius, segHeight, 12);
+        const material = (i % 2 === 0) ? poleMatTeam : poleMatWhite;
+        const cylMesh = new THREE.Mesh(cylinderGeo, material);
+        cylMesh.position.set(0, (i + 0.5) * segHeight, 0);
+        cylMesh.castShadow = true;
+        cylMesh.receiveShadow = true;
+        group.add(cylMesh);
+      }
+
+      // Top Finial sphere
+      const finialGeo = new THREE.SphereGeometry(poleRadius * 2.8, 16, 16);
+      const finial = new THREE.Mesh(finialGeo, poleMatTeam);
+      finial.position.y = poleHeight + poleRadius * 1.2;
+      finial.castShadow = true;
+      finial.receiveShadow = true;
+      group.add(finial);
+
+      // Flag Cloth Banner
+      const flagWidth = 2.2 * scale;
+      const flagHeight = 1.35 * scale;
+      const flagMat = new THREE.MeshStandardMaterial({
+        color: flagColorHex,
+        emissive: flagColorHex,
+        emissiveIntensity: 0.3,
+        roughness: 0.55,
+        metalness: 0.05,
+        side: THREE.DoubleSide
+      });
+      const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.04 * scale, flagHeight, flagWidth), flagMat);
+      cloth.position.set(0, poleHeight - flagHeight * 0.5, flagWidth * 0.5 + poleRadius);
+      cloth.castShadow = true;
+      cloth.receiveShadow = true;
+      group.add(cloth);
+
+      // White Trim Border on flag
+      const trimMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.34, metalness: 0.05 });
+      const trim = new THREE.Mesh(new THREE.BoxGeometry(0.05 * scale, 0.08 * scale, flagWidth + 0.02 * scale), trimMat);
+      trim.position.set(0, poleHeight - 0.04 * scale, flagWidth * 0.5 + poleRadius);
+      group.add(trim);
+
+      if (!isBackpack) {
+        const baseMat = new THREE.MeshStandardMaterial({ color: 0x1b2836, metalness: 0.8, roughness: 0.25 });
+        const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.65, 0.85, 0.3, 16), baseMat);
+        pedestal.position.y = 0.15;
+        pedestal.receiveShadow = true;
+        group.add(pedestal);
+
+        const glowRing = new THREE.Mesh(
+          new THREE.RingGeometry(0.85, 1.1, 24),
+          new THREE.MeshBasicMaterial({ color: flagColorHex, transparent: true, opacity: 0.8, side: THREE.DoubleSide })
+        );
+        glowRing.rotation.x = -Math.PI / 2;
+        glowRing.position.y = 0.02;
+        group.add(glowRing);
+      }
+
+      return group;
+    }
+
+    function createCTFFlags() {
+      playerBaseFlagGroup = createFlagMesh(0x21cfff, false);
+      enemyBaseFlagGroup = createFlagMesh(0xff2a4b, false);
+      envGroup.add(playerBaseFlagGroup);
+      envGroup.add(enemyBaseFlagGroup);
+
+      droppedEnemyFlagMesh = createFlagMesh(0xff2a4b, false);
+      droppedPlayerFlagMesh = createFlagMesh(0x21cfff, false);
+      droppedEnemyFlagMesh.visible = false;
+      droppedPlayerFlagMesh.visible = false;
+      scene.add(droppedEnemyFlagMesh);
+      scene.add(droppedPlayerFlagMesh);
+
+      playerBackpackFlag = createFlagMesh(0xff2a4b, true);
+      playerBackpackFlag.position.set(0, 0.4, -1.95);
+      playerBackpackFlag.rotation.y = Math.PI;
+      playerBackpackFlag.visible = false;
+
+      enemyBackpackFlag = createFlagMesh(0x21cfff, true);
+      enemyBackpackFlag.position.set(0, 3.2, -1.95);
+      enemyBackpackFlag.rotation.y = Math.PI;
+      enemyBackpackFlag.visible = false;
+    }
+    createCTFFlags();
+
+    function updateCTF(dt) {
+      const isCTF = (currentGameMode === 'ctf');
+      const ctfScoreElem = document.getElementById('ctfScore');
+      const killScoreElem = document.getElementById('killScore');
+      if (ctfScoreElem) ctfScoreElem.style.display = isCTF ? 'block' : 'none';
+      if (killScoreElem) killScoreElem.style.display = isCTF ? 'none' : 'block';
+
+      if (!isCTF) {
+        if (playerBaseFlagGroup) playerBaseFlagGroup.visible = false;
+        if (enemyBaseFlagGroup) enemyBaseFlagGroup.visible = false;
+        if (droppedEnemyFlagMesh) droppedEnemyFlagMesh.visible = false;
+        if (droppedPlayerFlagMesh) droppedPlayerFlagMesh.visible = false;
+        if (playerBackpackFlag) playerBackpackFlag.visible = false;
+        if (enemyBackpackFlag) enemyBackpackFlag.visible = false;
+        return;
+      }
+
+      const playerSpawn = getFormationSpawn('player', 0);
+      const enemySpawn = getFormationSpawn('enemy', 0);
+
+      if (playerBaseFlagGroup) {
+        playerBaseFlagGroup.position.copy(playerSpawn);
+        playerBaseFlagGroup.visible = (playerFlagState === 'base');
+      }
+      if (enemyBaseFlagGroup) {
+        enemyBaseFlagGroup.position.copy(enemySpawn);
+        enemyBaseFlagGroup.visible = (enemyFlagState === 'base');
+      }
+
+      if (typeof body !== 'undefined' && body && playerBackpackFlag && playerBackpackFlag.parent !== body) {
+        body.add(playerBackpackFlag);
+      }
+
+      if (!battleStarted || matchOver) return;
+
+      // --- PLAYER INTERACTIONS WITH ENEMY FLAG ---
+      if (!playerDestroyed && player.visible) {
+        // 1. Pickup Enemy Flag
+        if (enemyFlagState === 'base' || enemyFlagState === 'dropped') {
+          const targetPos = enemyFlagState === 'base' ? enemySpawn : enemyFlagDroppedPos;
+          if (player.position.distanceTo(targetPos) < 4.8) {
+            enemyFlagState = 'carried_by_player';
+            showMessage('🚩 ENEMY FLAG CAPTURED! RETURN TO YOUR BASE!');
+          }
+        }
+        // 2. Score Point (Carrying Enemy Flag to Player Base)
+        if (enemyFlagState === 'carried_by_player') {
+          if (player.position.distanceTo(playerSpawn) < 6.5) {
+            ctfPlayerFlagScore++;
+            enemyFlagState = 'base';
+            score += 1000;
+            showMessage('🏆 FLAG CAPTURED! +1 POINT!');
+          }
+        }
+        // 3. Return Dropped Player Flag by touching it
+        if (playerFlagState === 'dropped') {
+          if (player.position.distanceTo(playerFlagDroppedPos) < 4.8) {
+            playerFlagState = 'base';
+            showMessage('🛡️ YOUR FLAG RECOVERED TO BASE!');
+          }
+        }
+      }
+
+      // --- CPU INTERACTIONS WITH PLAYER FLAG ---
+      if (enemyAI && enemyAI.alive && enemyAI.group && enemyAI.group.visible) {
+        const cpuPos = enemyAI.group.position;
+
+        // 1. Pickup Player Flag
+        if (playerFlagState === 'base' || playerFlagState === 'dropped') {
+          const targetPos = playerFlagState === 'base' ? playerSpawn : playerFlagDroppedPos;
+          if (cpuPos.distanceTo(targetPos) < 4.8) {
+            playerFlagState = 'carried_by_cpu';
+            showMessage('⚠️ WARNING: CPU STOLE YOUR FLAG!');
+          }
+        }
+        // 2. CPU Score Point (Carrying Player Flag to Enemy Base)
+        if (playerFlagState === 'carried_by_cpu') {
+          if (cpuPos.distanceTo(enemySpawn) < 6.5) {
+            ctfCpuFlagScore++;
+            playerFlagState = 'base';
+            showMessage('❌ CPU SCORED A POINT!');
+          }
+        }
+        // 3. CPU Return Dropped Enemy Flag by touching it
+        if (enemyFlagState === 'dropped') {
+          if (cpuPos.distanceTo(enemyFlagDroppedPos) < 4.8) {
+            enemyFlagState = 'base';
+            showMessage('CPU RECOVERED THEIR FLAG!');
+          }
+        }
+      }
+
+      // --- VISUAL UPDATES ---
+      if (playerBackpackFlag) {
+        playerBackpackFlag.visible = (enemyFlagState === 'carried_by_player' && !playerDestroyed && player.visible);
+      }
+      if (enemyBackpackFlag) {
+        const cpuHasFlag = (playerFlagState === 'carried_by_cpu' && enemyAI && enemyAI.alive && enemyAI.group.visible);
+        enemyBackpackFlag.visible = cpuHasFlag;
+        if (enemyAI && enemyAI.group && enemyBackpackFlag.parent !== enemyAI.group) {
+          enemyAI.group.add(enemyBackpackFlag);
+        }
+      }
+
+      if (droppedEnemyFlagMesh) {
+        droppedEnemyFlagMesh.visible = (enemyFlagState === 'dropped');
+        if (enemyFlagState === 'dropped') droppedEnemyFlagMesh.position.copy(enemyFlagDroppedPos);
+      }
+      if (droppedPlayerFlagMesh) {
+        droppedPlayerFlagMesh.visible = (playerFlagState === 'dropped');
+        if (playerFlagState === 'dropped') droppedPlayerFlagMesh.position.copy(playerFlagDroppedPos);
+      }
+
+      const pTxt = document.getElementById('playerFlagScoreText');
+      const cTxt = document.getElementById('cpuFlagScoreText');
+      if (pTxt) pTxt.textContent = ctfPlayerFlagScore;
+      if (cTxt) cTxt.textContent = ctfCpuFlagScore;
+    }
+
+    function getCpuCTFTarget(selfPos) {
+      if (currentGameMode !== 'ctf') return null;
+
+      if (playerFlagState === 'carried_by_cpu') {
+        return getFormationSpawn('enemy', 0);
+      }
+      if (playerFlagState === 'base') {
+        return getFormationSpawn('player', 0);
+      }
+      if (playerFlagState === 'dropped') {
+        return playerFlagDroppedPos;
+      }
+      if (enemyFlagState === 'dropped') {
+        return enemyFlagDroppedPos;
+      }
+      if (enemyFlagState === 'carried_by_player') {
+        return player.position;
+      }
+
+      return null;
+    }
     let transitionPhase = null;
     let transitionTimer = 0;
     function beginLevelArrival() {
@@ -1455,7 +1803,7 @@
 
     // Player
     const mechaCharacter = window.createMechaCharacterContext(THREE, window.MECHA_CUSTOMIZATION || {});
-    const { player, dimensions: mechaDimensions, materials: mechaMaterials, meshes: mechaMeshes, attachments: mechaAttachments, ballJointSize: mechaBallJointSize, ballJointLayout: mechaBallJointLayout, partJointOffsets: mechaPartJointOffsets, hiddenParts: mechaHiddenParts, hiddenBodyJoints: mechaHiddenBodyJoints, colors: mechaColors } = mechaCharacter;
+    const { player, dimensions: mechaDimensions, materials: mechaMaterials, meshes: mechaMeshes, attachments: mechaAttachments, ballJointSize: mechaBallJointSize, ballJointLayout: mechaBallJointLayout, partJointOffsets: mechaPartJointOffsets, hiddenParts: mechaHiddenParts, hiddenBodyJoints: mechaHiddenBodyJoints, hideAllJoints: mechaHideAllJoints, colors: mechaColors } = mechaCharacter;
     // Upgrade the original elevated backpack hardpoint to the actual pack-core
     // centre without overwriting users who have already positioned it manually.
     if (mechaBallJointLayout.backpack?.every((value, index) => Math.abs(value - [0, .48, -1.78][index]) < .001)) {
@@ -1475,6 +1823,12 @@
     // low, wide heavy-weapons silhouette from the supplied reference.
     const { armorMat, armorLightMat, gunmetalMat, accentMat, glowMat, eyeGreenMat,
       warningMat, missilePortMat, hydraulicMat, jointBallMat, jointGlowMat } = mechaMaterials;
+    window.jointBallMat = jointBallMat;
+    window.jointGlowMat = jointGlowMat;
+    if (mechaHideAllJoints || mechaBallJointSize <= 0.01) {
+      jointBallMat.visible = false;
+      jointGlowMat.visible = false;
+    }
 
     // The walker formerly allocated a rounded, 4-segment geometry for every
     // armor plate.  The angular military silhouette reads better with hard
@@ -1688,7 +2042,7 @@
       const band = new THREE.Mesh(new THREE.TorusGeometry(.54 * (spec.scale || 1), .045, 8, 22), jointGlowMat);
       band.rotation.y = Math.PI / 2;
       joint.add(ball, band);
-      joint.visible = !mechaHiddenBodyJoints[spec.id];
+      joint.visible = !mechaHideAllJoints && !mechaHiddenBodyJoints[spec.id] && mechaBallJointSize > 0.01;
       body.add(joint);
       bodyAttachmentJoints.push(joint);
     }
@@ -1897,8 +2251,8 @@
 
     // Compact optical turret instead of a humanoid head.
     const headGroup = new THREE.Group();
-    headGroup.position.set(0, 6.68, .2);
-    player.add(headGroup);
+    headGroup.position.set(0, 6.68 - BODY_LOCAL_BASE_Y, .2);
+    body.add(headGroup);
 
     const neckBallJoint = new THREE.Mesh(new THREE.SphereGeometry(.46, 18, 12), hydraulicMat);
     neckBallJoint.position.set(0, -.22, -.08);
@@ -2076,16 +2430,16 @@
       bindCustomPart('foot', sole, sole);
       const toePivots = [];
       const toeLayout = [
-        { x: -.52, z: .78, yaw: -.42 },
-        { x: 0, z: .94, yaw: 0 },
-        { x: .52, z: .78, yaw: .42 }
+        { x: -.34, z: .82, yaw: -.24 },
+        { x: .34, z: .82, yaw: .24 }
       ];
       for (const toeConfig of toeLayout) {
         const toePivot = new THREE.Group();
         toePivot.position.set(toeConfig.x, .02, toeConfig.z);
         toePivot.rotation.y = toeConfig.yaw;
         const toeArmor = mechBox(...mechaMeshes.toe.size, armorLightMat, .1);
-        toeArmor.position.z = .54;
+        toeArmor.scale.set(.68, .68, .442);
+        toeArmor.position.z = .25;
         toePivot.add(toeArmor);
         bindCustomPart('toe', toeArmor, toePivot);
         foot.add(toePivot);
@@ -2094,8 +2448,8 @@
       const rearToePivot = new THREE.Group();
       rearToePivot.position.set(0, .01, -.72);
       rearToePivot.rotation.y = Math.PI;
-      const rearToe = mechBox(.48, .3, 1.02, armorLightMat, .09);
-      rearToe.position.z = .42;
+      const rearToe = mechBox(.34, .22, .468, armorLightMat, .07);
+      rearToe.position.z = .21;
       rearToePivot.add(rearToe);
       foot.add(rearToePivot);
       toePivots.push(rearToePivot);
@@ -2110,6 +2464,26 @@
       }
       addPanelLight(sole, 0, .12, 1.2, .72, .1, warningMat);
       leg.userData.joints = { hip: hipBallJoint, thigh, thighFace, knee, kneeBall: kneeBallJoint, shin, rearCalf, ankle: anklePivot, foot, sole, toePivots };
+    }
+
+    let mechaGaitController = null;
+    if (typeof window.createMechaGaitController === 'function') {
+      mechaGaitController = window.createMechaGaitController(THREE, {
+        player,
+        playerLegs,
+        pelvis,
+        pelvisVisualRig,
+        hipSocketCarriers,
+        waistRig,
+        mechaAttachments,
+        mechaMeshes,
+        playerRigidBody,
+        sampleFootGroundHeight: (pos) => sampleFootGroundHeight(pos),
+        spawnFootstepEffect: (pos) => spawnFootstepEffect(pos),
+        playFootstepSound: () => playGameSound('footstep'),
+        reverseLegGroundOffset: REVERSE_LEG_GROUND_OFFSET,
+        reverseFootLevelPitch: REVERSE_FOOT_LEVEL_PITCH
+      });
     }
 
     // DUAL GATLING WEAPON PODS ---------------------------------------------
@@ -2137,10 +2511,11 @@
 
     for (const side of [-1, 1]) {
       const pod = new THREE.Group();
-      pod.position.fromArray(side < 0 ? mechaAttachments.leftArm : mechaAttachments.rightArm);
+      const armAttach = side < 0 ? mechaAttachments.leftArm : mechaAttachments.rightArm;
+      pod.position.set(armAttach[0], armAttach[1] - BODY_LOCAL_BASE_Y, armAttach[2]);
       pod.scale.set(1.12, 1.08, 1.05);
       pod.userData.side = side;
-      player.add(pod);
+      body.add(pod);
       weaponPods.push(pod);
       armPoseNodes[side < 0 ? 'leftArm' : 'rightArm'].push(pod);
 
@@ -2397,10 +2772,10 @@
 
     // TOP MISSILE RACK ------------------------------------------------------
     const missileRack = new THREE.Group();
-    missileRack.position.fromArray(mechaAttachments.rightWeapon);
+    missileRack.position.set(mechaAttachments.rightWeapon[0], mechaAttachments.rightWeapon[1] - BODY_LOCAL_BASE_Y, mechaAttachments.rightWeapon[2]);
     missileRack.scale.set(.56, .56, .56);
     missileRack.visible = false;
-    player.add(missileRack);
+    body.add(missileRack);
 
     const rackSupport = mechBox(.55, .72, .7, gunmetalMat, .12);
     rackSupport.position.set(0, -.58, -.15);
@@ -2468,11 +2843,11 @@
     missileRack.add(missileFlash);
 
     const missileRackLeft = missileRack.clone(true);
-    missileRackLeft.position.fromArray(mechaAttachments.leftWeapon);
+    missileRackLeft.position.set(mechaAttachments.leftWeapon[0], mechaAttachments.leftWeapon[1] - BODY_LOCAL_BASE_Y, mechaAttachments.leftWeapon[2]);
     missileRackLeft.scale.set(.56, .56, .56);
     missileRackLeft.visible = false;
     missileRackLeft.getObjectByName('MissileRackJoint').userData.customSnapPart = 'leftWeapon';
-    player.add(missileRackLeft);
+    body.add(missileRackLeft);
     const missileMuzzleLeft = new THREE.Object3D();
     missileMuzzleLeft.position.set(0, 0, 2.14);
     missileRackLeft.add(missileMuzzleLeft);
@@ -2487,7 +2862,8 @@
     const shoulderLaserGlowMat = new THREE.MeshBasicMaterial({ color: 0xff4255, toneMapped: false });
     for (const side of [-1, 1]) {
       const mount = new THREE.Group();
-      mount.position.set(side * 1.42, 7.05, -.2);
+      mount.position.set(side * 1.42, 7.05 - BODY_LOCAL_BASE_Y, -.2);
+      body.add(mount);
       const support = mechBox(.58, .72, .72, gunmetalMat, .1);
       support.position.y = -.58;
       mount.add(support);
@@ -3768,6 +4144,7 @@ let landingRecoveryTimer = 0;
     let battleCountdownActive = false;
     let roundTransitionTimer = 0;
     let vsStateActive = false;
+
     let powerLevel = 0;
     const PLAYER_MAX_HEALTH = 200;
     const PLAYER_MAX_ENERGY = 200;
@@ -3891,7 +4268,7 @@ let landingRecoveryTimer = 0;
     const explosionParticleDummy = new THREE.Object3D();
     const explosionSmokeParticles = [];
     const explosionSparkParticles = [];
-    const EXPLOSION_SMOKE_CAPACITY = 48;
+    const EXPLOSION_SMOKE_CAPACITY = 256;
     const EXPLOSION_SPARK_CAPACITY = 72;
     const explosionSmokeInstances = new THREE.InstancedMesh(
       explosionSmokeGeo,
@@ -3953,8 +4330,8 @@ let landingRecoveryTimer = 0;
     );
     const fractureDustBatch = createFractureBatch(
       new THREE.IcosahedronGeometry(1, 1),
-      new THREE.MeshBasicMaterial({ color: 0xb9aaa0, transparent: true, opacity: .25, depthWrite: false, vertexColors: true }),
-      72
+      new THREE.MeshBasicMaterial({ color: 0xb9aaa0, transparent: true, opacity: .35, depthWrite: false, vertexColors: true }),
+      384
     );
     function hideFractureInstance(batch, index) {
       fractureDummy.scale.setScalar(0);
@@ -5158,6 +5535,7 @@ let landingRecoveryTimer = 0;
       partJointOffsets: JSON.parse(JSON.stringify(mechaPartJointOffsets)),
       hiddenParts: { head: !!mechaHiddenParts.head },
       hiddenBodyJoints: { ...mechaHiddenBodyJoints },
+      hideAllJoints: !!mechaHideAllJoints,
       colors: { ...mechaColors }
     };
     const customSnapTargets = [
@@ -5174,11 +5552,48 @@ let landingRecoveryTimer = 0;
     }
 
     function setBodyJointVisibility(joint, allowed = true) {
-      joint.visible = allowed && !isBodyJointHidden(joint);
+      joint.visible = allowed && !allJointsHiddenState && !isBodyJointHidden(joint);
     }
     let customJointDrag = null;
     let selectedBodyJoint = null;
     let customBodyJointDrag = null;
+    let allJointsHiddenState = false;
+    function setAllJointsVisibility(visible) {
+      allJointsHiddenState = !visible;
+      if (customDraft) customDraft.hideAllJoints = !visible;
+      if (typeof jointBallMat !== 'undefined' && jointBallMat) jointBallMat.visible = visible;
+      if (typeof jointGlowMat !== 'undefined' && jointGlowMat) jointGlowMat.visible = visible;
+      const jointIds = ['backpack', 'leftArm', 'rightArm', 'leftSub', 'rightSub', 'lowerLink'];
+      for (const id of jointIds) {
+        if (customDraft && customDraft.hiddenBodyJoints) {
+          customDraft.hiddenBodyJoints[id] = !visible;
+        }
+      }
+      if (Array.isArray(bodyAttachmentJoints)) {
+        for (const joint of bodyAttachmentJoints) {
+          joint.visible = visible && !isBodyJointHidden(joint);
+        }
+      }
+      if (player) {
+        player.traverse(node => {
+          if (node.isMesh && node.material && (node.material === jointBallMat || node.material === jointGlowMat)) {
+            node.visible = visible;
+          }
+        });
+      }
+      if (selectedBodyJoint && typeof bodyJointGizmo !== 'undefined' && bodyJointGizmo) {
+        bodyJointGizmo.visible = visible && !isBodyJointHidden(selectedBodyJoint);
+      }
+      const toggleBtn = document.getElementById('customToggleJointsButton');
+      if (toggleBtn) {
+        toggleBtn.textContent = visible ? 'HIDE JOINTS' : 'SHOW JOINTS';
+        toggleBtn.style.backgroundColor = visible ? '#291436' : '#59162e';
+        toggleBtn.style.borderColor = visible ? '#d580ff' : '#ff5978';
+      }
+    }
+    function toggleAllJointsVisibility() {
+      setAllJointsVisibility(allJointsHiddenState);
+    }
     let mirrorBodyJointMove = true;
     let activePartSocket = 'backpack';
     let slot3PreviewWeapon = 'cannon';
@@ -5203,6 +5618,9 @@ let landingRecoveryTimer = 0;
     }
     bodyJointGizmo.visible = false;
     scene.add(bodyJointGizmo);
+    if (mechaHideAllJoints) {
+      setAllJointsVisibility(false);
+    }
 
     function selectBodyJoint(joint) {
       selectedBodyJoint = joint;
@@ -5278,7 +5696,9 @@ let landingRecoveryTimer = 0;
       for (const [part, savedPosition] of Object.entries(mechaAttachments)) {
         const node = getAttachmentNode(part);
         if (!node || !Array.isArray(savedPosition)) continue;
-        if (part.endsWith('Leg')) node.position.fromArray(savedPosition);
+        if (part.endsWith('Leg')) {
+          node.position.set(savedPosition[0], savedPosition[1] + REVERSE_LEG_GROUND_OFFSET, savedPosition[2]);
+        }
         else {
           const worldPosition = player.localToWorld(new THREE.Vector3().fromArray(savedPosition));
           node.parent.worldToLocal(worldPosition);
@@ -5705,11 +6125,48 @@ let landingRecoveryTimer = 0;
       }
     }
     customPartSelect.addEventListener('change', () => selectCustomPart(customPartSelect.value));
+    let isCustomizerWalkTesting = false;
+
+    function stopCustomizerWalkTest() {
+      isCustomizerWalkTesting = false;
+      if (mechaGaitController) mechaGaitController.reset();
+      plantCustomizerFeet();
+      const btn = document.getElementById('customWalkTestButton');
+      if (btn) {
+        btn.textContent = 'WALK TEST ▶';
+        btn.style.borderColor = '#ffe37a';
+        btn.style.background = 'rgba(255,200,40,.22)';
+        btn.style.color = '#fff3a8';
+        btn.style.boxShadow = 'none';
+      }
+    }
+
+    function startCustomizerWalkTest() {
+      isCustomizerWalkTesting = true;
+      if (mechaGaitController) mechaGaitController.reset();
+      const btn = document.getElementById('customWalkTestButton');
+      if (btn) {
+        btn.textContent = 'STOP WALK ⏹';
+        btn.style.borderColor = '#62eaff';
+        btn.style.background = 'rgba(30,180,220,.38)';
+        btn.style.color = '#62eaff';
+        btn.style.boxShadow = '0 0 12px rgba(98,234,255,.4)';
+      }
+    }
+
+    function toggleCustomizerWalkTest() {
+      if (isCustomizerWalkTesting) {
+        stopCustomizerWalkTest();
+      } else {
+        startCustomizerWalkTest();
+      }
+    }
+
     renderCustomControls();
-document.getElementById('customizeMechaButton').addEventListener('click', event => {
-  event.stopPropagation();
-  startTitleHangarBgm();
-  customizerActive = true;
+    document.getElementById('customizeMechaButton').addEventListener('click', event => {
+      event.stopPropagation();
+      startTitleHangarBgm();
+      customizerActive = true;
       hangarGroup.visible = false;
       customStudio.visible = true;
       scene.background = customStudioBackground;
@@ -5717,12 +6174,13 @@ document.getElementById('customizeMechaButton').addEventListener('click', event 
       renderer.toneMappingExposure = 1.18;
       document.getElementById('hangarOverlay').classList.add('hidden');
       customizer.classList.add('active');
-      setCustomizerAssemblyStage('body');
+      setCustomizerAssemblyStage('parts');
       selectCustomPart(customPartSelect.value);
     });
-document.getElementById('customBackButton').addEventListener('click', () => {
-  startTitleHangarBgm();
-  customizerActive = false;
+    document.getElementById('customBackButton').addEventListener('click', () => {
+      stopCustomizerWalkTest();
+      startTitleHangarBgm();
+      customizerActive = false;
       hangarGroup.visible = true;
       customStudio.visible = false;
       scene.background = hangarBackground;
@@ -5735,20 +6193,21 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       highlightCustomPart(null);
       document.getElementById('hangarOverlay').classList.remove('hidden');
     });
+    document.getElementById('customWalkTestButton')?.addEventListener('click', toggleCustomizerWalkTest);
     function plantCustomizerFeet() {
-      player.updateWorldMatrix(true, true);
-      const lowestSole = Math.min(...playerLegs.map(leg =>
-        leg.userData.joints.foot.localToWorld(new THREE.Vector3(0, -.31, 0)).y
-      ));
-      const correction = THREE.MathUtils.clamp(-lowestSole, -2.5, 2.5);
-      if (Math.abs(correction) < .002) return;
-      for (const part of ['leftLeg', 'rightLeg']) {
-        const position = [...customDraft.attachments[part]];
-        position[1] += correction;
-        setAttachmentPreview(part, position);
+      if (customDraft && customDraft.attachments) {
+        customDraft.attachments.leftLeg = [-2.02, -0.07, 0];
+        customDraft.attachments.rightLeg = [2.02, -0.07, 0];
       }
+      mechaAttachments.leftLeg = [-2.02, -0.07, 0];
+      mechaAttachments.rightLeg = [2.02, -0.07, 0];
+      playerLegs[0].position.set(-2.02, -0.07 + REVERSE_LEG_GROUND_OFFSET, 0);
+      playerLegs[1].position.set(2.02, -0.07 + REVERSE_LEG_GROUND_OFFSET, 0);
       player.updateWorldMatrix(true, true);
     }
+    document.getElementById('customToggleJointsButton').addEventListener('click', () => {
+      toggleAllJointsVisibility();
+    });
     document.getElementById('customSaveButton').addEventListener('click', () => {
       setCustomizerAssemblyStage('parts');
       plantCustomizerFeet();
@@ -5953,21 +6412,57 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       if (hangarLiftPlatform) hangarLiftPlatform.position.y = TITLE_LIFT_START_Y;
       document.getElementById('titleScreen').classList.remove('hidden');
       document.getElementById('hangarOverlay').classList.add('hidden');
+      document.getElementById('modeSelectModal').classList.add('hidden');
+      const hangarLoadoutElem = document.querySelector('.hangar-loadout');
+      if (hangarLoadoutElem) hangarLoadoutElem.classList.remove('swiped-left');
       document.getElementById('hangarStatus').textContent = 'LOADOUT STANDBY';
     });
+
+    const hangarLoadoutElem = document.querySelector('.hangar-loadout');
+    const modeSelectModalElem = document.getElementById('modeSelectModal');
+
     document.getElementById('battleStartButton').addEventListener('click', event => {
       event.stopPropagation();
+      if (hangarLoadoutElem) hangarLoadoutElem.classList.add('swiped-left');
+      if (modeSelectModalElem) modeSelectModalElem.classList.remove('hidden');
+    });
+
+    document.getElementById('modeBackToLoadout')?.addEventListener('click', event => {
+      event.stopPropagation();
+      if (hangarLoadoutElem) hangarLoadoutElem.classList.remove('swiped-left');
+      if (modeSelectModalElem) modeSelectModalElem.classList.add('hidden');
+    });
+
+    function launchBattleWithMode(mode) {
       if (hangarLaunching) return;
+      currentGameMode = mode;
+      ctfPlayerFlagScore = 0;
+      ctfCpuFlagScore = 0;
+      enemyFlagState = 'base';
+      playerFlagState = 'base';
+
       hangarLaunching = true;
       hangarLaunchTime = 0;
       fadeOutTitleHangarBgm();
-      playHangarAlarm();
+      if (mechaGaitController) mechaGaitController.reset();
       primaryFireHeld = false;
       secondaryFireHeld = false;
       document.getElementById('hangarStatus').textContent = 'LAUNCH SEQUENCE ACTIVE';
       document.getElementById('hangarOverlay').classList.add('hidden');
+      if (modeSelectModalElem) modeSelectModalElem.classList.add('hidden');
+      if (hangarLoadoutElem) hangarLoadoutElem.classList.remove('swiped-left');
       document.getElementById('centerHint').classList.add('is-hidden');
       if (!document.pointerLockElement) renderer.domElement.requestPointerLock();
+    }
+
+    document.getElementById('modeBtnDeathmatch')?.addEventListener('click', event => {
+      event.stopPropagation();
+      launchBattleWithMode('deathmatch');
+    });
+
+    document.getElementById('modeBtnCTF')?.addEventListener('click', event => {
+      event.stopPropagation();
+      launchBattleWithMode('ctf');
     });
 
     const sharedAimPoint = new THREE.Vector3();
@@ -8209,14 +8704,24 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       spawnFragments(block, impulseDir);
     }
 
-    function spawnCollapseDust(center, scale = 1, count = 12) {
+    function spawnCollapseDust(center, scale = 1, count = 24) {
+      const dustColors = [0xe8e4df, 0xd8d4cf, 0xc8c4be, 0xdfdbd6, 0xb8b4ae];
       for (let i = 0; i < count; i++) {
-        const size = (1.35 + Math.random() * 2.5) * scale;
+        const size = (3.2 + Math.random() * 5.5) * scale;
         const angle = Math.random() * Math.PI * 2;
-        const radius = Math.random() * (3.4 + scale * 3.8);
-        const position = center.clone().add(new THREE.Vector3(Math.cos(angle) * radius, .2 + Math.random() * (1.15 + scale), Math.sin(angle) * radius));
-        const velocity = new THREE.Vector3(Math.cos(angle) * (.45 + Math.random() * .9), .3 + Math.random() * .75, Math.sin(angle) * (.45 + Math.random() * .9));
-        spawnFractureInstance(fractureDustBatch, position, velocity, new THREE.Vector3(), size, 1.35 + Math.random() * .9, new THREE.Color(0xb9aaa0));
+        const radius = Math.random() * (4.5 + scale * 5.8);
+        const position = center.clone().add(new THREE.Vector3(
+          Math.cos(angle) * radius,
+          0.3 + Math.random() * (2.8 * scale),
+          Math.sin(angle) * radius
+        ));
+        const velocity = new THREE.Vector3(
+          Math.cos(angle) * (0.85 + Math.random() * 2.2),
+          0.7 + Math.random() * 1.8,
+          Math.sin(angle) * (0.85 + Math.random() * 2.2)
+        );
+        const colorHex = dustColors[Math.floor(Math.random() * dustColors.length)];
+        spawnFractureInstance(fractureDustBatch, position, velocity, new THREE.Vector3(), size, 2.4 + Math.random() * 1.8, new THREE.Color(colorHex));
       }
     }
 
@@ -8238,7 +8743,10 @@ document.getElementById('customBackButton').addEventListener('click', () => {
           startRotation: block.rotation.clone(),
           phase: Math.random() * Math.PI * 2
         }));
-      spawnCollapseDust(new THREE.Vector3(bounds?.x || 0, .35, bounds?.z || 0), 1.15, 18);
+      const centerPos = new THREE.Vector3(bounds?.x || 0, 0.4, bounds?.z || 0);
+      spawnCollapseDust(centerPos, 1.8, 75);
+      spawnExplosionEffect(centerPos.clone().add(new THREE.Vector3(0, 2.5, 0)), 3.8);
+
       for (const { block } of entries) block.userData.collapsing = true;
       buildingCollapseStates.set(buildingId, {
         buildingId,
@@ -8248,10 +8756,10 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         delay: .45,
         duration: 3.15,
         fragmentTimer: 0,
-        dustTimer: .08,
+        dustTimer: .05,
         entries
       });
-      shake = Math.max(shake, .22);
+      shake = Math.max(shake, .35);
     }
 
     function updateBuildingCollapses(dt) {
@@ -8279,7 +8787,7 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         if (progress > 0 && progress < .94 && state.entries.length) {
           state.fragmentTimer -= dt;
           if (state.fragmentTimer <= 0) {
-            state.fragmentTimer = .1 + Math.random() * .08;
+            state.fragmentTimer = .08 + Math.random() * .06;
             const source = state.entries[Math.floor(Math.random() * state.entries.length)].block;
             const outward = new THREE.Vector3(
               source.position.x - state.centerX,
@@ -8291,10 +8799,11 @@ document.getElementById('customBackButton').addEventListener('click', () => {
           }
           state.dustTimer -= dt;
           if (state.dustTimer <= 0) {
-            state.dustTimer = .24 + Math.random() * .16;
-            spawnCollapseDust(new THREE.Vector3(state.centerX, .25, state.centerZ), .72 + progress * .7, 4);
+            state.dustTimer = .08 + Math.random() * .06;
+            const randomY = Math.random() * 14 * (1 - progress);
+            spawnCollapseDust(new THREE.Vector3(state.centerX, 0.4 + randomY, state.centerZ), 1.1 + progress * 0.9, 14);
           }
-          shake = Math.max(shake, .12 + Math.sin(progress * Math.PI) * .22);
+          shake = Math.max(shake, .15 + Math.sin(progress * Math.PI) * .28);
         }
 
         if (progress < 1) continue;
@@ -8307,6 +8816,15 @@ document.getElementById('customBackButton').addEventListener('click', () => {
         buildingCollapseStates.delete(buildingId);
         stability = 0;
         score += 1500;
+
+        // Massive Ground Impact Explosion & Dust Plume on Collapse End
+        const impactCenter = new THREE.Vector3(state.centerX, 0.4, state.centerZ);
+        spawnExplosionEffect(impactCenter, 5.2);
+        spawnExplosionEffect(impactCenter.clone().add(new THREE.Vector3(2.8, 0.6, -2.8)), 3.5);
+        spawnExplosionEffect(impactCenter.clone().add(new THREE.Vector3(-2.8, 0.6, 2.8)), 3.5);
+        spawnCollapseDust(impactCenter, 2.4, 120);
+        shake = Math.max(shake, 0.58);
+
         spawnCollapseLoot(buildingId);
         updateHUD();
       }
@@ -8423,7 +8941,7 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       const airBoosting = !legsDisabled && !dashing && jetpackEquipped && !grounded && boostEnergy > 0 && shiftHeld && isMoving;
       const loadoutSpeedFactor = weaponPresets.filter(Boolean).length === 4 ? .72 : 1;
       const requestedSpeed = !legsDisabled && (isMoving || dashing)
-        ? (dashing ? 31 : airBoosting ? 24 : 9.5) * loadoutSpeedFactor * damageSpeedFactor * landingSpeedFactor
+        ? (dashing ? 40.3 : airBoosting ? 31.2 : 12.35) * loadoutSpeedFactor * damageSpeedFactor * landingSpeedFactor
         : 0;
       const speedResponse = dashing ? 18 : requestedSpeed > locomotionSpeed ? 3.4 : 5.2;
       const moveStartX = player.position.x;
@@ -8432,13 +8950,13 @@ document.getElementById('customBackButton').addEventListener('click', () => {
       const activeMove = dashing
         ? dashDirection
         : isMoving ? move.normalize() : null;
-      if (isMoving || dashing) {
+      if ((isMoving || dashing) && !legsDisabled) {
         if (airBoosting) {
           boostEnergy = Math.max(0, boostEnergy - 24 * dt);
           energyUsed = true;
           boostedSinceTakeoff = true;
         }
-        const movementYaw = Math.atan2(activeMove.x, activeMove.z);
+        const movementYaw = isReversing ? yaw : Math.atan2(activeMove.x, activeMove.z);
         player.rotation.y = dampAngle(player.rotation.y, movementYaw, dashing ? 8.5 : 4.6, dt);
       }
       const gaitDrive = grounded && !dashing
@@ -8606,65 +9124,23 @@ if (!wasGrounded && grounded) {
       updatePlayerStatusHud();
 
       attackTimer = Math.max(0, attackTimer - dt);
-      const walking = actualGroundSpeed > .35 && grounded;
-      const speedRatio = THREE.MathUtils.clamp(actualGroundSpeed / 9.5, 0, 3.3);
-      // Advance the gait by distance traveled, not clock time. This preserves
-      // believable foot speed through acceleration, braking and heavy impacts.
-      // Restore the deliberate heavy cadence while retaining the extended
-      // stride range that keeps the feet capable of covering ground.
-      const gaitDistanceRate = .58;
-      if (walking) walkCycle += actualGroundSpeed * dt * gaitDistanceRate * (isReversing ? -1 : 1);
-      const movementBlendTarget = walking ? THREE.MathUtils.clamp(actualGroundSpeed / 3.2, .18, 1) : 0;
-      walkBlend = THREE.MathUtils.lerp(walkBlend, movementBlendTarget, 1 - Math.exp(-(walking ? 6.5 : 4.8) * dt));
-      const strideScale = THREE.MathUtils.lerp(.68, 1.28, Math.min(1, speedRatio)) * (dashing ? 1.08 : 1);
-      const normalizedCycle = ((walkCycle / (Math.PI * 2)) % 1 + 1) % 1;
-      const gaitCycles = [normalizedCycle, (normalizedCycle + .5) % 1];
-      const gaitLift = [0, 0];
-      const gaitFore = [0, 0];
-      const gaitStance = [0, 0];
-      const gaitSwing = [0, 0];
-      const stanceDuration = .76;
-      const WALK_STEP_LIFT = .62;
-      for (let index = 0; index < 2; index++) {
-        const phase = gaitCycles[index];
-        if (phase < stanceDuration) {
-          const stanceProgress = phase / stanceDuration;
-          gaitStance[index] = stanceProgress;
-          gaitFore[index] = 1 - stanceProgress * 2;
-        } else {
-          const swingProgress = (phase - stanceDuration) / (1 - stanceDuration);
-          const swingEase = swingProgress * swingProgress * (3 - 2 * swingProgress);
-          gaitSwing[index] = swingProgress;
-          gaitFore[index] = -1 + swingEase * 2;
-          // A clear lifted transfer step keeps the reverse-joint walker from
-          // skating while the opposite foot remains the weight-bearing point.
-          gaitLift[index] = Math.pow(Math.sin(swingProgress * Math.PI), 1.28) * WALK_STEP_LIFT * walkBlend;
-        }
+      const speedRatio = THREE.MathUtils.clamp(actualGroundSpeed / 12.35, 0, 3.3);
+      if (mechaGaitController) {
+        mechaGaitController.update({
+          dt,
+          actualGroundSpeed,
+          locomotionSpeed,
+          grounded,
+          dashing,
+          isReversing,
+          turnRate,
+          turnStability,
+          landingImpact,
+          speedRatio,
+          rotationBeforeMove
+        });
       }
-      const leftLift = gaitLift[0];
-      const rightLift = gaitLift[1];
-      for (let index = 0; index < gaitCycles.length; index++) {
-        const airborneNow = walking && gaitCycles[index] >= stanceDuration;
-        if (!airborneNow && walking && !footPlantWorld[index]) {
-          player.updateWorldMatrix(true, true);
-          footPlantWorld[index] = playerLegs[index].userData.joints.foot.getWorldPosition(new THREE.Vector3());
-        }
-        if (footWasAirborne[index] && !airborneNow && grounded && walkBlend > .38) {
-          lastFootstepIndex = index;
-          playGameSound('footstep');
-          player.updateWorldMatrix(true, true);
-          const stepPosition = playerLegs[index].userData.joints.foot.getWorldPosition(new THREE.Vector3());
-          footPlantWorld[index] = stepPosition.clone();
-          spawnFootstepEffect(stepPosition);
-          shake = Math.max(shake, .018 + Math.min(1, speedRatio) * .018);
-          landingImpact = Math.max(landingImpact, .035 + Math.min(1, speedRatio) * .025);
-          // A planted foot excites a damped chassis spring instead of forcing a bob animation.
-          bodyBounceVelocity -= .34 + Math.min(.65, speedRatio) * .32;
-        }
-        if (airborneNow) footPlantWorld[index] = null;
-        footWasAirborne[index] = airborneNow;
-      }
-      if (!walking) footPlantWorld[0] = footPlantWorld[1] = null;
+
       const launchPitch = pitch - .06;
       const recoilRatio = attackTimer > 0 ? THREE.MathUtils.clamp(attackTimer / .18, 0, 1) : 0;
 
@@ -8693,145 +9169,9 @@ if (!wasGrounded && grounded) {
         }
       }
 
-      const impactNow = landingImpact;
       landingImpact = Math.max(0, landingImpact - dt * 2.7);
-      const jointBlend = 1 - Math.exp(-(dashing ? 15 : 8.5 + Math.min(4.5, speedRatio * 3.2)) * dt);
-      playerLegs[0].rotation.x = THREE.MathUtils.lerp(playerLegs[0].rotation.x, 0, jointBlend);
-      playerLegs[1].rotation.x = THREE.MathUtils.lerp(playerLegs[1].rotation.x, 0, jointBlend);
-      // A foot remains a true support point from its heel strike until the
-      // opposite, forward foot has landed. Only the released foot receives a
-      // new local stride target.
-      const leftFootSupporting = walking && !!footPlantWorld[0] && !footWasAirborne[0];
-      const rightFootSupporting = walking && !!footPlantWorld[1] && !footWasAirborne[1];
-      // Keep the planted stance wide, but sweep the airborne foot a little
-      // inward so the stride reads as a deliberate, heavy transfer of weight.
-      const leftStepInward = -Math.sign(mechaAttachments.leftLeg[0]) * leftLift * .78;
-      const rightStepInward = -Math.sign(mechaAttachments.rightLeg[0]) * rightLift * .78;
-      const leftTargetX = leftFootSupporting ? playerLegs[0].position.x : mechaAttachments.leftLeg[0] + leftStepInward;
-      const rightTargetX = rightFootSupporting ? playerLegs[1].position.x : mechaAttachments.rightLeg[0] + rightStepInward;
-      const leftTargetY = leftFootSupporting ? playerLegs[0].position.y : mechaAttachments.leftLeg[1] + REVERSE_LEG_GROUND_OFFSET + leftLift * .98 - impactNow * .16;
-      const rightTargetY = rightFootSupporting ? playerLegs[1].position.y : mechaAttachments.rightLeg[1] + REVERSE_LEG_GROUND_OFFSET + rightLift * .98 - impactNow * .16;
-      playerLegs[0].position.x = THREE.MathUtils.lerp(playerLegs[0].position.x, leftTargetX, jointBlend * .35);
-      playerLegs[1].position.x = THREE.MathUtils.lerp(playerLegs[1].position.x, rightTargetX, jointBlend * .35);
-      playerLegs[0].position.y = THREE.MathUtils.lerp(playerLegs[0].position.y, leftTargetY, jointBlend);
-      playerLegs[1].position.y = THREE.MathUtils.lerp(playerLegs[1].position.y, rightTargetY, jointBlend);
-      const turnStrideScale = THREE.MathUtils.lerp(.28, 1, turnStability);
-      // At top speed this yields a full front-to-back step span of about 10.0.
-      const strideReach = THREE.MathUtils.lerp(.9, 3.90625, Math.min(1, speedRatio));
-      const leftTargetZ = leftFootSupporting ? playerLegs[0].position.z : mechaAttachments.leftLeg[2] + gaitFore[0] * strideReach * strideScale * walkBlend * turnStrideScale;
-      const rightTargetZ = rightFootSupporting ? playerLegs[1].position.z : mechaAttachments.rightLeg[2] + gaitFore[1] * strideReach * strideScale * walkBlend * turnStrideScale;
-      playerLegs[0].position.z = THREE.MathUtils.lerp(playerLegs[0].position.z, leftTargetZ, jointBlend);
-      playerLegs[1].position.z = THREE.MathUtils.lerp(playerLegs[1].position.z, rightTargetZ, jointBlend);
-      for (let index = 0; index < playerLegs.length; index++) {
-        const joints = playerLegs[index].userData.joints;
-        const lift = gaitLift[index];
-        const legSwing = gaitFore[index] * strideScale * walkBlend;
-        const swingToeUp = Math.sin(gaitSwing[index] * Math.PI) * (gaitSwing[index] > 0 ? walkBlend * .38 : 0);
-        const stanceRoll = THREE.MathUtils.smoothstep(gaitStance[index], .55, 1) * walkBlend;
-        const heelStrike = gaitCycles[index] < stanceDuration
-          ? Math.exp(-Math.pow(gaitStance[index] / .11, 2)) * walkBlend
-          : 0;
-        const kneeBend = lift * .92 + impactNow * .24 + stanceRoll * .12 + (dashing ? .14 : 0);
-        // Reverse-joint gait: a restrained thigh drives the rear knee, then
-        // the shin and ankle counter-rotate to compress and extend the leg.
-        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, -.08 - legSwing * .28, jointBlend);
-        joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, -.32 - kneeBend - legSwing * .18, jointBlend);
-        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, -.5 + kneeBend * .78 + legSwing * .28, jointBlend);
-        joints.rearCalf.rotation.x = THREE.MathUtils.lerp(joints.rearCalf.rotation.x, -.42 + kneeBend * .44 + legSwing * .18, jointBlend);
-        const reverseAnkleDrive = legSwing * .42 - kneeBend * .44 + stanceRoll * .18;
-        const anklePitch = .12 + reverseAnkleDrive;
-        joints.ankle.rotation.x = THREE.MathUtils.lerp(joints.ankle.rotation.x, anklePitch, jointBlend);
-        const footPitch = REVERSE_FOOT_LEVEL_PITCH - reverseAnkleDrive * .76 + stanceRoll * .08 - heelStrike * .1;
-        joints.foot.rotation.x = THREE.MathUtils.lerp(joints.foot.rotation.x, footPitch, jointBlend);
-        const toeCurl = stanceRoll * .38 - swingToeUp * .1;
-        for (const toePivot of joints.toePivots) {
-          toePivot.userData.baseCurl = toeCurl;
-          const toeBody = toePivot.userData.rigidContact ||= { angularVelocity: 0 };
-          if (!grounded || lift > .04) {
-            toePivot.rotation.x = playerRigidBody.integrateAngularContact(
-              toeBody,
-              toePivot.rotation.x,
-              toeCurl,
-              dt,
-              { stiffness: 62, damping: 13, mass: .82 }
-            );
-          }
-        }
-      }
-      // Correct stance-leg drift in world space so the sole remains planted.
-      if (grounded && !dashing) {
-        player.updateWorldMatrix(true, true);
-        for (let index = 0; index < playerLegs.length; index++) {
-          const leg = playerLegs[index];
-          const lift = index === 0 ? leftLift : rightLift;
-          const stanceWeight = 1 - THREE.MathUtils.smoothstep(lift, .03, .32);
-          if (stanceWeight <= .01) continue;
-          const joints = leg.userData.joints;
-          if (walking && turnRate < .62 && footPlantWorld[index]) {
-            const currentFootWorld = joints.foot.getWorldPosition(new THREE.Vector3());
-            const plantDelta = footPlantWorld[index].clone().sub(currentFootWorld);
-            plantDelta.y = 0;
-            // Do not release the stance foot early: it is the weight-bearing
-            // anchor until its own swing phase begins.
-            const maxPlantReach = THREE.MathUtils.lerp(3.6, 5.7, Math.min(1, speedRatio));
-            if (plantDelta.length() > maxPlantReach) {
-              footPlantWorld[index] = null;
-            } else {
-              const parentInverseRotation = leg.parent.getWorldQuaternion(new THREE.Quaternion()).invert();
-              plantDelta.applyQuaternion(parentInverseRotation);
-              // Scale the correction by travelled distance so a lower frame
-              // rate cannot make the planted sole lag and skate across ground.
-              const maxCorrection = THREE.MathUtils.clamp(actualGroundSpeed * dt * 1.5 + .06, .12, .42);
-              leg.position.x += THREE.MathUtils.clamp(plantDelta.x, -maxCorrection, maxCorrection) * stanceWeight;
-              leg.position.z += THREE.MathUtils.clamp(plantDelta.z, -maxCorrection, maxCorrection) * stanceWeight;
-            }
-            const baseAttachment = index === 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg;
-            const baseLegX = baseAttachment[0];
-            const baseLegZ = baseAttachment[2];
-            leg.position.x = THREE.MathUtils.clamp(leg.position.x, baseLegX - .42, baseLegX + .42);
-            leg.position.z = THREE.MathUtils.clamp(leg.position.z, baseLegZ - 5.0, baseLegZ + 5.0);
-            leg.updateWorldMatrix(true, true);
-          }
-          const heelWorld = joints.foot.localToWorld(new THREE.Vector3(0, -.31, -.72));
-          const frontWorld = joints.foot.localToWorld(new THREE.Vector3(0, -.31, 1.02));
-          const heelGround = sampleFootGroundHeight(heelWorld);
-          const frontGround = sampleFootGroundHeight(frontWorld);
-          const terrainPitch = -Math.atan2(frontGround - heelGround, 1.74);
-          const ankleWorldRotation = new THREE.Euler().setFromQuaternion(
-            joints.ankle.getWorldQuaternion(new THREE.Quaternion()),
-            'YXZ'
-          );
-          const levelFootPitch = THREE.MathUtils.clamp(terrainPitch - ankleWorldRotation.x, -.65, .65);
-          joints.foot.rotation.x = THREE.MathUtils.lerp(joints.foot.rotation.x, levelFootPitch, stanceWeight * .82);
-          leg.updateWorldMatrix(true, true);
-          const soleWorld = leg.userData.joints.foot.localToWorld(new THREE.Vector3(0, -.31, 0));
-          const soleGround = (heelGround + frontGround) * .5;
-          const correction = THREE.MathUtils.clamp(soleGround - soleWorld.y, -.5, .5) * stanceWeight;
-          leg.position.y += correction;
-          leg.updateWorldMatrix(true, true);
-          for (const toePivot of joints.toePivots) {
-            const toeTipWorld = toePivot.localToWorld(new THREE.Vector3(0, -.17, .82));
-            const toeGround = sampleFootGroundHeight(toeTipWorld);
-            const terrainToeCurl = THREE.MathUtils.clamp(-(toeGround - soleGround) * 1.25, -.28, .22);
-            const toeTarget = (toePivot.userData.baseCurl || 0) + terrainToeCurl;
-            const toeBody = toePivot.userData.rigidContact ||= { angularVelocity: 0 };
-            toePivot.rotation.x = playerRigidBody.integrateAngularContact(
-              toeBody,
-              toePivot.rotation.x,
-              toeTarget,
-              dt * Math.max(.24, stanceWeight),
-              { stiffness: 88, damping: 17, mass: 1.05 }
-            );
-          }
-        }
-      } else if (!grounded) {
-        footWasAirborne[0] = footWasAirborne[1] = false;
-        footPlantWorld[0] = footPlantWorld[1] = null;
-      }
-      const upperMotionBlend = isReversing ? 0 : walkBlend;
-      const suspensionAcceleration =
-        -BODY_SUSPENSION_STIFFNESS * bodyBounceOffset
-        -BODY_SUSPENSION_DAMPING * bodyBounceVelocity;
+      const upperMotionBlend = isReversing ? 0 : (actualGroundSpeed > 0.35 && grounded ? 1 : 0);
+      const suspensionAcceleration = -BODY_SUSPENSION_STIFFNESS * bodyBounceOffset - BODY_SUSPENSION_DAMPING * bodyBounceVelocity;
       bodyBounceVelocity += suspensionAcceleration * dt;
       bodyBounceOffset += bodyBounceVelocity * dt;
       bodyBounceOffset = THREE.MathUtils.clamp(bodyBounceOffset, -.34, .14);
@@ -8839,85 +9179,24 @@ if (!wasGrounded && grounded) {
         bodyBounceVelocity *= Math.exp(-8 * dt);
         bodyBounceOffset = THREE.MathUtils.lerp(bodyBounceOffset, 0, 1 - Math.exp(-7 * dt));
       }
-      const footPlant = Math.pow(Math.abs(Math.cos(walkCycle)), 8) * walkBlend;
-      const pelvisSide = Math.sin(walkCycle) * walkBlend;
-      const pelvisTwist = Math.sin(walkCycle * .5) * walkBlend * turnStability;
-      // Turn the pelvis toward the moving foot. The hip sockets then travel
-      // into the transfer step instead of sliding straight sideways apart.
-      const pelvisStepYaw = (rightLift - leftLift) * .72;
-      const supportShift = leftLift > .025 ? .16 : rightLift > .025 ? -.16 : 0;
-      const legJointLean = THREE.MathUtils.clamp((rightLift - leftLift) * .19 + pelvisSide * -.045, -.12, .12);
-      // The pelvic armor follows the average hip socket travel.  That keeps
-      // both ball joints seated during the stride instead of leaving the body
-      // visually behind one of the legs.
-      const hipFollowX = ((playerLegs[0].position.x - mechaAttachments.leftLeg[0]) + (playerLegs[1].position.x - mechaAttachments.rightLeg[0])) * .5;
-      const hipFollowY = ((playerLegs[0].position.y - mechaAttachments.leftLeg[1] - REVERSE_LEG_GROUND_OFFSET) + (playerLegs[1].position.y - mechaAttachments.rightLeg[1] - REVERSE_LEG_GROUND_OFFSET)) * .5;
-      const hipFollowZ = ((playerLegs[0].position.z - mechaAttachments.leftLeg[2]) + (playerLegs[1].position.z - mechaAttachments.rightLeg[2])) * .5;
-      pelvis.position.x = THREE.MathUtils.lerp(pelvis.position.x, mechaMeshes.pelvis.position[0] + supportShift + pelvisSide * .025, 1 - Math.exp(-8 * dt));
-      pelvis.position.y = THREE.MathUtils.lerp(pelvis.position.y, mechaMeshes.pelvis.position[1] - footPlant * .08 - impactNow * .13, 1 - Math.exp(-12 * dt));
-      pelvis.position.z = THREE.MathUtils.lerp(pelvis.position.z, mechaMeshes.pelvis.position[2] - Math.cos(walkCycle * 2) * .016 * walkBlend, 1 - Math.exp(-9 * dt));
-      // The pelvic shell follows the average of both actual hip roots, while
-      // each outer socket carrier follows its own hip. This keeps the armor
-      // physically seated around the ball joints through a turning stride.
-      const pelvisVisualFollow = 1 - Math.exp(-14 * dt);
-      pelvisVisualRig.position.x = THREE.MathUtils.lerp(pelvisVisualRig.position.x, THREE.MathUtils.clamp(hipFollowX * .72, -.24, .24), pelvisVisualFollow);
-      pelvisVisualRig.position.y = THREE.MathUtils.lerp(pelvisVisualRig.position.y, THREE.MathUtils.clamp(hipFollowY * .62, -.16, .16), pelvisVisualFollow);
-      pelvisVisualRig.position.z = THREE.MathUtils.lerp(pelvisVisualRig.position.z, THREE.MathUtils.clamp(hipFollowZ * .4, -.28, .28), pelvisVisualFollow);
-      const leftHipPitch = playerLegs[0].userData.joints.thigh.rotation.x;
-      const rightHipPitch = playerLegs[1].userData.joints.thigh.rotation.x;
-      const pelvisHipPitch = (leftHipPitch + rightHipPitch) * .5;
-      const pelvisHipRoll = (rightHipPitch - leftHipPitch) * .3;
-      pelvisVisualRig.rotation.x = THREE.MathUtils.lerp(pelvisVisualRig.rotation.x, pelvisHipPitch * .18, pelvisVisualFollow);
-      pelvisVisualRig.rotation.y = THREE.MathUtils.lerp(pelvisVisualRig.rotation.y, pelvisStepYaw * .58, pelvisVisualFollow);
-      pelvisVisualRig.rotation.z = THREE.MathUtils.lerp(pelvisVisualRig.rotation.z, THREE.MathUtils.clamp(pelvisHipRoll, -.1, .1), pelvisVisualFollow);
-      for (let index = 0; index < hipSocketCarriers.length; index++) {
-        const attachment = index === 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg;
-        const leg = playerLegs[index];
-        const carrier = hipSocketCarriers[index];
-        carrier.position.x = THREE.MathUtils.lerp(carrier.position.x, leg.position.x - attachment[0], pelvisVisualFollow);
-        carrier.position.y = THREE.MathUtils.lerp(carrier.position.y, leg.position.y - attachment[1] - REVERSE_LEG_GROUND_OFFSET, pelvisVisualFollow);
-        carrier.position.z = THREE.MathUtils.lerp(carrier.position.z, leg.position.z - attachment[2], pelvisVisualFollow);
-      }
-      pelvis.rotation.x = THREE.MathUtils.lerp(pelvis.rotation.x, Math.cos(walkCycle * 2) * .018 * walkBlend - impactNow * .035, 1 - Math.exp(-9 * dt));
-      // The pelvis mesh may yaw with the stride, but its parent must stay
-      // forward-facing so the two hip roots and legs do not inherit that yaw.
-      pelvis.rotation.y = THREE.MathUtils.lerp(pelvis.rotation.y, 0, 1 - Math.exp(-12 * dt));
-      pelvis.rotation.z = THREE.MathUtils.lerp(pelvis.rotation.z, -pelvisSide * .035, 1 - Math.exp(-9 * dt));
-      // Carry the hip gait through the waist so the leg joints remain mechanically seated.
-      waistRig.rotation.x = THREE.MathUtils.lerp(waistRig.rotation.x, pelvis.rotation.x * .42, 1 - Math.exp(-10 * dt));
-      waistRig.rotation.y = THREE.MathUtils.lerp(waistRig.rotation.y, 0, 1 - Math.exp(-12 * dt));
-      waistRig.rotation.z = THREE.MathUtils.lerp(waistRig.rotation.z, legJointLean, 1 - Math.exp(-10 * dt));
-      // The illuminated waist core counter-rotates to isolate the aiming torso
-      // from the heavy side-to-side movement of the hips.
-      waistCoreAssembly.position.x = THREE.MathUtils.lerp(waistCoreAssembly.position.x, pelvisVisualRig.position.x * .72 - pelvisSide * .025, 1 - Math.exp(-12 * dt));
-      waistCoreAssembly.position.y = THREE.MathUtils.lerp(waistCoreAssembly.position.y, pelvisVisualRig.position.y * .72 + footPlant * .03, 1 - Math.exp(-12 * dt));
-      waistCoreAssembly.position.z = THREE.MathUtils.lerp(waistCoreAssembly.position.z, .9 + pelvisVisualRig.position.z * .55, 1 - Math.exp(-12 * dt));
-      waistCoreAssembly.rotation.x = THREE.MathUtils.lerp(waistCoreAssembly.rotation.x, -pelvis.rotation.x * .55 + pelvisVisualRig.rotation.x * .45, 1 - Math.exp(-13 * dt));
-      waistCoreAssembly.rotation.y = THREE.MathUtils.lerp(waistCoreAssembly.rotation.y, -pelvis.rotation.y * .7 + pelvisVisualRig.rotation.y * .5, 1 - Math.exp(-13 * dt));
-      waistCoreAssembly.rotation.z = THREE.MathUtils.lerp(waistCoreAssembly.rotation.z, -pelvis.rotation.z * .72 + pelvisVisualRig.rotation.z * .55, 1 - Math.exp(-13 * dt));
-      const coreCompression = 1 - footPlant * .035 - impactNow * .06;
-      waistCoreAssembly.scale.y = THREE.MathUtils.lerp(waistCoreAssembly.scale.y, coreCompression, 1 - Math.exp(-15 * dt));
       const suspensionBounce = bodyBounceOffset * upperMotionBlend;
+      const gaitBaseHeight = window.mechaGaitParams?.baseFootHeight || 0.0;
+      const gaitBounce = (window.mechaGaitBounce || 0);
       body.position.y = THREE.MathUtils.lerp(
         body.position.y,
-        BODY_LOCAL_BASE_Y + suspensionBounce * .55 - impactNow * .08,
+        BODY_LOCAL_BASE_Y + gaitBaseHeight + gaitBounce + suspensionBounce * .55 - landingImpact * .08,
         1 - Math.exp(-9 * dt)
       );
-      // Keep the upper chassis level: its motion is a vertical suspension bounce, not a side-to-side sway.
       body.rotation.z = THREE.MathUtils.lerp(body.rotation.z, 0, 1 - Math.exp(-10 * dt));
       body.rotation.x = THREE.MathUtils.lerp(
         body.rotation.x,
-        Math.cos(walkCycle) * .026 * upperMotionBlend
-          - bodyBounceVelocity * .01 * upperMotionBlend
-          + (dashing && !isReversing ? -.085 : 0),
+        (dashing && !isReversing ? -.085 : 0) - bodyBounceVelocity * .01 * upperMotionBlend,
         1 - Math.exp(-9 * dt)
       );
 
-      const visualAimLimit = isReversing ? Math.PI : 2.25;
+      const visualAimLimit = 2.25;
       const visualAimYaw = THREE.MathUtils.clamp(angleDelta(player.rotation.y, yaw), -visualAimLimit, visualAimLimit);
-      upperBodyPivot.rotation.y = isReversing
-        ? visualAimYaw
-        : dampAngle(upperBodyPivot.rotation.y, visualAimYaw, 15, dt);
+      upperBodyPivot.rotation.y = dampAngle(upperBodyPivot.rotation.y, visualAimYaw, 15, dt);
       upperBodyPivot.rotation.x = THREE.MathUtils.lerp(
         upperBodyPivot.rotation.x,
         THREE.MathUtils.clamp(-launchPitch * .12, -.16, .16),
@@ -8929,6 +9208,27 @@ if (!wasGrounded && grounded) {
         THREE.MathUtils.clamp(-launchPitch * .42, -.42, .34),
         1 - Math.exp(-13 * dt)
       );
+
+      // Slot 3 & 4 Sub Weapons Aiming towards Mouse Pointer Target (launchPitch & visualAimYaw)
+      const slot34Pitch = THREE.MathUtils.clamp(-launchPitch * 0.85, -0.55, 0.65);
+      const slot34Yaw = visualAimYaw * 0.88;
+
+      if (typeof missileRack !== 'undefined' && missileRack) {
+        missileRack.rotation.x = THREE.MathUtils.lerp(missileRack.rotation.x, slot34Pitch, 1 - Math.exp(-12 * dt));
+        missileRack.rotation.y = THREE.MathUtils.lerp(missileRack.rotation.y, slot34Yaw, 1 - Math.exp(-12 * dt));
+      }
+      if (typeof missileRackLeft !== 'undefined' && missileRackLeft) {
+        missileRackLeft.rotation.x = THREE.MathUtils.lerp(missileRackLeft.rotation.x, slot34Pitch, 1 - Math.exp(-12 * dt));
+        missileRackLeft.rotation.y = THREE.MathUtils.lerp(missileRackLeft.rotation.y, slot34Yaw, 1 - Math.exp(-12 * dt));
+      }
+
+      for (const joint of bodyAttachmentJoints) {
+        if (joint.userData.bodyJointId === 'leftWeapon' || joint.userData.bodyJointId === 'rightWeapon' ||
+            joint.userData.bodyJointId === 3 || joint.userData.bodyJointId === 4) {
+          joint.rotation.x = THREE.MathUtils.lerp(joint.rotation.x, slot34Pitch, 1 - Math.exp(-12 * dt));
+          joint.rotation.y = THREE.MathUtils.lerp(joint.rotation.y, slot34Yaw, 1 - Math.exp(-12 * dt));
+        }
+      }
     }
 
     function updateDebris(dt) {
@@ -9284,8 +9584,8 @@ if (!wasGrounded && grounded) {
       burningEffects.push(group);
     }
 
-    const MECH_DEATH_SPLASH_RADIUS = 16;
-    const MECH_DEATH_MAX_DAMAGE = 38;
+    const MECH_DEATH_SPLASH_RADIUS = 20;
+    const MECH_DEATH_MAX_DAMAGE = 45;
 
     function spawnMechDeathExplosion(position, primaryColor = 0x5ee7ff, splashSource = null) {
       const center = position.clone().add(new THREE.Vector3(0, 4.15, 0));
@@ -9355,13 +9655,13 @@ if (!wasGrounded && grounded) {
             : new THREE.BoxGeometry(.22 + Math.random() * .65, .16 + Math.random() * .55, .25 + Math.random() * .8),
           metalMats[i % metalMats.length]
         );
-        piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 3, (Math.random() - .5) * 3, (Math.random() - .5) * 3));
-        piece.castShadow = false;
-        const radial = piece.position.clone().sub(center).normalize();
-        if (radial.lengthSq() < .01) radial.set(Math.random() - .5, Math.random(), Math.random() - .5).normalize();
-        piece.userData.velocity = radial.multiplyScalar(8 + Math.random() * 16).add(new THREE.Vector3(0, 7 + Math.random() * 10, 0));
-        piece.userData.angularVelocity = new THREE.Vector3(Math.random() * 13, Math.random() * 13, Math.random() * 13);
-        piece.userData.life = 5.2;
+        piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * 1.8, (Math.random() - .5) * 1.6));
+        piece.userData = {
+          velocity: new THREE.Vector3((Math.random() - .5) * 28, 12 + Math.random() * 18, (Math.random() - .5) * 28),
+          angularVelocity: new THREE.Vector3((Math.random() - .5) * 14, (Math.random() - .5) * 14, (Math.random() - .5) * 14),
+          life: 2.8 + Math.random() * 1.4,
+          maxLife: 4.2
+        };
         scene.add(piece);
         debris.push(piece);
       }
@@ -9371,18 +9671,25 @@ if (!wasGrounded && grounded) {
     function applyMechDeathSplash(center, sourceKey, radius = MECH_DEATH_SPLASH_RADIUS) {
       const groundCenter = center.clone();
       groundCenter.y = 0;
+
       const impulseFrom = targetPosition => {
-        const impulse = targetPosition.clone().sub(groundCenter).setY(.22);
-        if (impulse.lengthSq() < .001) impulse.set(1, .22, 0);
+        const impulse = targetPosition.clone().sub(groundCenter).setY(.28);
+        if (impulse.lengthSq() < .001) impulse.set(1, .28, 0);
         return impulse.normalize();
       };
-      // Use a true 3D sphere so a ground-level mech blast only removes the
-      // nearby section of a façade, rather than an entire vertical wall face.
-      const getFalloff = targetPosition =>
-        THREE.MathUtils.clamp(1 - targetPosition.distanceTo(groundCenter) / radius, 0, 1);
 
+      // 2D horizontal radial falloff for circular blast radius
+      const getRadialFalloff = (targetPosition, blastRadius = radius) => {
+        const dx = targetPosition.x - groundCenter.x;
+        const dz = targetPosition.z - groundCenter.z;
+        const distXZ = Math.hypot(dx, dz);
+        if (distXZ >= blastRadius) return 0;
+        return THREE.MathUtils.clamp(1 - distXZ / blastRadius, 0, 1);
+      };
+
+      // Player splash damage
       if (sourceKey !== 'player' && !playerDestroyed && player.visible) {
-        const falloff = getFalloff(player.position);
+        const falloff = getRadialFalloff(player.position);
         if (falloff > 0) {
           damagePlayer(
             Math.max(4, MECH_DEATH_MAX_DAMAGE * falloff),
@@ -9393,9 +9700,10 @@ if (!wasGrounded && grounded) {
         }
       }
 
+      // CPU splash damage
       for (const [key, targetAI] of [['enemy-1', enemyAI], ['enemy-2', enemyAI2]]) {
         if (key === sourceKey || !targetAI?.alive || !targetAI.group.visible) continue;
-        const falloff = getFalloff(targetAI.group.position);
+        const falloff = getRadialFalloff(targetAI.group.position);
         if (falloff <= 0) continue;
         const wasAlive = targetAI.alive;
         targetAI.takeDamage(
@@ -9409,32 +9717,59 @@ if (!wasGrounded && grounded) {
         }
       }
 
+      // Circular Radial Splash Damage to Building Blocks (Surface damage & window shatter, NO building collapse)
       for (const block of blocks) {
         if (block.userData.broken || block.userData.removed) continue;
         block.getWorldPosition(tempPos);
-        const falloff = getFalloff(tempPos);
+        const falloff = getRadialFalloff(tempPos, radius * 1.1);
         if (falloff <= 0) continue;
-        damageBlock(block, Math.max(.45, 5.5 * falloff), impulseFrom(tempPos));
+
+        // Moderate surface damage (0.4 ~ 3.8 HP), chipping blocks without collapsing the building
+        const splashDamage = Math.max(0.4, 3.8 * falloff);
+        const impulse = impulseFrom(tempPos);
+
+        if (block.userData.broken) {
+          hitBrokenBlock(block, impulse, splashDamage);
+        } else {
+          damageBlock(block, splashDamage, impulse);
+        }
       }
 
+      // Shatter windows in circular blast radius
+      shatterWindowsInRadius(groundCenter, new THREE.Vector3(0, 1, 0), radius * 1.35, 48);
+
+      // Destroy small houses within radial splash radius
+      for (const house of destructibleSmallHouses) {
+        if (!house.alive) continue;
+        const falloff = getRadialFalloff(new THREE.Vector3(house.x, 0, house.z), radius * 1.1);
+        if (falloff <= 0) continue;
+        house.alive = false;
+        const impulse = impulseFrom(new THREE.Vector3(house.x, 0, house.z));
+        for (const block of house.blocks) {
+          if (!block.userData.removed) damageBlock(block, 25, impulse);
+        }
+        spawnExplosionEffect(new THREE.Vector3(house.x, 1.4, house.z), 1.8);
+      }
+
+      // Vehicles, Trees, Streetlights
       for (const vehicle of trafficVehicles) {
-        if (!vehicle.userData.alive || getFalloff(vehicle.position) <= 0) continue;
+        if (!vehicle.userData.alive || getRadialFalloff(vehicle.position) <= 0) continue;
         explodeVehicle(vehicle, sourceKey === 'player' ? 'player' : 'cpu', impulseFrom(vehicle.position));
       }
       for (let index = 0; index < destructibleTrees.length; index++) {
         const tree = destructibleTrees[index];
-        if (tree.alive && getFalloff(tree.position) > 0) breakTree(index, impulseFrom(tree.position));
+        if (tree.alive && getRadialFalloff(tree.position) > 0) breakTree(index, impulseFrom(tree.position));
       }
       for (let index = 0; index < destructibleStreetlights.length; index++) {
         const streetlight = destructibleStreetlights[index];
-        if (streetlight.alive && getFalloff(streetlight.position) > 0) {
+        if (streetlight.alive && getRadialFalloff(streetlight.position) > 0) {
           breakStreetlight(index, impulseFrom(streetlight.position));
         }
       }
 
-      cannonPhysics.applyRadialImpulse(center, radius, 34);
-      shake = Math.max(shake, 1.8);
-      showMessage(`MECH CORE BLAST // ${radius}M SPLASH`);
+      cannonPhysics.applyRadialImpulse(center, radius, 85);
+      shake = Math.max(shake, 2.2);
+      showMessage(`MECH CORE BLAST // ${radius}M RADIAL SPLASH`);
       updateHUD();
     }
 
@@ -10166,14 +10501,47 @@ if (!wasGrounded && grounded) {
       for (const targetAI of [enemyAI, enemyAI2]) {
         if (!targetAI?.alive || !targetAI.group.visible) continue;
         const point = toMap(targetAI.group.position.x, targetAI.group.position.z);
-        if (point.distance > enemyRadarRange) continue;
+        const isCarrier = (currentGameMode === 'ctf' && playerFlagState === 'carried_by_cpu');
+        if (point.distance > enemyRadarRange && !isCarrier) continue;
         nearestDistance = Math.min(nearestDistance, point.distance);
-        context.fillStyle = '#ff4f42';
+        context.fillStyle = isCarrier ? '#ff1a40' : '#ff4f42';
         context.beginPath();
-        context.arc(point.x, point.y, 4.2, 0, Math.PI * 2);
+        context.arc(point.x, point.y, isCarrier ? 6.5 : 4.2, 0, Math.PI * 2);
         context.fill();
-        context.fillStyle = '#ffaaa2';
-        context.fillText(`${Math.round(point.distance)}m`, point.x + 7, point.y);
+        if (isCarrier) {
+          context.strokeStyle = '#ffffff';
+          context.lineWidth = 1.5;
+          context.stroke();
+          context.fillStyle = '#ff8899';
+          context.fillText(`🚩FLAG ${Math.round(point.distance)}m`, point.x + 8, point.y);
+        } else {
+          context.fillStyle = '#ffaaa2';
+          context.fillText(`${Math.round(point.distance)}m`, point.x + 7, point.y);
+        }
+      }
+
+      if (currentGameMode === 'ctf') {
+        // Render Enemy Flag position (Red)
+        const enemyFlagPos = (enemyFlagState === 'base') ? getFormationSpawn('enemy', 0) : (enemyFlagState === 'carried_by_player' ? player.position : enemyFlagDroppedPos);
+        const efPt = toMap(enemyFlagPos.x, enemyFlagPos.z);
+        context.fillStyle = '#ff2a4b';
+        context.beginPath();
+        context.arc(efPt.x, efPt.y, 4.5, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = '#ff99aa';
+        context.font = '900 8px Orbitron, sans-serif';
+        context.fillText(enemyFlagState === 'carried_by_player' ? '🚩YOU' : '🚩RED', efPt.x + 5, efPt.y - 4);
+
+        // Render Player Flag position (Blue)
+        const playerFlagPos = (playerFlagState === 'base') ? getFormationSpawn('player', 0) : (playerFlagState === 'carried_by_cpu' ? (enemyAI?.group?.position || getFormationSpawn('player', 0)) : playerFlagDroppedPos);
+        const pfPt = toMap(playerFlagPos.x, playerFlagPos.z);
+        context.fillStyle = '#21cfff';
+        context.beginPath();
+        context.arc(pfPt.x, pfPt.y, 4.5, 0, Math.PI * 2);
+        context.fill();
+        context.fillStyle = '#89f3ff';
+        context.font = '900 8px Orbitron, sans-serif';
+        context.fillText(playerFlagState === 'carried_by_cpu' ? '⚠️CPU' : '🚩BLUE', pfPt.x + 5, pfPt.y - 4);
       }
 
       context.fillStyle = '#dffcff';
@@ -10318,6 +10686,7 @@ if (!wasGrounded && grounded) {
       playerShield = 0;
       locomotionSpeed = 0;
       playerRigidBody.stop();
+      if (mechaGaitController) mechaGaitController.reset();
       dashTimer = 0;
       dashCooldown = 0;
       dashInputReady = true;
@@ -10354,6 +10723,8 @@ if (!wasGrounded && grounded) {
       createDangerZoneBarrier();
       createBuilding();
       player.position.copy(getFormationSpawn('player'));
+      player.rotation.y = yaw;
+      player.updateWorldMatrix(true, true);
       enemyAI?.reset();
       if (enemyAI2?.group) { enemyAI2.alive = false; enemyAI2.group.visible = false; }
       placeBattleFormation();
@@ -10367,6 +10738,7 @@ if (!wasGrounded && grounded) {
       battleStarted = false;
       battleCountdownActive = false;
       roundTransitionTimer = 2.6;
+      if (mechaGaitController) mechaGaitController.reset();
       const overlay = document.getElementById('roundTransition');
       overlay.textContent = `ROUND ${roundNumber} // INCOMING`;
       overlay.classList.add('active');
@@ -10389,7 +10761,12 @@ if (!wasGrounded && grounded) {
       if (matchOver) return;
       matchTimeRemaining = Math.max(0, matchTimeRemaining - dt);
       if (matchTimeRemaining <= 0) {
-        const result = playerKills > cpuKills ? 'PLAYER WINS' : playerKills < cpuKills ? 'CPU WINS' : 'DRAW';
+        let result = 'DRAW';
+        if (currentGameMode === 'ctf') {
+          result = ctfPlayerFlagScore > ctfCpuFlagScore ? 'PLAYER WINS' : ctfPlayerFlagScore < ctfCpuFlagScore ? 'CPU WINS' : (playerKills > cpuKills ? 'PLAYER WINS' : playerKills < cpuKills ? 'CPU WINS' : 'DRAW');
+        } else {
+          result = playerKills > cpuKills ? 'PLAYER WINS' : playerKills < cpuKills ? 'CPU WINS' : 'DRAW';
+        }
         if (result === 'PLAYER WINS') playerRoundWins++;
         if (roundNumber < TOTAL_ROUNDS) {
           roundNumber++;
@@ -10598,6 +10975,50 @@ function restoreDisabledMechParts() {
   for (const leg of playerLegs) leg.userData.disabled = false;
 }
 
+let hitFlashTimer = null;
+function playPlayerHitSound(isShieldHit = false, isHeavyHit = false) {
+  try {
+    if (!audio || !audio.context || audio.context.state !== 'running') return;
+    const ctx = audio.context;
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = isShieldHit ? 'sine' : 'sawtooth';
+    osc.frequency.setValueAtTime(isShieldHit ? 140 : 110, now);
+    osc.frequency.exponentialRampToValueAtTime(30, now + (isHeavyHit ? 0.35 : 0.22));
+
+    gain.gain.setValueAtTime(isHeavyHit ? 0.75 : 0.52, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (isHeavyHit ? 0.35 : 0.22));
+
+    osc.connect(gain);
+    gain.connect(audio.buses.sfx || ctx.destination);
+    osc.start(now);
+    osc.stop(now + (isHeavyHit ? 0.35 : 0.22));
+
+    const noiseBuffer = audio.sharedNoiseBuffer;
+    if (noiseBuffer) {
+      const noise = ctx.createBufferSource();
+      const noiseFilter = ctx.createBiquadFilter();
+      const noiseGain = ctx.createGain();
+
+      noise.buffer = noiseBuffer;
+      noiseFilter.type = isShieldHit ? 'bandpass' : 'highpass';
+      noiseFilter.frequency.setValueAtTime(isShieldHit ? 1800 : 650, now);
+
+      noiseGain.gain.setValueAtTime(isHeavyHit ? 0.85 : 0.55, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + (isHeavyHit ? 0.28 : 0.18));
+
+      noise.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(audio.buses.sfx || ctx.destination);
+
+      noise.start(now);
+      noise.stop(now + (isHeavyHit ? 0.28 : 0.18));
+    }
+  } catch (e) {}
+}
+
 function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPosition = null) {
   if (playerDestroyed) return;
   if (source !== 'fall' && (performance.now() < playerSpawnProtectionUntil || isInSafeZone(player.position, 'player'))) {
@@ -10615,31 +11036,58 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
   }
   const absorbed = source === 'fall' ? 0 : Math.min(playerShield, damage);
-      if (absorbed > 0) {
-        const shieldImpact = impactPosition || player.position.clone().add(new THREE.Vector3(0, 4.2, 0));
-        shieldBubble.hit(shieldImpact, .4 + Math.min(1, absorbed / 24));
-      }
-      playerShield -= absorbed;
-      damage -= absorbed;
-      shieldBubble.setStrength(playerShield / PLAYER_MAX_SHIELD);
-      playerHealth = Math.max(0, playerHealth - damage);
-      if (damage > 0) {
-        const partKeys = ['head', 'torso', 'leftArm', 'rightArm', 'legs'];
-        const hitPart = partKeys[Math.floor(Math.random() * partKeys.length)];
-        const wasFunctional = partHealth[hitPart] > 0;
-        partHealth[hitPart] = Math.max(0, partHealth[hitPart] - damage * 1.35);
-        if (wasFunctional && partHealth[hitPart] <= 0) detachDisabledMechPart(hitPart, impactPosition);
-        if (hitPart === 'torso' && partHealth.torso <= 0) playerHealth = 0;
-      }
-      shake = Math.max(shake, source === 'fire' ? .08 : .45);
+  if (absorbed > 0) {
+    const shieldImpact = impactPosition || player.position.clone().add(new THREE.Vector3(0, 4.2, 0));
+    shieldBubble.hit(shieldImpact, .4 + Math.min(1, absorbed / 24));
+  }
+
+  // AUDIO HIT SOUND & RED SCREEN VIGNETTE FLASH (Scaled to damage severity)
+  const isHeavy = damage > 20 || playerHealth < 30;
+  playPlayerHitSound(absorbed > 0, isHeavy);
+  const hitOverlay = document.getElementById('hitFlashOverlay');
+  if (hitOverlay) {
+    hitOverlay.classList.remove('heavy');
+    if (isHeavy) hitOverlay.classList.add('heavy');
+    // Scale vignette opacity: light hits (0.15~0.38 opacity), heavy hits (0.85~1.0 opacity)
+    const damageIntensity = THREE.MathUtils.clamp(damage / 24, 0.15, 1.0);
+    hitOverlay.style.opacity = damageIntensity.toFixed(2);
+    clearTimeout(hitFlashTimer);
+    hitFlashTimer = setTimeout(() => {
+      hitOverlay.style.opacity = '0';
+      hitOverlay.classList.remove('heavy');
+    }, isHeavy ? 360 : 160);
+  }
+
+  playerShield -= absorbed;
+  damage -= absorbed;
+  shieldBubble.setStrength(playerShield / PLAYER_MAX_SHIELD);
+  playerHealth = Math.max(0, playerHealth - damage);
+  if (damage > 0) {
+    const partKeys = ['head', 'torso', 'leftArm', 'rightArm', 'legs'];
+    const hitPart = partKeys[Math.floor(Math.random() * partKeys.length)];
+    const wasFunctional = partHealth[hitPart] > 0;
+    partHealth[hitPart] = Math.max(0, partHealth[hitPart] - damage * 1.35);
+    if (wasFunctional && partHealth[hitPart] <= 0) detachDisabledMechPart(hitPart, impactPosition);
+    if (hitPart === 'torso' && partHealth.torso <= 0) playerHealth = 0;
+  }
+  shake = Math.max(shake, source === 'fire' ? .05 : Math.min(0.75, 0.15 + damage * .02));
   const damageLabel = source === 'cpu' ? 'CPU HIT' : source === 'fall' ? 'FALL IMPACT' : source === 'fire' ? 'FIRE DAMAGE' : 'BLAST';
   if (source !== 'fire' || performance.now() - lastFireDamageMessageAt > 900) {
     if (source === 'fire') lastFireDamageMessageAt = performance.now();
     showMessage(absorbed > 0 ? `SHIELD -${Math.ceil(absorbed)}` : `${damageLabel}! -${Math.max(1, Math.ceil(damage))}`);
   }
-      updateHUD();
+  updateHUD();
+  const criticalAlert = document.getElementById('criticalDangerAlert');
+  if (criticalAlert) {
+    criticalAlert.classList.toggle('active', playerHealth > 0 && playerHealth < 35);
+  }
       if (playerHealth <= 0) {
         if (source === 'cpu') cpuKills++;
+        if (currentGameMode === 'ctf' && enemyFlagState === 'carried_by_player') {
+          enemyFlagState = 'dropped';
+          enemyFlagDroppedPos.copy(player.position);
+          showMessage('🚩 PLAYER DROPPED ENEMY FLAG!');
+        }
         pendingPlayerDeathData = {
           droppedJetpackPosition: jetpackEquipped ? player.position.clone() : null
         };
@@ -10664,6 +11112,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       const deathData = pendingPlayerDeathData;
       player.position.copy(getFormationSpawn('player'));
       player.rotation.y = yaw;
+      player.updateWorldMatrix(true, true);
+      if (mechaGaitController) mechaGaitController.reset();
       upperBodyPivot.rotation.set(0, 0, 0);
       headGroup.rotation.set(0, 0, 0);
       verticalVelocity = 0;
@@ -10976,8 +11426,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       getCoverPoint: getCpuCoverPoint,
       canSeeTarget: canCpuSeePlayer,
       getSpawnPosition: () => getFormationSpawn('enemy', 0),
+      getCTFTargetPos: getCpuCTFTarget,
       onPlayerHit: (damage, impactPosition) => damagePlayer(damage, impactPosition, 'cpu', enemyAI?.group.position),
       onDestroyed: position => {
+        if (currentGameMode === 'ctf' && playerFlagState === 'carried_by_cpu') {
+          playerFlagState = 'dropped';
+          playerFlagDroppedPos.copy(position);
+          showMessage('🚩 CPU DROPPED YOUR FLAG!');
+        }
         spawnMechDeathExplosion(position, 0xff4964, 'enemy-1');
         spawnEnemyLoot(position);
       },
@@ -11002,8 +11458,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       getCoverPoint: getCpuCoverPoint,
       canSeeTarget: canCpuSeePlayer,
       getSpawnPosition: () => getFormationSpawn('enemy', 1),
+      getCTFTargetPos: getCpuCTFTarget,
       onPlayerHit: (damage, impactPosition) => damagePlayer(damage, impactPosition, 'cpu', enemyAI2?.group.position),
       onDestroyed: position => {
+        if (currentGameMode === 'ctf' && playerFlagState === 'carried_by_cpu') {
+          playerFlagState = 'dropped';
+          playerFlagDroppedPos.copy(position);
+          showMessage('🚩 CPU DROPPED YOUR FLAG!');
+        }
         spawnMechDeathExplosion(position, 0xff9a32, 'enemy-2');
         spawnEnemyLoot(position);
       },
@@ -11016,6 +11478,17 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       weaponSlot1: 'laser',
       weaponSlot2: 'cannon'
     });
+    const gameModeSelect = document.getElementById('gameModeSelect');
+    if (gameModeSelect) {
+      gameModeSelect.addEventListener('change', (e) => {
+        currentGameMode = e.target.value;
+        ctfPlayerFlagScore = 0;
+        ctfCpuFlagScore = 0;
+        enemyFlagState = 'base';
+        playerFlagState = 'base';
+        updateHUD();
+      });
+    }
     enemyAI2.group.traverse(object => {
       if (!object.isMesh || !object.material?.color) return;
       object.material = object.material.clone();
@@ -11154,8 +11627,25 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         shieldBubble.update(dt, playerShield / PLAYER_MAX_SHIELD);
         updateMechDeathEffects(dt);
         updateHangar(dt);
+        if (customizerActive && isCustomizerWalkTesting && mechaGaitController) {
+          const testSpeed = (window.mechaGaitParams?.walkSpeed || 1.0) * 10.5;
+          mechaGaitController.update({
+            dt,
+            actualGroundSpeed: testSpeed,
+            locomotionSpeed: testSpeed,
+            grounded: true,
+            dashing: false,
+            isReversing: false,
+            turnRate: 0,
+            turnStability: 1,
+            landingImpact: 0,
+            speedRatio: 0.85,
+            rotationBeforeMove: player.rotation.y
+          });
+        }
         updateSciFiTransition(dt);
         updateSafeZones();
+        updateCTF(dt);
         updateBattleIntro(dt);
         updateRoundTransition(dt);
         updateTreeCollisions();
@@ -11209,6 +11699,117 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       renderer.setSize(innerWidth, innerHeight);
       composer.setSize(innerWidth, innerHeight);
     });
+  </script>
+  <script>
+  // ====== GAIT TUNING PANEL INITIALIZATION ======
+  (function initGaitTuningPanel() {
+    const panel = document.getElementById('gaitTuningPanel');
+    const toggleBtn = document.getElementById('gaitTuningToggle');
+    const closeBtn = document.getElementById('gaitTuningClose');
+    const slidersDiv = document.getElementById('gaitSliders');
+    const resetBtn = document.getElementById('gaitResetBtn');
+    const copyBtn = document.getElementById('gaitCopyBtn');
+    if (!panel || !toggleBtn || !slidersDiv) return;
+
+    const sliderDefs = [
+      { section: '── 보행 및 바운스/체중 이동 ──' },
+      { key: 'walkSpeed',        label: '보행 속도',         min: 0.2, max: 3.0,  step: 0.05, def: 0.35 },
+      { key: 'strideScale',      label: '보폭 배율',         min: 0.3, max: 2.0,  step: 0.05, def: 0.3 },
+      { key: 'bodyLean',         label: '전방 기울임',       min: 0,   max: 0.3,  step: 0.01, def: 0.16 },
+      { key: 'weightFeel',       label: '중량감 (묵직)',     min: 0.2, max: 2.0,  step: 0.05, def: 0.8 },
+      { key: 'stepBounceAmount', label: '💥 착지 수직 바운스', min: 0.0, max: 1.0,  step: 0.02, def: 1.0 },
+      { key: 'sideShiftAmount',  label: '↔️ 상체 좌우 이동',  min: 0.0, max: 0.8,  step: 0.02, def: 0.52 },
+      { key: 'rollAmount',       label: '🔄 좌우 롤 세기',    min: 0,   max: 0.15, step: 0.005, def: 0.15 },
+      { key: 'baseFootHeight',   label: '🦵 기본 발 높이',    min: -1.5, max: 1.5,  step: 0.02, def: 0.60 },
+      { key: 'stepHeightScale',  label: '🦶 보행 발 들림 높이', min: 0.2, max: 2.5,  step: 0.05, def: 1.5 },
+      { section: '── 관절별 각도 수치 조절 ──' },
+      { key: 'thighAngleOffset', label: '🍗 허벅지 각도 오프셋', min: -1.0, max: 0.5, step: 0.01, def: -0.58 },
+      { key: 'thighAngleScale',  label: '🍗 허벅지 스윙 비율',   min: 0.2,  max: 2.0, step: 0.05, def: 1.05 },
+      { key: 'kneeBaseBend',     label: '🦵 무릎 기본 굽힘',    min: 0.1,  max: 0.8, step: 0.02, def: 0.42 },
+      { key: 'kneeLiftBend',     label: '🦵 무릎 스윙 굽힘',    min: 0.5,  max: 3.0, step: 0.05, def: 1.15 },
+      { key: 'kneeAngleOffset',  label: '🦵 무릎 각도 오프셋',  min: -1.5, max: 1.5, step: 0.02, def: 0.0 },
+      { key: 'kneePosOffset',    label: '🦵 허벅지 아래 다리 길이', min: -1.5, max: 1.5, step: 0.02, def: -0.22 },
+      { key: 'shinLengthScale',  label: '🦶 정강이 다리 길이 배율', min: 0.5,  max: 2.0, step: 0.05, def: 1.0 },
+      { key: 'shinAngleMult',    label: '🦶 정강이 연동 비율',   min: 0.0,  max: 1.5, step: 0.02, def: 0.55 },
+      { key: 'calfAngleMult',    label: '🦵 종아리 연동 비율',   min: 0.0,  max: 1.0, step: 0.02, def: 0.30 },
+      { key: 'footAngleOffset',  label: '👣 발바닥 각도 오프셋', min: -0.8, max: 0.8, step: 0.02, def: -0.8 },
+      { key: 'toeCurlOffset',    label: '🐾 발가락 굽힘 오프셋', min: -0.5, max: 0.8, step: 0.02, def: 0.08 },
+      { key: 'toeCurlMult',      label: '🐾 발가락 굽힘 비율',   min: 0.0,  max: 2.0, step: 0.05, def: 2.0 },
+    ];
+
+    const defaults = {};
+    sliderDefs.forEach(d => { if (d.key) defaults[d.key] = d.def; });
+
+    function buildSliders() {
+      slidersDiv.innerHTML = '';
+      sliderDefs.forEach(d => {
+        if (d.section) {
+          const sec = document.createElement('div');
+          sec.style.cssText = 'margin:12px 0 6px; padding:3px 0; color:#62eaff; font:bold 10px Orbitron,sans-serif; letter-spacing:0.08em; border-bottom:1px solid #2a5d6a;';
+          sec.textContent = d.section;
+          slidersDiv.appendChild(sec);
+          return;
+        }
+
+        const gp = window.mechaGaitParams || {};
+        const current = gp[d.key] !== undefined ? gp[d.key] : d.def;
+        const row = document.createElement('div');
+        row.style.cssText = 'margin:0 0 8px; padding:4px 0; border-bottom:1px solid rgba(98,234,255,0.08);';
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
+            <span style="color:#7dc8d4; font-size:10px; letter-spacing:0.04em;">${d.label}</span>
+            <span id="gv_${d.key}" style="color:#62eaff; font-size:10px; font-weight:bold;">${current.toFixed(2)}</span>
+          </div>
+          <input type="range" id="gs_${d.key}" min="${d.min}" max="${d.max}" step="${d.step}" value="${current}" style="width:100%; height:14px; accent-color:#62eaff; cursor:pointer;">
+        `;
+        slidersDiv.appendChild(row);
+
+        const slider = row.querySelector(`#gs_${d.key}`);
+        const valueSpan = row.querySelector(`#gv_${d.key}`);
+        slider.addEventListener('input', () => {
+          const val = parseFloat(slider.value);
+          valueSpan.textContent = val.toFixed(2);
+          if (window.mechaGaitParams) {
+            window.mechaGaitParams[d.key] = val;
+          }
+        });
+      });
+    }
+
+    // Toggle panel
+    toggleBtn.addEventListener('click', () => {
+      if (panel.style.display === 'none') {
+        buildSliders();
+        panel.style.display = 'block';
+        toggleBtn.style.display = 'none';
+      }
+    });
+    closeBtn.addEventListener('click', () => {
+      panel.style.display = 'none';
+      toggleBtn.style.display = 'block';
+    });
+
+    // Reset
+    resetBtn.addEventListener('click', () => {
+      if (!window.mechaGaitParams) return;
+      sliderDefs.forEach(d => {
+        if (d.key) window.mechaGaitParams[d.key] = d.def;
+      });
+      buildSliders();
+    });
+
+    // Copy values to clipboard
+    copyBtn.addEventListener('click', () => {
+      if (!window.mechaGaitParams) return;
+      const obj = {};
+      sliderDefs.forEach(d => { if (d.key) obj[d.key] = window.mechaGaitParams[d.key]; });
+      const text = JSON.stringify(obj, null, 2);
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = 'COPIED!';
+        setTimeout(() => { copyBtn.textContent = 'COPY VALUES'; }, 1200);
+      });
+    });
+  })();
   </script>
 </body>
 </html>

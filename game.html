@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mecha Rampage — Battle</title>
+  <style>
+    html,body,#gameFrame { width:100%; height:100%; margin:0; border:0; overflow:hidden; background:#02070b; }
+    #gameFrame { display:block; }
+  </style>
+</head>
+<body>
+  <script>
+    // This is an internal battle route. Opening it directly always returns to
+    // the title so the title and customization flow cannot be skipped.
+    if (sessionStorage.getItem('mechaBattleLaunchApproved') !== '1') {
+      location.replace('./index.html');
+    } else {
+      sessionStorage.removeItem('mechaBattleLaunchApproved');
+      const gameFrame = document.createElement('iframe');
+      gameFrame.id = 'gameFrame';
+      gameFrame.title = 'Mecha Rampage battle';
+      gameFrame.src = './index.html?mode=game';
+      gameFrame.allow = 'autoplay; fullscreen; pointer-lock';
+      document.body.append(gameFrame);
+    }
+  </script>
+</body>
+</html>

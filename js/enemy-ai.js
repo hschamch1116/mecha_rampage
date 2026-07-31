@@ -107,6 +107,9 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
   root.traverse(object => {
     if (!object.isMesh || !object.geometry || object.userData?.energyShieldShell || object.userData?.excludeEnergyShield) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
+    const isJoint = object.userData?.isJoint || object.userData?.bodyJointId || object.userData?.gizmoAxis ||
+      materials.some(m => m && (m === window.jointBallMat || m === window.jointGlowMat));
+    if (isJoint) return;
     const additiveFx = materials.some(sourceMaterial =>
       sourceMaterial?.transparent && sourceMaterial?.blending === THREE.AdditiveBlending
     );
@@ -134,7 +137,32 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
   let forcedVisible = true;
 
   const setShellVisibility = visible => {
-    for (const shell of shells) shell.visible = visible;
+    for (const shell of shells) {
+      const source = shell.parent;
+      if (!source) {
+        shell.visible = false;
+        continue;
+      }
+      let sourceVisible = source.visible;
+      if (sourceVisible && source.material) {
+        if (Array.isArray(source.material)) {
+          sourceVisible = source.material.some(m => m && m.visible !== false);
+        } else {
+          sourceVisible = source.material.visible !== false;
+        }
+      }
+      if (sourceVisible) {
+        let ancestor = source.parent;
+        while (ancestor && ancestor !== root) {
+          if (ancestor.visible === false) {
+            sourceVisible = false;
+            break;
+          }
+          ancestor = ancestor.parent;
+        }
+      }
+      shell.visible = visible && Boolean(sourceVisible);
+    }
   };
 
   const controller = {
@@ -271,7 +299,7 @@ const _tempPrevPos = new THREE.Vector3();
 const _tempSegment = new THREE.Vector3();
 
 class EnemyAI {
-  constructor({ scene, target, isBlocked, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon' }) {
+  constructor({ scene, target, isBlocked, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null }) {
     this.scene = scene;
     this.target = target;
     this.isBlocked = isBlocked;
@@ -281,6 +309,7 @@ class EnemyAI {
     this.getCoverPoint = getCoverPoint;
     this.canSeeTarget = canSeeTarget;
     this.getSpawnPosition = getSpawnPosition;
+    this.getCTFTargetPos = getCTFTargetPos;
     this.onPlayerHit = onPlayerHit;
     this.onStatus = onStatus;
     this.onMessage = onMessage;
@@ -1717,7 +1746,10 @@ class EnemyAI {
 
     // AI Upgrade: Dynamic Navigation Target Selection
     let navigationTarget = predictedTarget;
-    if (this.state === 'RETREAT') {
+    const ctfTarget = this.state !== 'RETREAT' && this.getCTFTargetPos?.(_tempSelfPos);
+    if (ctfTarget) {
+      navigationTarget = ctfTarget;
+    } else if (this.state === 'RETREAT') {
       const escapeDirection = _v2.copy(_tempSelfPos).sub(perceivedTarget).setY(0);
       if (escapeDirection.lengthSq() < .01) escapeDirection.set(1, 0, 0);
       const escapePoint = _v3.copy(_tempSelfPos).add(escapeDirection.normalize().multiplyScalar(18));

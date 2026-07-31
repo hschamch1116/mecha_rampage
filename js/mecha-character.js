@@ -6,7 +6,7 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
     const saved = JSON.parse(localStorage.getItem('mechaCustomization') || '{}');
     const migratedSaved = saved.designVersion === 8
       ? saved
-      : { colors: saved.colors, hiddenParts: saved.hiddenParts };
+      : { colors: saved.colors, hiddenParts: saved.hiddenParts, hiddenBodyJoints: saved.hiddenBodyJoints, hideAllJoints: saved.hideAllJoints };
     overrides = {
       ...migratedSaved,
       ...overrides,
@@ -17,6 +17,7 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
     designVersion: 8,
     hiddenParts: { head: true },
     hiddenBodyJoints: {},
+    hideAllJoints: false,
     colors: { body: '#292e35', armorLight: '#67717b' },
     dimensions: {
     height: 10.75,
@@ -71,6 +72,10 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
       : custom?.[key] ?? value
   ]));
   const customization = merge(defaults, overrides);
+  if (customization.attachments) {
+    customization.attachments.leftLeg = [-2.02, -0.07, 0];
+    customization.attachments.rightLeg = [2.02, -0.07, 0];
+  }
   const dimensions = customization.dimensions;
 
   const player = new THREE.Group();
@@ -91,5 +96,5 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
     jointGlowMat: new THREE.MeshBasicMaterial({ color: 0x55e9ff, toneMapped: false })
   };
 
-  return { player, dimensions, materials, meshes: customization.meshes, attachments: customization.attachments, ballJointSize: customization.ballJointSize, ballJointLayout: customization.ballJointLayout, partJointOffsets: customization.partJointOffsets, hiddenParts: customization.hiddenParts || {}, hiddenBodyJoints: customization.hiddenBodyJoints || {}, colors: customization.colors };
+  return { player, dimensions, materials, meshes: customization.meshes, attachments: customization.attachments, ballJointSize: customization.ballJointSize, ballJointLayout: customization.ballJointLayout, partJointOffsets: customization.partJointOffsets, hiddenParts: customization.hiddenParts || {}, hiddenBodyJoints: customization.hiddenBodyJoints || {}, hideAllJoints: !!customization.hideAllJoints, colors: customization.colors };
 };
