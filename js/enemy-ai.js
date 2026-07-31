@@ -503,19 +503,27 @@ class EnemyAI {
       return mesh;
     };
 
-    const pelvis = makeBox(3.35, 1.02, 2.35, dark);
-    pelvis.position.set(0, 3.68, -.04);
+    const pelvis = makeBox(3.72, 1.08, 2.62, dark);
+    pelvis.position.set(0, 3.68, -.02);
     group.add(pelvis);
-    const waist = makeCylinder(.72, .82, .54, armorLight, 20);
+    const pelvisFrontGuard = makeBox(1.74, .86, .54, armorLight);
+    pelvisFrontGuard.position.set(0, 3.18, 1.34);
+    pelvisFrontGuard.rotation.x = -.12;
+    group.add(pelvisFrontGuard);
+    const pelvisCenterPlate = makeBox(.84, .62, .18, armor);
+    pelvisCenterPlate.position.set(0, 3.13, 1.66);
+    group.add(pelvisCenterPlate);
+
+    const waist = makeCylinder(.7, .78, .26, dark, 20);
     waist.position.y = 4.26;
     group.add(waist);
-    const waistCore = makeCylinder(.38, .45, .68, glow, 16);
+    const waistCore = makeCylinder(.4, .48, .44, glow, 16);
     waistCore.position.y = 4.27;
     group.add(waistCore);
 
     for (const side of [-1, 1]) {
-      const skirt = makeBox(1.18, 1.22, 1.72, armor);
-      skirt.position.set(side * 1.7, 3.62, .05);
+      const skirt = makeBox(1.18, 1.3, 1.76, armor);
+      skirt.position.set(side * 1.76, 3.56, .02);
       skirt.rotation.z = side * -.08;
       group.add(skirt);
     }
@@ -525,93 +533,93 @@ class EnemyAI {
     group.add(torso);
     this.torso = torso;
 
-    const body = makeBox(4.9, 2.08, 2.88, armor);
-    body.position.z = -.02;
+    const body = makeBox(6.34, 2.08, 3.48, armor);
+    body.position.set(0, .18, -.18);
     torso.add(body);
-    const lowerChest = makeBox(3.9, .72, 2.95, dark);
-    lowerChest.position.set(0, -.82, .02);
+    const lowerChest = makeBox(4.22, .76, 2.94, dark);
+    lowerChest.position.set(0, -.74, -.22);
     torso.add(lowerChest);
-    const front = makeBox(3.75, 1.28, .5, armorLight);
-    front.position.set(0, -.06, 1.61);
+    const front = makeBox(4.72, 1.12, .68, armorLight);
+    front.position.set(0, .16, 1.64);
     front.rotation.x = -.12;
     torso.add(front);
-    const sensorArmor = makeBox(1.72, .9, .56, dark);
-    sensorArmor.position.set(0, .3, 1.84);
+    const sensorArmor = makeBox(2.12, 1.1, .72, dark);
+    sensorArmor.position.set(0, .48, 1.84);
     sensorArmor.rotation.x = -.18;
     torso.add(sensorArmor);
-    const sensorLens = makeBox(.78, .22, .08, glow);
-    sensorLens.position.set(0, .34, 2.14);
+    const sensorLens = makeBox(.94, .28, .1, glow);
+    sensorLens.position.set(0, .52, 2.18);
     torso.add(sensorLens);
-    const counterweight = makeBox(3.9, 1.5, .72, dark);
-    counterweight.position.set(0, .02, -1.65);
+    const counterweight = makeBox(4.9, 1.8, .88, dark);
+    counterweight.position.set(0, .18, -1.85);
     torso.add(counterweight);
 
     for (const side of [-1, 1]) {
-      const shoulder = makeBox(1.15, 1.68, 2.74, armor);
-      shoulder.position.set(side * 2.35, .06, -.02);
+      const shoulder = makeBox(1.42, 1.95, 3.12, armor);
+      shoulder.position.set(side * 3.15, .18, -.06);
       torso.add(shoulder);
-      const outer = makeBox(.72, 1.2, 2.82, armorLight);
-      outer.position.set(side * 2.75, .06, 0);
+      const outer = makeBox(.88, 1.45, 3.22, armorLight);
+      outer.position.set(side * 3.65, .18, -.04);
       outer.rotation.z = side * -.16;
       torso.add(outer);
-      const stripe = makeBox(.16, 1.34, 2.9, brass);
-      stripe.position.set(side * 2.83, .05, .02);
+      const stripe = makeBox(.2, 1.62, 3.32, brass);
+      stripe.position.set(side * 3.75, .17, -.02);
       torso.add(stripe);
     }
 
     const headGroup = new THREE.Group();
-    headGroup.position.set(-.55, 6.76, .02);
+    headGroup.position.set(0, 6.76, .02);
     group.add(headGroup);
-    const turntable = makeCylinder(.48, .58, .3, dark, 18);
+    const turntable = makeCylinder(.58, .68, .36, dark, 18);
     headGroup.add(turntable);
-    const sensorHead = makeBox(1.35, .72, 1.45, armorLight);
-    sensorHead.position.set(0, .42, .18);
+    const sensorHead = makeBox(1.65, .88, 1.78, armorLight);
+    sensorHead.position.set(0, .5, .18);
     headGroup.add(sensorHead);
-    const visor = makeBox(.72, .2, .1, glow);
-    visor.position.set(0, .46, .94);
+    const visor = makeBox(.88, .24, .14, glow);
+    visor.position.set(0, .54, 1.04);
     headGroup.add(visor);
-    const scoutGun = makeCylinder(.11, .16, 1.75, dark, 12);
+    const scoutGun = makeCylinder(.14, .18, 2.05, dark, 12);
     scoutGun.rotation.x = Math.PI / 2;
-    scoutGun.position.set(0, .48, 1.45);
+    scoutGun.position.set(0, .56, 1.62);
     headGroup.add(scoutGun);
 
     this.legs = [];
     for (const side of [-1, 1]) {
       const leg = new THREE.Group();
-      leg.position.set(side * 1.18, 3.62, 0);
+      leg.position.set(side * 2.02, 3.62, 0);
       group.add(leg);
       this.legs.push(leg);
 
-      const hip = makeCylinder(.63, .63, .82, dark, 18);
+      const hip = makeCylinder(.78, .78, .98, dark, 18);
       hip.rotation.z = Math.PI / 2;
       leg.add(hip);
-      const thigh = makeBox(1.2, 1.78, 1.48, armor);
-      thigh.position.set(0, -.78, .42);
+      const thigh = makeBox(1.54, 2.25, 1.63, armor);
+      thigh.position.set(0, -1.0, .14);
       thigh.rotation.x = -.36;
       leg.add(thigh);
-      const knee = makeBox(1.3, .58, 1.58, brass);
-      knee.position.set(0, -1.62, .92);
+      const knee = makeBox(1.32, 1.15, 0.94, brass);
+      knee.position.set(0, -1.85, 1.0);
       knee.rotation.x = .18;
       leg.add(knee);
-      const shin = makeBox(1.24, 1.92, 1.5, armorLight);
-      shin.position.set(0, -2.48, .18);
+      const shin = makeBox(1.3, 3.05, 1.42, armorLight);
+      shin.position.set(0, -2.85, .13);
       shin.rotation.x = .56;
       leg.add(shin);
-      const calf = makeBox(.86, 1.08, .5, dark);
-      calf.position.set(0, -2.62, -.73);
+      const calf = makeBox(.82, 2.35, .65, dark);
+      calf.position.set(0, -2.80, -.98);
       calf.rotation.x = -.18;
       leg.add(calf);
-      for (const pistonX of [-.33, .33]) {
-        const piston = makeCylinder(.08, .1, 1.28, hydraulic, 10);
-        piston.position.set(pistonX, -2.32, -.48);
+      for (const pistonX of [-.4, .4]) {
+        const piston = makeCylinder(.11, .14, 1.58, hydraulic, 10);
+        piston.position.set(pistonX, -2.65, -.62);
         piston.rotation.x = -.26;
         leg.add(piston);
       }
-      const foot = makeBox(1.58, .62, 2.28, dark);
-      foot.position.set(0, -3.55, .24);
+      const foot = makeBox(1.56, .53, 2.06, dark);
+      foot.position.set(0, -3.85, .19);
       leg.add(foot);
-      const toe = makeBox(1.18, .34, .72, armorLight);
-      toe.position.set(0, -3.44, 1.31);
+      const toe = makeBox(.5, .36, 1.54, armorLight);
+      toe.position.set(side * .28, -3.83, 1.18);
       leg.add(toe);
       leg.userData.basePosition = leg.position.clone();
       leg.userData.joints = { thigh, knee, shin, calf, foot, toe };
@@ -622,45 +630,45 @@ class EnemyAI {
     this.barrelGroups = [];
     for (const side of [-1, 1]) {
       const pod = new THREE.Group();
-      pod.position.set(side * 2.82, 5.42, .12);
+      pod.position.set(side * 3.15, 5.35, .12);
       group.add(pod);
       this.arms.push(pod);
 
-      const joint = makeCylinder(.63, .63, .82, dark, 18);
+      const joint = makeCylinder(.78, .78, .98, dark, 18);
       joint.rotation.z = Math.PI / 2;
       pod.add(joint);
-      const housing = makeBox(1.55, 1.34, 2.18, armor);
+      const housing = makeBox(1.85, 1.58, 2.62, armor);
       housing.position.z = .48;
       pod.add(housing);
-      const face = makeBox(1.18, .82, .2, armorLight);
-      face.position.set(0, .02, 1.62);
+      const face = makeBox(1.42, .98, .24, armorLight);
+      face.position.set(0, .02, 1.78);
       pod.add(face);
-      const bearing = makeCylinder(.5, .56, .58, dark, 18);
+      const bearing = makeCylinder(.62, .68, .72, dark, 18);
       bearing.rotation.x = Math.PI / 2;
-      bearing.position.z = 1.73;
+      bearing.position.z = 1.92;
       pod.add(bearing);
 
       const barrels = new THREE.Group();
-      barrels.position.z = 1.78;
+      barrels.position.z = 1.98;
       pod.add(barrels);
       this.barrelGroups.push(barrels);
       for (let index = 0; index < 6; index++) {
         const angle = index / 6 * Math.PI * 2;
-        const barrel = makeCylinder(.075, .095, 3.05, dark, 9);
+        const barrel = makeCylinder(.09, .115, 3.65, dark, 9);
         barrel.rotation.x = Math.PI / 2;
-        barrel.position.set(Math.cos(angle) * .25, Math.sin(angle) * .25, 1.525);
+        barrel.position.set(Math.cos(angle) * .32, Math.sin(angle) * .32, 1.825);
         barrels.add(barrel);
       }
-      const center = makeCylinder(.12, .16, 3.18, hydraulic, 12);
+      const center = makeCylinder(.15, .2, 3.82, hydraulic, 12);
       center.rotation.x = Math.PI / 2;
-      center.position.z = 1.55;
+      center.position.z = 1.85;
       barrels.add(center);
-      const ring = makeCylinder(.39, .39, .22, brass, 20);
+      const ring = makeCylinder(.48, .48, .28, brass, 20);
       ring.rotation.x = Math.PI / 2;
-      ring.position.z = 3.08;
+      ring.position.z = 3.62;
       barrels.add(ring);
       const muzzle = new THREE.Object3D();
-      muzzle.position.z = 3.28;
+      muzzle.position.z = 3.85;
       barrels.add(muzzle);
       this.weaponMuzzles.push(muzzle);
     }
