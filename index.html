@@ -455,13 +455,13 @@
     <div class="settings-panel">
       <h2>VISUAL SETTINGS</h2>
       <label class="settings-row">REFLECTION <input id="reflectionIntensity" type="range" min="0" max="3" step="0.05" value="3"><output>3.00</output></label>
-      <label class="settings-row">WINDOW DARK <input id="windowDarkness" type="range" min="0" max="6" step="0.1" value="5.5"><output>5.50</output></label>
-      <label class="settings-row">WINDOW COLOR <input id="windowColor" type="color" value="#4d8499"><output>#4d8499</output></label>
-      <label class="settings-row">WINDOW OPACITY <input id="windowOpacity" type="range" min="0.25" max="1" step="0.05" value="0.9"><output>0.90</output></label>
+      <label class="settings-row">WINDOW DARK <input id="windowDarkness" type="range" min="0" max="6" step="0.1" value="1.2"><output>1.20</output></label>
+      <label class="settings-row">WINDOW COLOR <input id="windowColor" type="color" value="#004d5c"><output>#004d5c</output></label>
+      <label class="settings-row">WINDOW OPACITY <input id="windowOpacity" type="range" min="0.25" max="1" step="0.05" value="0.55"><output>0.55</output></label>
       <label class="settings-row">WINDOW ROUGHNESS <input id="windowRoughness" type="range" min="0" max="0.65" step="0.01" value="0"><output>0.00</output></label>
-      <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.2"><output>0.20</output></label>
-      <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="1.2"><output>1.20</output></label>
-      <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.72"><output>0.72</output></label>
+      <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.35"><output>0.35</output></label>
+      <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="1"><output>1.00</output></label>
+      <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.05"><output>0.05</output></label>
       <div class="settings-actions" style="display:flex; gap:8px; margin-top:16px;">
         <button id="visualSettingsCopy" type="button" style="flex:1; padding:12px; border:1px solid #73e8ff; background:#143442; color:#a1f4ff; font:900 10px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">COPY CONFIG</button>
         <button id="visualSettingsReset" type="button" style="flex:1; padding:12px; border:1px solid #ff735f; background:#351816; color:#ffac9f; font:900 10px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">RESET</button>
@@ -5631,24 +5631,24 @@ let landingRecoveryTimer = 0;
     const visualSettings = JSON.parse(localStorage.getItem('mechaVisualSettings') || '{}');
     const visualControls = {
       reflectionIntensity: ['envMapIntensity', 3],
-      windowDarkness: ['darkness', 5.5],
-      windowColor: ['color', '#4d8499'],
-      windowOpacity: ['opacity', .9],
+      windowDarkness: ['darkness', 1.2],
+      windowColor: ['color', '#004d5c'],
+      windowOpacity: ['opacity', .55],
       windowRoughness: ['roughness', 0],
-      bloomStrength: ['bloom', .2],
-      toneExposure: ['exposure', 1.2],
-      rainIntensity: ['rain', .72]
+      bloomStrength: ['bloom', .35],
+      toneExposure: ['exposure', 1],
+      rainIntensity: ['rain', .05]
     };
     const applyVisualSetting = (key, value) => {
       const amount = key === 'windowColor' ? String(value) : Number(value);
       visualSettings[key] = amount;
       if (key === 'reflectionIntensity') transparentWindowMat.envMapIntensity = amount;
       if (key === 'windowDarkness') {
-        transparentWindowMat.color.set(visualSettings.windowColor || '#4d8499').multiplyScalar(amount);
+        transparentWindowMat.color.set(visualSettings.windowColor || '#004d5c').multiplyScalar(amount);
         transparentWindowMat.emissive.setRGB(.035 * amount, .09 * amount, .11 * amount);
       }
       if (key === 'windowColor') {
-        transparentWindowMat.color.set(amount).multiplyScalar(visualSettings.windowDarkness ?? 5.5);
+        transparentWindowMat.color.set(amount).multiplyScalar(visualSettings.windowDarkness ?? 1.2);
       }
       if (key === 'windowOpacity') transparentWindowMat.opacity = amount;
       if (key === 'windowRoughness') transparentWindowMat.roughness = amount;
