@@ -462,7 +462,11 @@
       <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.2"><output>0.20</output></label>
       <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="1.2"><output>1.20</output></label>
       <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.72"><output>0.72</output></label>
-      <button id="visualSettingsClose" type="button">CLOSE</button>
+      <div class="settings-actions" style="display:flex; gap:8px; margin-top:16px;">
+        <button id="visualSettingsCopy" type="button" style="flex:1; padding:12px; border:1px solid #73e8ff; background:#143442; color:#a1f4ff; font:900 10px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">COPY CONFIG</button>
+        <button id="visualSettingsReset" type="button" style="flex:1; padding:12px; border:1px solid #ff735f; background:#351816; color:#ffac9f; font:900 10px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">RESET</button>
+      </div>
+      <button id="visualSettingsClose" type="button" style="width:100%; margin-top:8px; padding:12px; border:1px solid #9e8be8; background:#231c42; color:#eeeaff; font:900 10px Orbitron,sans-serif; cursor:pointer;">CLOSE</button>
     </div>
   </section>
   <div id="sciFiTransition" aria-hidden="true"></div>
@@ -3245,7 +3249,9 @@
     const hangarGroup = new THREE.Group();
     const maintenanceMechanics = [];
     const robotArmSparks = [];
-    const hangarServiceDrones = [];
+    const wanderingPatrolCrew = [];
+    let heroPilot = null;
+    const hangarDustParticles = [];
     const hangarSteamParticles = [];
     const hangarVentFans = [];
     const hangarLaunchParticles = [];
@@ -3265,11 +3271,386 @@
     const HANGAR_STAND_GROUND_OFFSET = -.32;
     scene.add(hangarGroup);
 
+    // --- ARTICULATED HUMAN JOINT MODELING & NATURAL GAIT PHYSICS HELPERS ---
+    // --- ARTICULATED HUMAN JOINT MODELING & NATURAL GAIT PHYSICS HELPERS ---
+    function createArticulatedHumanModel(config) {
+      const root = new THREE.Group();
+
+      // Pelvis & Core Harness
+      const pelvis = new THREE.Mesh(new THREE.BoxGeometry(.42, .24, .32), config.suitMat);
+      pelvis.position.y = .92;
+
+      // Tactical Belt & Side Pouches
+      const belt = new THREE.Mesh(new THREE.BoxGeometry(.46, .09, .34), config.toolMat || config.suitMat);
+      belt.position.y = -.08;
+      for (const side of [-1, 1]) {
+        const pouch = new THREE.Mesh(new THREE.BoxGeometry(.09, .12, .14), config.vestMat);
+        pouch.position.set(side * .24, -.08, 0);
+        belt.add(pouch);
+      }
+      pelvis.add(belt);
+
+      const spineGroup = new THREE.Group();
+      spineGroup.position.y = .12;
+      pelvis.add(spineGroup);
+
+      const torso = new THREE.Mesh(new RoundedBoxGeometry(.58, .75, .36, 3, .1), config.suitMat);
+      torso.position.y = .42;
+      
+      // Tactical Vest with Chest Plate & Radio Unit
+      const vest = new THREE.Mesh(new RoundedBoxGeometry(.64, .48, .4, 2, .06), config.vestMat);
+      vest.position.set(0, .46, .02);
+      const radioPack = new THREE.Mesh(new THREE.BoxGeometry(.22, .32, .16), config.toolMat || config.suitMat);
+      radioPack.position.set(-.14, .52, -.24);
+      const antenna = new THREE.Mesh(new THREE.CylinderGeometry(.015, .015, .35, 6), config.toolMat || config.suitMat);
+      antenna.position.set(-.08, .26, 0);
+      radioPack.add(antenna);
+      spineGroup.add(torso, vest, radioPack);
+
+      const neckGroup = new THREE.Group();
+      neckGroup.position.y = .82;
+      const head = new THREE.Mesh(new THREE.SphereGeometry(.24, 12, 10), config.suitMat);
+      head.position.y = .18;
+      
+      // Tactical Helmet with Visor, Earcomms & Headlamp
+      const helmet = new THREE.Mesh(new THREE.SphereGeometry(.265, 14, 10, 0, Math.PI * 2, 0, Math.PI * .62), config.vestMat);
+      helmet.position.y = .19;
+      const visor = new THREE.Mesh(new THREE.BoxGeometry(.32, .13, .12), config.visorMat);
+      visor.position.set(0, .18, .21);
+      
+      const headlamp = new THREE.Mesh(
+        new THREE.CylinderGeometry(.05, .05, .1, 8),
+        new THREE.MeshBasicMaterial({ color: 0x6cefff, toneMapped: false })
+      );
+      headlamp.rotation.x = Math.PI / 2;
+      headlamp.position.set(.16, .26, .18);
+      
+      for (const side of [-1, 1]) {
+        const earcomm = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .08, 8), config.toolMat || config.suitMat);
+        earcomm.rotation.z = Math.PI / 2;
+        earcomm.position.set(side * .27, .19, .02);
+        helmet.add(earcomm);
+      }
+      
+      neckGroup.add(head, helmet, visor, headlamp);
+      spineGroup.add(neckGroup);
+
+      // Articulated Legs (Hip -> Thigh -> Knee -> Shin -> Ankle -> Boot)
+      const legs = {};
+      for (const side of ['left', 'right']) {
+        const s = side === 'left' ? -1 : 1;
+        const hipGroup = new THREE.Group();
+        hipGroup.position.set(s * .16, 0, 0);
+
+        const thigh = new THREE.Mesh(new THREE.BoxGeometry(.2, .48, .22), config.suitMat);
+        thigh.position.y = -.24;
+        const thighArmor = new THREE.Mesh(new THREE.BoxGeometry(.22, .24, .12), config.vestMat);
+        thighArmor.position.set(0, -.22, .08);
+        thigh.add(thighArmor);
+
+        const kneeGroup = new THREE.Group();
+        kneeGroup.position.y = -.48;
+        const shin = new THREE.Mesh(new THREE.BoxGeometry(.18, .44, .2), config.suitMat);
+        shin.position.y = -.22;
+        const kneeCap = new THREE.Mesh(new THREE.SphereGeometry(.11, 8, 6), config.vestMat);
+        kneeCap.position.set(0, 0, .11);
+
+        const ankleGroup = new THREE.Group();
+        ankleGroup.position.y = -.44;
+        const boot = new THREE.Mesh(new THREE.BoxGeometry(.24, .16, .38), config.toolMat || config.suitMat);
+        boot.position.set(0, -.08, .08);
+        const bootSole = new THREE.Mesh(new THREE.BoxGeometry(.26, .05, .4), config.toolMat || config.suitMat);
+        bootSole.position.set(0, -.15, .08);
+        boot.add(bootSole);
+
+        ankleGroup.add(boot);
+        kneeGroup.add(shin, kneeCap, ankleGroup);
+        hipGroup.add(thigh, kneeGroup);
+        pelvis.add(hipGroup);
+
+        legs[side] = { hipGroup, kneeGroup, ankleGroup };
+      }
+
+      // Articulated Arms (Shoulder -> UpperArm -> Elbow -> Forearm -> Wrist/Hand)
+      const arms = {};
+      for (const side of ['left', 'right']) {
+        const s = side === 'left' ? -1 : 1;
+        const shoulderGroup = new THREE.Group();
+        shoulderGroup.position.set(s * .34, .72, 0);
+
+        const pauldrons = new THREE.Mesh(new RoundedBoxGeometry(.22, .18, .24, 2, .06), config.vestMat);
+        pauldrons.position.set(s * .04, 0, 0);
+        shoulderGroup.add(pauldrons);
+
+        const upperArm = new THREE.Mesh(new THREE.BoxGeometry(.16, .42, .18), config.suitMat);
+        upperArm.position.y = -.21;
+
+        const elbowGroup = new THREE.Group();
+        elbowGroup.position.y = -.42;
+        const forearm = new THREE.Mesh(new THREE.BoxGeometry(.15, .38, .16), config.suitMat);
+        forearm.position.y = -.19;
+
+        const wristGroup = new THREE.Group();
+        wristGroup.position.y = -.38;
+        const glove = new THREE.Mesh(new THREE.BoxGeometry(.14, .14, .15), config.toolMat || config.suitMat);
+        glove.position.y = -.06;
+        wristGroup.add(glove);
+
+        elbowGroup.add(forearm, wristGroup);
+        shoulderGroup.add(upperArm, elbowGroup);
+        spineGroup.add(shoulderGroup);
+
+        arms[side] = { shoulderGroup, elbowGroup, wristGroup };
+      }
+
+      root.add(pelvis);
+      return { root, pelvis, spineGroup, neckGroup, legs, arms };
+    }
+
+    function updateHumanGaitPhysics(humanRef, phase, speedRatio) {
+      if (!humanRef || !humanRef.legs) return;
+      const { pelvis, spineGroup, neckGroup, legs, arms } = humanRef;
+      const clampedRatio = THREE.MathUtils.clamp(speedRatio, 0, 1);
+
+      if (clampedRatio < 0.02) {
+        // Idle Standing Stance
+        pelvis.position.y = THREE.MathUtils.lerp(pelvis.position.y, .92, 0.1);
+        pelvis.rotation.z = THREE.MathUtils.lerp(pelvis.rotation.z, 0, 0.1);
+        pelvis.rotation.y = THREE.MathUtils.lerp(pelvis.rotation.y, 0, 0.1);
+        spineGroup.rotation.z = THREE.MathUtils.lerp(spineGroup.rotation.z, 0, 0.1);
+        spineGroup.rotation.y = THREE.MathUtils.lerp(spineGroup.rotation.y, 0, 0.1);
+        for (const side of ['left', 'right']) {
+          legs[side].hipGroup.rotation.x = THREE.MathUtils.lerp(legs[side].hipGroup.rotation.x, 0, 0.15);
+          legs[side].kneeGroup.rotation.x = THREE.MathUtils.lerp(legs[side].kneeGroup.rotation.x, 0, 0.15);
+          legs[side].ankleGroup.rotation.x = THREE.MathUtils.lerp(legs[side].ankleGroup.rotation.x, 0, 0.15);
+        }
+        return;
+      }
+
+      const strideSin = Math.sin(phase);
+      const doubleSin = Math.sin(phase * 2);
+
+      // Pelvic Bounce & Weight Transfer Roll
+      pelvis.position.y = .92 + Math.abs(doubleSin) * .05 * clampedRatio;
+      pelvis.rotation.z = strideSin * .035 * clampedRatio;
+      pelvis.rotation.y = -strideSin * .05 * clampedRatio;
+
+      // Counter-rotating Spine & Shoulder tilt
+      spineGroup.rotation.z = -pelvis.rotation.z * .85;
+      spineGroup.rotation.y = -pelvis.rotation.y * .85;
+
+      // Articulated Legs (Hip swing, Knee backward bending flex, Ankle pitch)
+      for (const side of ['left', 'right']) {
+        const isLeft = side === 'left';
+        const legPhase = isLeft ? phase : phase + Math.PI;
+        const legSin = Math.sin(legPhase);
+        const legCos = Math.cos(legPhase);
+
+        legs[side].hipGroup.rotation.x = legSin * .48 * clampedRatio;
+        const kneeFlex = legSin < 0 ? Math.abs(legSin) * 0.88 * clampedRatio : 0.05;
+        legs[side].kneeGroup.rotation.x = kneeFlex;
+        legs[side].ankleGroup.rotation.x = -legCos * .22 * clampedRatio;
+      }
+
+      // Articulated Arms (Shoulder swing & Elbow flex)
+      for (const side of ['left', 'right']) {
+        const isLeft = side === 'left';
+        const armPhase = isLeft ? phase + Math.PI : phase;
+        const armSin = Math.sin(armPhase);
+
+        arms[side].shoulderGroup.rotation.x = armSin * .42 * clampedRatio;
+        arms[side].shoulderGroup.rotation.z = isLeft ? -.1 : .1;
+        arms[side].elbowGroup.rotation.x = -.2 - Math.max(0, armSin) * .3 * clampedRatio;
+      }
+
+      neckGroup.rotation.z = -spineGroup.rotation.z * .4;
+    }
+
+    // --- 3D GOLD GDI EAGLE EMBLEM MESH GENERATOR (BACK WALL ONLY) ---
+    // --- 3D GOLD GDI EAGLE EMBLEM MESH GENERATOR (UNBROKEN GEOMETRY & SYMMETRIC WINGS) ---
+    function create3DGDIEagleLogo() {
+      const eagleGroup = new THREE.Group();
+
+      const goldMat = new THREE.MeshStandardMaterial({
+        color: 0xecb736,
+        roughness: .22,
+        metalness: .92
+      });
+      const darkGoldMat = new THREE.MeshStandardMaterial({
+        color: 0x9e7a20,
+        roughness: .30,
+        metalness: .85
+      });
+      const glowGoldMat = new THREE.MeshBasicMaterial({
+        color: 0xffd750,
+        toneMapped: false
+      });
+
+      // 1. Outer Ring Arch (Continuous Closed Contour Shape to avoid ExtrudeGeometry glitches)
+      const ringShape = new THREE.Shape();
+      const rOuter = 3.2;
+      const rInner = 2.5;
+      const startAngle = -Math.PI * 0.22;
+      const endAngle = Math.PI * 1.22;
+
+      ringShape.absarc(0, 0, rOuter, startAngle, endAngle, false);
+      ringShape.lineTo(Math.cos(endAngle) * rInner, Math.sin(endAngle) * rInner);
+      ringShape.absarc(0, 0, rInner, endAngle, startAngle, true);
+      ringShape.closePath();
+
+      const ringGeo = new THREE.ExtrudeGeometry(ringShape, {
+        depth: .16,
+        bevelEnabled: true,
+        bevelSegments: 3,
+        steps: 1,
+        bevelSize: .03,
+        bevelThickness: .03
+      });
+      const ringMesh = new THREE.Mesh(ringGeo, goldMat);
+      ringMesh.position.z = 0;
+      eagleGroup.add(ringMesh);
+
+      // Inner Glowing Ring Accent
+      const glowRing = new THREE.Mesh(new THREE.TorusGeometry(2.85, .035, 8, 48, Math.PI * 1.44), glowGoldMat);
+      glowRing.rotation.z = Math.PI * 0.28;
+      glowRing.position.z = .18;
+      eagleGroup.add(glowRing);
+
+      // 2. Symmetric Layered Wing Feathers (Left and Right Wings)
+      const wingsGroup = new THREE.Group();
+      
+      const f1Shape = new THREE.Shape();
+      f1Shape.moveTo(-3.3, 2.8);
+      f1Shape.lineTo(-1.6, 2.2);
+      f1Shape.lineTo(0.6, 1.1);
+      f1Shape.lineTo(-0.6, 0.4);
+      f1Shape.closePath();
+
+      const f2Shape = new THREE.Shape();
+      f2Shape.moveTo(-3.9, 1.7);
+      f2Shape.lineTo(-2.0, 1.25);
+      f2Shape.lineTo(0.3, 0.3);
+      f2Shape.lineTo(-1.1, -0.2);
+      f2Shape.closePath();
+
+      const f3Shape = new THREE.Shape();
+      f3Shape.moveTo(-4.3, 0.5);
+      f3Shape.lineTo(-2.4, 0.2);
+      f3Shape.lineTo(0.1, -0.5);
+      f3Shape.lineTo(-1.4, -0.7);
+      f3Shape.closePath();
+
+      const extrudeOpts = { depth: .18, bevelEnabled: true, bevelSize: .03, bevelThickness: .03 };
+      [f1Shape, f2Shape, f3Shape].forEach((wShape, idx) => {
+        const wGeo = new THREE.ExtrudeGeometry(wShape, extrudeOpts);
+        
+        // Left Wing Feather
+        const leftFeather = new THREE.Mesh(wGeo, idx === 0 ? goldMat : darkGoldMat);
+        leftFeather.position.z = .04 + idx * .04;
+        wingsGroup.add(leftFeather);
+
+        // Right Wing Feather (Symmetric Reflection)
+        const rightFeather = new THREE.Mesh(wGeo, idx === 0 ? goldMat : darkGoldMat);
+        rightFeather.scale.x = -1;
+        rightFeather.position.z = .04 + idx * .04;
+        wingsGroup.add(rightFeather);
+      });
+      eagleGroup.add(wingsGroup);
+
+      // 3. Central GDI Eagle Crest Shield & Talons
+      const crestShape = new THREE.Shape();
+      crestShape.moveTo(0, 1.6);
+      crestShape.lineTo(0.7, 1.1);
+      crestShape.lineTo(1.2, 0.2);
+      crestShape.lineTo(1.0, -1.1);
+      crestShape.lineTo(0, -2.4);
+      crestShape.lineTo(-1.0, -1.1);
+      crestShape.lineTo(-1.2, 0.2);
+      crestShape.lineTo(-0.7, 1.1);
+      crestShape.closePath();
+
+      const crestGeo = new THREE.ExtrudeGeometry(crestShape, {
+        depth: .22,
+        bevelEnabled: true,
+        bevelSize: .04,
+        bevelThickness: .04
+      });
+      const crestMesh = new THREE.Mesh(crestGeo, goldMat);
+      crestMesh.position.z = .08;
+      eagleGroup.add(crestMesh);
+
+      // Eagle Head Silhouette & Hooked Beak
+      const headShape = new THREE.Shape();
+      headShape.moveTo(-0.4, 1.1);
+      headShape.lineTo(0.4, 1.1);
+      headShape.lineTo(1.1, 0.6);
+      headShape.lineTo(1.7, 0.35); // Beak
+      headShape.lineTo(1.85, 0.05); // Hooked tip
+      headShape.lineTo(1.4, -0.15);
+      headShape.lineTo(0.7, -0.1);
+      headShape.lineTo(0, -0.6);
+      headShape.lineTo(-0.7, -0.1);
+      headShape.lineTo(-1.4, -0.15);
+      headShape.lineTo(-1.85, 0.05);
+      headShape.lineTo(-1.7, 0.35);
+      headShape.lineTo(-1.1, 0.6);
+      headShape.closePath();
+
+      const headGeo = new THREE.ExtrudeGeometry(headShape, {
+        depth: .24,
+        bevelEnabled: true,
+        bevelSize: .03,
+        bevelThickness: .03
+      });
+      const headMesh = new THREE.Mesh(headGeo, goldMat);
+      headMesh.position.z = .14;
+      eagleGroup.add(headMesh);
+
+      // Twin Eye Accents
+      for (const side of [-1, 1]) {
+        const eyeMesh = new THREE.Mesh(new THREE.ConeGeometry(.07, .16, 4), glowGoldMat);
+        eyeMesh.rotation.z = side * -Math.PI / 2;
+        eyeMesh.position.set(side * 1.1, 0.35, .32);
+        eagleGroup.add(eyeMesh);
+      }
+
+      // Warm Golden Light
+      const backLight = new THREE.PointLight(0xffbe3b, 35, 14);
+      backLight.position.set(0, 0, .2);
+      eagleGroup.add(backLight);
+
+      return eagleGroup;
+    }
+
     function createHangarScene() {
       const floorMat = new THREE.MeshStandardMaterial({ color: 0x111a20, roughness: .58, metalness: .72 });
       const steelMat = new THREE.MeshStandardMaterial({ color: 0x26343c, roughness: .34, metalness: .82 });
       const hazardMat = new THREE.MeshStandardMaterial({ color: 0xe5a93a, roughness: .42, metalness: .58 });
       const workLightMat = new THREE.MeshBasicMaterial({ color: 0xa9f4ff, toneMapped: false });
+      // Upgraded Industrial Hangar Floor Details
+      const hazardStripeMat = new THREE.MeshStandardMaterial({ color: 0xd89a2d, roughness: .48, metalness: .6 });
+      for (const side of [-1, 1]) {
+        // Yellow/Black Caution Edge Guide Bars
+        const cautionBar = new THREE.Mesh(new THREE.BoxGeometry(.35, .04, 11.8), hazardStripeMat);
+        cautionBar.position.set(side * 6.9, .02, 0);
+        hangarGroup.add(cautionBar);
+
+        // Ground LED Guide Strip Lines flanking pathways
+        const floorLedStrip = new THREE.Mesh(new THREE.BoxGeometry(.08, .03, 11.2), workLightMat);
+        floorLedStrip.position.set(side * 6.68, .025, 0);
+        hangarGroup.add(floorLedStrip);
+
+        // Circular Hydraulic Floor Access Hatches
+        for (const z of [-3.2, 3.2]) {
+          const serviceCover = new THREE.Mesh(new THREE.CylinderGeometry(.52, .52, .06, 16), steelMat);
+          serviceCover.position.set(side * 5.8, .03, z);
+          const handle = new THREE.Mesh(new THREE.TorusGeometry(.18, .03, 6, 12), hazardMat);
+          handle.rotation.x = Math.PI / 2;
+          handle.position.set(side * 5.8, .065, z);
+          hangarGroup.add(serviceCover, handle);
+        }
+      }
+
       // Open-ended outer drum plus an annular deck: the centre is deliberately
       // empty so opening the lift hatch exposes the deep shaft below.
       const platform = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.8, .72, 48, 1, true), floorMat);
@@ -3281,9 +3662,9 @@
       platformDeck.position.y = .012;
       platformDeck.receiveShadow = true;
       hangarGroup.add(platformDeck);
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(6.35, .13, 8, 64), hazardMat);
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(6.35, .12, 10, 64), hazardMat);
       ring.rotation.x = Math.PI / 2;
-      ring.position.y = .04;
+      ring.position.y = .132;
       hangarGroup.add(ring);
       for (const side of [-1, 1]) {
         for (const z of [-5.8, 5.8]) {
@@ -3310,10 +3691,10 @@
         hangarGroup.add(serviceRail);
         for (const z of [-4.5, 0, 4.5]) {
           const serviceBay = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.15, 1.3), steelMat);
-          serviceBay.position.set(side * 6.45, 1.1, z);
+          serviceBay.position.set(side * 6.45, .6, z);
           hangarGroup.add(serviceBay);
           const bayLight = new THREE.Mesh(new THREE.BoxGeometry(1.05, .08, .12), workLightMat);
-          bayLight.position.set(side * 6.45, 1.72, z + .68);
+          bayLight.position.set(side * 6.45, 1.22, z + .68);
           hangarGroup.add(bayLight);
         }
       }
@@ -3325,8 +3706,27 @@
       hangarGateRight.position.set(3.9, 12.45, 0);
       hangarGateLeft.castShadow = hangarGateRight.castShadow = true;
       hangarGroup.add(hangarGateLeft, hangarGateRight);
-      // The hatch is a real, open elevator shaft. It stays uncovered while the
-      // title lift is below the deck so the reveal has visible depth.
+
+      // --- BACK WALL 3D GOLD GDI EAGLE EMBLEM (STRICTLY ON BACK WALL BEHIND MECHA AT POSITIVE Z) ---
+      const backWallPlate = new THREE.Mesh(
+        new RoundedBoxGeometry(11.2, 7.8, .28, 3, .08),
+        new THREE.MeshStandardMaterial({ color: 0x1a262d, roughness: .45, metalness: .82 })
+      );
+      backWallPlate.position.set(0, 6.8, 8.65);
+      const backWallTrimUpper = new THREE.Mesh(new THREE.BoxGeometry(11.8, .35, .38), hazardMat);
+      backWallTrimUpper.position.set(0, 10.6, 8.55);
+      const backWallTrimLower = backWallTrimUpper.clone();
+      backWallTrimLower.position.y = 3.0;
+      backWallTrimLower.position.z = 8.55;
+      hangarGroup.add(backWallPlate, backWallTrimUpper, backWallTrimLower);
+
+      const goldGDILogoMesh = create3DGDIEagleLogo();
+      goldGDILogoMesh.position.set(0, 6.8, 8.45);
+      goldGDILogoMesh.rotation.y = Math.PI;
+      goldGDILogoMesh.scale.setScalar(0.92);
+      hangarGroup.add(goldGDILogoMesh);
+
+      // Shaft and elevator hatch
       const shaftMat = new THREE.MeshStandardMaterial({ color: 0x071015, roughness: .72, metalness: .52, side: THREE.BackSide });
       const shaftTrimMat = new THREE.MeshStandardMaterial({ color: 0x263841, roughness: .28, metalness: .9 });
       const shaftLightMat = new THREE.MeshBasicMaterial({ color: 0x3bcfe0, toneMapped: false });
@@ -3358,18 +3758,91 @@
       hangarGroup.add(shaft);
 
       hangarLiftPlatform = new THREE.Group();
-      // Match the round shaft opening exactly: no square deck corners or exposed gaps.
-      const liftDeck = new THREE.Mesh(new THREE.CylinderGeometry(4.22, 4.22, .36, 48), steelMat);
-      liftDeck.position.y = -.18;
+      // Thinner, sleek circular elevator deck profile
+      const liftDeck = new THREE.Mesh(new THREE.CylinderGeometry(4.22, 4.22, .10, 48), steelMat);
+      liftDeck.position.y = -.05;
       liftDeck.castShadow = liftDeck.receiveShadow = true;
       hangarLiftPlatform.add(liftDeck);
-      const liftUnderside = new THREE.Mesh(new THREE.CylinderGeometry(4.04, 4.04, .3, 48), shaftTrimMat);
-      liftUnderside.position.y = -.48;
+
+      // Inner concentric brushed deck ring & chamfered bevel outer rim
+      const liftOuterBevel = new THREE.Mesh(new THREE.TorusGeometry(4.16, .06, 8, 48), shaftTrimMat);
+      liftOuterBevel.rotation.x = Math.PI / 2;
+      liftOuterBevel.position.y = .012;
+      hangarLiftPlatform.add(liftOuterBevel);
+
+      const liftInnerDeck = new THREE.Mesh(new THREE.CylinderGeometry(3.92, 3.92, .03, 48), floorMat);
+      liftInnerDeck.position.y = .005;
+      hangarLiftPlatform.add(liftInnerDeck);
+
+      // Central High-Load Diamond Core Plate
+      const liftCorePlate = new THREE.Mesh(new THREE.CylinderGeometry(2.45, 2.45, .035, 36), shaftTrimMat);
+      liftCorePlate.position.y = .014;
+      hangarLiftPlatform.add(liftCorePlate);
+
+      // 3-Meter 3D Gold GDI Eagle Emblem on Circular Elevator Floor Deck (Raised slightly to avoid Z-fighting)
+      const floorGDIEagleLogo = create3DGDIEagleLogo();
+      floorGDIEagleLogo.rotation.x = -Math.PI / 2;
+      floorGDIEagleLogo.rotation.z = Math.PI;
+      floorGDIEagleLogo.scale.setScalar(0.47); // 3.0m diameter emblem on circular deck
+      floorGDIEagleLogo.position.set(0, .048, 0);
+      hangarLiftPlatform.add(floorGDIEagleLogo);
+
+      // 12 Radial Cyan LED Guide Strips dividing circular platform into 12 sectors
+      const radialLedGeo = new THREE.BoxGeometry(.07, .02, 3.4);
+      for (let i = 0; i < 12; i++) {
+        const ledLine = new THREE.Mesh(radialLedGeo, shaftLightMat);
+        const angle = (i / 12) * Math.PI * 2;
+        ledLine.rotation.y = angle;
+        ledLine.position.set(Math.sin(angle) * 2.2, .028, Math.cos(angle) * 2.2);
+        hangarLiftPlatform.add(ledLine);
+      }
+
+      // 4 Heavy Hydraulic Foot Locking Mechanism Assemblies with Status Beacons
+      const clampMat = new THREE.MeshStandardMaterial({ color: 0x22323a, roughness: .35, metalness: .85 });
+      for (const [cx, cz] of [[-1.45, 0.85], [1.45, 0.85], [-1.45, -0.85], [1.45, -0.85]]) {
+        const clampGroup = new THREE.Group();
+        clampGroup.position.set(cx, .06, cz);
+        const clampBase = new THREE.Mesh(new THREE.BoxGeometry(.62, .14, .7), clampMat);
+        const clampJaw = new THREE.Mesh(new THREE.BoxGeometry(.26, .26, .48), hazardMat);
+        clampJaw.position.set(cx > 0 ? -.2 : .2, .14, 0);
+        const hydraulicPiston = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .4, 10), shaftTrimMat);
+        hydraulicPiston.rotation.z = Math.PI / 2;
+        hydraulicPiston.position.set(cx > 0 ? .14 : -.14, .11, 0);
+
+        // Status Beacon LED on Clamp Base
+        const statusBeacon = new THREE.Mesh(
+          new THREE.CylinderGeometry(.05, .05, .08, 8),
+          new THREE.MeshBasicMaterial({ color: 0x00ff88, toneMapped: false })
+        );
+        statusBeacon.position.set(0, .14, .25);
+        clampGroup.add(clampBase, clampJaw, hydraulicPiston, statusBeacon);
+        hangarLiftPlatform.add(clampGroup);
+      }
+
+      // 24 Industrial Heavy Perimeter Rivets along outer circumference ring
+      const rivetGeo = new THREE.CylinderGeometry(.055, .055, .04, 8);
+      for (let i = 0; i < 24; i++) {
+        const rivet = new THREE.Mesh(rivetGeo, shaftTrimMat);
+        const a = (i / 24) * Math.PI * 2;
+        rivet.position.set(Math.sin(a) * 4.08, .018, Math.cos(a) * 4.08);
+        hangarLiftPlatform.add(rivet);
+      }
+
+      // Concentric Dual Hazard Stripes & Outer LED Ring
+      const liftUnderside = new THREE.Mesh(new THREE.CylinderGeometry(4.04, 4.04, .08, 48), shaftTrimMat);
+      liftUnderside.position.y = -.13;
       hangarLiftPlatform.add(liftUnderside);
+
       const deckHazardRing = new THREE.Mesh(new THREE.TorusGeometry(3.56, .09, 6, 48), hazardMat);
       deckHazardRing.rotation.x = Math.PI / 2;
       deckHazardRing.position.y = .018;
       hangarLiftPlatform.add(deckHazardRing);
+
+      const deckInnerHazardRing = new THREE.Mesh(new THREE.TorusGeometry(2.48, .05, 6, 48), hazardMat);
+      deckInnerHazardRing.rotation.x = Math.PI / 2;
+      deckInnerHazardRing.position.y = .022;
+      hangarLiftPlatform.add(deckInnerHazardRing);
+
       const deckLightRing = new THREE.Mesh(new THREE.TorusGeometry(3.98, .045, 6, 48), shaftLightMat);
       deckLightRing.rotation.x = Math.PI / 2;
       deckLightRing.position.y = .028;
@@ -3487,6 +3960,14 @@
           monitor.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
           hangarGroup.add(monitor);
         }
+        // Wall High-Voltage Power Conduit Pipes & Gas Tubes
+        const conduitMat = new THREE.MeshStandardMaterial({ color: 0x3d4a52, roughness: .35, metalness: .82 });
+        for (const y of [2.4, 4.8, 7.2]) {
+          const pipe = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 13.8, 10), conduitMat);
+          pipe.rotation.x = Math.PI / 2;
+          pipe.position.set(side * 7.32, y, 0);
+          hangarGroup.add(pipe);
+        }
         const serviceRail = new THREE.Mesh(new THREE.BoxGeometry(.3, .3, 11.5), hazardMat);
         serviceRail.position.set(side * 6.75, 1.1, 0);
         hangarGroup.add(serviceRail);
@@ -3496,6 +3977,14 @@
         const craneRail = new THREE.Mesh(new THREE.BoxGeometry(14.8, .38, .5), craneRailMat);
         craneRail.position.set(0, 9.65, z);
         hangarGroup.add(craneRail);
+
+        // Wall Mounting Support Brackets attaching crane rails into side walls
+        for (const side of [-1, 1]) {
+          const wallBracket = new THREE.Mesh(new THREE.BoxGeometry(.6, .45, .8), steelMat);
+          wallBracket.position.set(side * 7.3, 9.65, z);
+          hangarGroup.add(wallBracket);
+        }
+
         for (const x of [-4.6, 4.6]) {
           const trolley = new THREE.Mesh(new RoundedBoxGeometry(1.2, .62, .9, 2, .1), hazardMat);
           trolley.position.set(x, 9.25, z);
@@ -3539,12 +4028,51 @@
         fuelTank.add(cap);
         hangarGroup.add(fuelTank);
       }
-      const grateMat = new THREE.MeshStandardMaterial({ color: 0x11181c, roughness: .55, metalness: .82 });
+      // High-Detail Recessed Industrial Floor Ventilation Ducts with Shaft Depth & Louver Slats
+      const grateMat = new THREE.MeshStandardMaterial({ color: 0x182228, roughness: .45, metalness: .82 });
+      const louverMat = new THREE.MeshStandardMaterial({ color: 0x2d3b43, roughness: .35, metalness: .88 });
+      const shaftWellMat = new THREE.MeshStandardMaterial({ color: 0x060c10, roughness: .8, metalness: .4 });
+
       for (const x of [-5.9, 5.9]) {
-        for (let z = -5; z <= 5; z += 2) {
-          const grate = new THREE.Mesh(new THREE.BoxGeometry(1.25, .06, 1.4), grateMat);
-          grate.position.set(x, .045, z);
-          hangarGroup.add(grate);
+        for (let z = -5; z <= 5; z += 2.2) {
+          const ventGroup = new THREE.Group();
+          ventGroup.position.set(x, .045, z);
+
+          // 1. Heavy Outer Steel Border Frame with Chamfered Rim
+          const frameRim = new THREE.Mesh(new RoundedBoxGeometry(1.35, .08, 1.5, 2, .06), grateMat);
+          frameRim.position.y = .01;
+
+          // 2. Dark Recessed Exhaust Shaft Well (extending deep below floor)
+          const shaftWell = new THREE.Mesh(new THREE.BoxGeometry(1.18, 1.2, 1.34), shaftWellMat);
+          shaftWell.position.y = -.62;
+
+          // 3. Interior Glowing Exhaust Heat Accent at shaft bottom
+          const shaftGlow = new THREE.Mesh(
+            new THREE.PlaneGeometry(1.0, 1.15),
+            new THREE.MeshBasicMaterial({ color: 0xff6600, toneMapped: false })
+          );
+          shaftGlow.rotation.x = -Math.PI / 2;
+          shaftGlow.position.y = -1.18;
+
+          // 4. 5 Angled Industrial Ventilation Louver Slats creating true shadow depth
+          for (let s = -2; s <= 2; s += 1) {
+            const louver = new THREE.Mesh(new THREE.BoxGeometry(1.14, .04, .16), louverMat);
+            louver.rotation.x = 0.38; // Angled louvers for depth
+            louver.position.set(0, -.06, s * .24);
+            ventGroup.add(louver);
+          }
+
+          // 5. Corner Heavy Steel Rivets
+          for (const rx of [-.58, .58]) {
+            for (const rz of [-.65, .65]) {
+              const rivet = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .05, 8), steelMat);
+              rivet.position.set(rx, .04, rz);
+              ventGroup.add(rivet);
+            }
+          }
+
+          ventGroup.add(frameRim, shaftWell, shaftGlow);
+          hangarGroup.add(ventGroup);
         }
       }
 
@@ -3644,62 +4172,149 @@
         hangarGroup.add(particle);
       }
 
+      // Eagle Squadron Wall Logo & Hangar Emblem Signage
+      const logoCanvas = document.createElement('canvas');
+      logoCanvas.width = 1024;
+      logoCanvas.height = 512;
+      const logoCtx = logoCanvas.getContext('2d');
+
+      const logoGrad = logoCtx.createLinearGradient(0, 0, 1024, 512);
+      logoGrad.addColorStop(0, '#040d14');
+      logoGrad.addColorStop(0.5, '#0c1b26');
+      logoGrad.addColorStop(1, '#040d14');
+      logoCtx.fillStyle = logoGrad;
+      logoCtx.fillRect(0, 0, 1024, 512);
+
+      logoCtx.strokeStyle = '#6fe6f2';
+      logoCtx.lineWidth = 8;
+      logoCtx.shadowColor = '#6fe6f2';
+      logoCtx.shadowBlur = 18;
+      logoCtx.strokeRect(20, 20, 984, 472);
+
+      logoCtx.strokeStyle = '#d89a2d';
+      logoCtx.lineWidth = 4;
+      logoCtx.shadowColor = '#d89a2d';
+      logoCtx.shadowBlur = 10;
+      logoCtx.strokeRect(36, 36, 952, 440);
+
+      // Eagle Wing Wings Emblem
+      logoCtx.shadowColor = '#ffcf56';
+      logoCtx.shadowBlur = 25;
+      logoCtx.fillStyle = '#ffcf56';
+
+      logoCtx.beginPath();
+      logoCtx.moveTo(512, 170);
+      logoCtx.quadraticCurveTo(420, 100, 360, 120);
+      logoCtx.quadraticCurveTo(410, 160, 430, 210);
+      logoCtx.quadraticCurveTo(470, 190, 512, 170);
+      logoCtx.fill();
+
+      logoCtx.beginPath();
+      logoCtx.moveTo(512, 170);
+      logoCtx.quadraticCurveTo(604, 100, 664, 120);
+      logoCtx.quadraticCurveTo(614, 160, 594, 210);
+      logoCtx.quadraticCurveTo(554, 190, 512, 170);
+      logoCtx.fill();
+
+      logoCtx.beginPath();
+      logoCtx.moveTo(512, 130);
+      logoCtx.lineTo(545, 175);
+      logoCtx.lineTo(512, 235);
+      logoCtx.lineTo(479, 175);
+      logoCtx.closePath();
+      logoCtx.fillStyle = '#6fe6f2';
+      logoCtx.shadowColor = '#6fe6f2';
+      logoCtx.fill();
+
+      logoCtx.fillStyle = '#ffffff';
+      logoCtx.font = '900 44px Orbitron, sans-serif';
+      logoCtx.textAlign = 'center';
+      logoCtx.textBaseline = 'middle';
+      logoCtx.fillText('🦅', 512, 175);
+
+      logoCtx.fillStyle = '#ffffff';
+      logoCtx.font = '900 44px Orbitron, sans-serif';
+      logoCtx.shadowColor = '#6fe6f2';
+      logoCtx.shadowBlur = 16;
+      logoCtx.fillText('EAGLE SQUADRON // SIEGE WALKER', 512, 290);
+
+      logoCtx.fillStyle = '#ffcf56';
+      logoCtx.font = '800 26px Orbitron, sans-serif';
+      logoCtx.shadowColor = '#ffcf56';
+      logoCtx.shadowBlur = 10;
+      logoCtx.fillText('HANGAR BAY 01 · HEAVY ARMORED DIVISION', 512, 350);
+
+      logoCtx.fillStyle = '#8faab1';
+      logoCtx.font = '700 20px Orbitron, sans-serif';
+      logoCtx.shadowBlur = 0;
+      logoCtx.fillText('MAINTENANCE CREW ACTIVE · READY FOR DEPLOYMENT', 512, 410);
+
+      const logoTexture = new THREE.CanvasTexture(logoCanvas);
+      logoTexture.needsUpdate = true;
+      const logoMat = new THREE.MeshStandardMaterial({
+        map: logoTexture,
+        roughness: .3,
+        metalness: .7,
+        emissive: 0x184452,
+        emissiveMap: logoTexture,
+        emissiveIntensity: .55
+      });
+      const backLogoMesh = new THREE.Mesh(new THREE.PlaneGeometry(15.2, 7.6), logoMat);
+      backLogoMesh.position.set(0, 15.5, -8.7);
+      hangarGroup.add(backLogoMesh);
+      for (const side of [-1, 1]) {
+        const sideLogoMesh = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 4.8), logoMat);
+        sideLogoMesh.position.set(side * 8.7, 14.5, 0);
+        sideLogoMesh.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+        hangarGroup.add(sideLogoMesh);
+      }
+
+      // --- ARTICULATED HUMAN JOINT MODELING & NATURAL GAIT PHYSICS HELPERS ---
       const suitMat = new THREE.MeshStandardMaterial({ color: 0xd9e2e3, roughness: .7, metalness: .18 });
       const vestMat = new THREE.MeshStandardMaterial({ color: 0xd89a2d, roughness: .62, metalness: .25 });
       const visorMat = new THREE.MeshBasicMaterial({ color: 0x6fe6f2, toneMapped: false });
       const toolMat = new THREE.MeshStandardMaterial({ color: 0x33454f, roughness: .3, metalness: .84 });
-      const mechanicPositions = [];
+
+
+
+      const mechanicPositions = [
+        [-4.8, 2.5], [4.8, 2.5],
+        [-4.2, -2.8], [4.2, -2.8],
+        [-5.8, -0.2], [5.8, -0.2],
+        [-2.8, 4.8], [2.8, 4.8]
+      ];
       mechanicPositions.forEach(([x, z], index) => {
-        const mechanic = new THREE.Group();
-        mechanic.position.set(x, 0, z);
-        mechanic.rotation.y = Math.atan2(-x, -z);
-        const torso = new THREE.Mesh(new RoundedBoxGeometry(.62, 1.05, .4, 3, .11), suitMat);
-        torso.position.y = 1.45;
-        const vest = new THREE.Mesh(new THREE.BoxGeometry(.68, .46, .44), vestMat);
-        vest.position.set(0, 1.53, .02);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(.29, 12, 8), suitMat);
-        head.position.y = 2.2;
-        const visor = new THREE.Mesh(new THREE.BoxGeometry(.38, .12, .08), visorMat);
-        visor.position.set(0, 2.22, .27);
-        const toolArm = new THREE.Group();
-        toolArm.position.set(index % 2 ? -.42 : .42, 1.82, 0);
-        const arm = new THREE.Mesh(new THREE.BoxGeometry(.2, .82, .22), suitMat);
-        arm.position.y = -.36;
-        const tool = new THREE.Mesh(new THREE.CylinderGeometry(.07, .11, .72, 8), toolMat);
-        tool.position.y = -.95;
-        tool.rotation.z = Math.PI * .5;
+        const humanRef = createArticulatedHumanModel({ suitMat, vestMat, visorMat, toolMat });
+        const mechanic = humanRef.root;
+        mechanic.scale.setScalar(.5);
+
+        const workPosition = new THREE.Vector3(x, 0, z);
+        const idleX = index % 2 === 0 ? -7.2 : 7.2;
+        const idleZ = index < 4 ? (index < 2 ? -5.5 : 5.5) : (index < 6 ? -3.5 : 3.5);
+        const idlePosition = new THREE.Vector3(idleX, 0, idleZ);
+
+        mechanic.position.copy(idlePosition);
+        mechanic.rotation.y = Math.atan2(workPosition.x - idlePosition.x, workPosition.z - idlePosition.z);
+
+        // Industrial welding tool attached to right wrist
+        const toolArm = humanRef.arms.right.shoulderGroup;
         const toolLight = new THREE.Mesh(new THREE.SphereGeometry(.095, 8, 6), visorMat);
-        toolLight.position.set(.36, -.95, 0);
-        toolArm.add(arm, tool, toolLight);
-        const helmet = new THREE.Mesh(new THREE.TorusGeometry(.3, .055, 6, 14), vestMat);
-        helmet.position.y = 2.2;
-        helmet.rotation.x = Math.PI / 2;
-        const belt = new THREE.Mesh(new THREE.BoxGeometry(.7, .15, .46), toolMat);
-        belt.position.y = 1.02;
-        const backpack = new THREE.Mesh(new RoundedBoxGeometry(.45, .62, .2, 2, .06), toolMat);
-        backpack.position.set(0, 1.5, -.29);
-        const freeArm = new THREE.Group();
-        freeArm.position.set(index % 2 ? .42 : -.42, 1.82, 0);
-        const freeUpper = new THREE.Mesh(new THREE.BoxGeometry(.2, .54, .22), suitMat);
-        freeUpper.position.y = -.24;
-        const elbow = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), vestMat);
-        elbow.position.y = -.53;
-        freeArm.add(freeUpper, elbow);
-        const legs = new THREE.Group();
-        for (const side of [-1, 1]) {
-          const leg = new THREE.Mesh(new THREE.BoxGeometry(.23, .78, .28), suitMat);
-          leg.position.set(side * .18, .58, 0);
-          const knee = new THREE.Mesh(new THREE.SphereGeometry(.14, 8, 6), vestMat);
-          knee.position.set(side * .18, .43, .15);
-          const boot = new THREE.Mesh(new THREE.BoxGeometry(.29, .2, .45), toolMat);
-          boot.position.set(side * .18, .12, .08);
-          legs.add(leg, knee, boot);
-        }
-        mechanic.add(torso, vest, head, visor, helmet, belt, backpack, toolArm, freeArm, legs);
-        mechanic.userData.toolArm = toolArm;
-        mechanic.userData.toolLight = toolLight;
-        mechanic.userData.phase = index * 1.47;
-        mechanic.userData.basePosition = mechanic.position.clone();
+        toolLight.position.set(0, -.42, .18);
+        humanRef.arms.right.wristGroup.add(toolLight);
+
+        mechanic.userData = {
+          state: 'IDLE',
+          idlePosition,
+          workPosition,
+          startDelay: index * 0.22,
+          walkProgress: 0,
+          humanRef,
+          toolArm,
+          toolLight,
+          phase: index * 1.47,
+          basePosition: workPosition.clone()
+        };
+
         maintenanceMechanics.push(mechanic);
         hangarGroup.add(mechanic);
       });
@@ -3794,30 +4409,160 @@
         hangarGroup.add(spark);
       }
 
-      const droneBodyMat = new THREE.MeshStandardMaterial({ color: 0x293b45, roughness: .32, metalness: .86 });
-      const droneCargoMat = new THREE.MeshStandardMaterial({ color: 0x68777d, roughness: .45, metalness: .68 });
-      const droneWheelMat = new THREE.MeshStandardMaterial({ color: 0x0a0d10, roughness: .76, metalness: .18 });
-      const droneLightMat = new THREE.MeshBasicMaterial({ color: 0x6cefff, toneMapped: false });
-      for (const [index, phase] of [.06, .39, .72].entries()) {
-        const drone = new THREE.Group();
-        const chassis = new THREE.Mesh(new RoundedBoxGeometry(1.4, .34, 1.05, 2, .1), droneBodyMat);
-        chassis.position.y = .34;
-        const cargo = new THREE.Mesh(new RoundedBoxGeometry(.88, .58, .7, 2, .08), droneCargoMat);
-        cargo.position.y = .78;
-        const scanner = new THREE.Mesh(new THREE.BoxGeometry(.42, .08, .12), droneLightMat);
-        scanner.position.set(0, .52, -.56);
-        drone.add(chassis, cargo, scanner);
-        for (const side of [-1, 1]) {
-          for (const front of [-1, 1]) {
-            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .13, 10), droneWheelMat);
-            wheel.rotation.z = Math.PI / 2;
-            wheel.position.set(side * .56, .18, front * .36);
-            drone.add(wheel);
+      // --- 8-METER MECH SCALE ENHANCEMENT: HIGH-RISE SCAFFOLDING & UMBILICAL POWER CONDUITS ---
+      const scaffoldMat = new THREE.MeshStandardMaterial({ color: 0x3d4e56, roughness: .42, metalness: .82 });
+      const scaffoldPlankMat = new THREE.MeshStandardMaterial({ color: 0x1d272d, roughness: .68, metalness: .45 });
+      const ladderMat = new THREE.MeshStandardMaterial({ color: 0xd89a2d, roughness: .5, metalness: .6 });
+
+      // Scaffolding Towers flanking the 8m Mech (Left & Right)
+      for (const side of [-1, 1]) {
+        const scafGroup = new THREE.Group();
+        scafGroup.position.set(side * 6.5, 0, 0);
+
+        for (const px of [-1.2, 1.2]) {
+          for (const pz of [-2.8, 2.8]) {
+            const pole = new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 8.5, 8), scaffoldMat);
+            pole.position.set(px, 4.25, pz);
+            scafGroup.add(pole);
           }
         }
-        drone.userData = { phase, speed: .042 + index * .007, cargo, scanner };
-        hangarServiceDrones.push(drone);
-        hangarGroup.add(drone);
+        for (const tierY of [2.8, 5.2, 7.6]) {
+          const deck = new THREE.Mesh(new THREE.BoxGeometry(2.5, .12, 5.8), scaffoldPlankMat);
+          deck.position.set(0, tierY, 0);
+          scafGroup.add(deck);
+
+          const rail = new THREE.Mesh(new THREE.TorusGeometry(1.2, .04, 6, 16, Math.PI), ladderMat);
+          rail.rotation.y = Math.PI / 2;
+          rail.position.set(-side * 1.25, tierY + .85, 0);
+
+          // Vertical Stanchion Posts anchoring yellow safety arch to deck
+          for (const postZ of [-1.2, 1.2]) {
+            const post = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .85, 8), ladderMat);
+            post.position.set(-side * 1.25, tierY + .425, postZ);
+            scafGroup.add(post);
+          }
+          scafGroup.add(rail);
+        }
+        const ladder = new THREE.Group();
+        // Sturdy Vertical Side Support Poles (수직 측면 프레임 기둥)
+        const sideRailGeo = new THREE.CylinderGeometry(.038, .038, 8.2, 10);
+        const leftSideRail = new THREE.Mesh(sideRailGeo, ladderMat);
+        leftSideRail.position.set(-.28, 3.84, 0);
+        const rightSideRail = new THREE.Mesh(sideRailGeo, ladderMat);
+        rightSideRail.position.set(.28, 3.84, 0);
+        ladder.add(leftSideRail, rightSideRail);
+
+        // Ladder Rungs with Anti-slip Profile
+        for (let r = 0; r <= 24; r++) {
+          const rung = new THREE.Mesh(new THREE.CylinderGeometry(.028, .028, .56, 8), ladderMat);
+          rung.rotation.z = Math.PI / 2;
+          rung.position.y = r * .32;
+          ladder.add(rung);
+        }
+
+        // Structural Mounting Brackets to Scaffolding
+        for (const bracketY of [.6, 3.8, 7.2]) {
+          for (const s of [-1, 1]) {
+            const bracket = new THREE.Mesh(new THREE.BoxGeometry(.08, .08, .35), shaftTrimMat);
+            bracket.position.set(s * .28, bracketY, -.16);
+            ladder.add(bracket);
+          }
+        }
+        ladder.position.set(-side * 1.3, 0, 2.7);
+        scafGroup.add(ladder);
+        hangarGroup.add(scafGroup);
+      }
+
+      // Front Inspection Scaffold Gantry for Hero Pilot
+      const frontScafGantry = new THREE.Group();
+      frontScafGantry.position.set(0, 3.4, 4.5);
+      const gantryDeck = new THREE.Mesh(new RoundedBoxGeometry(7.2, .24, 2.2, 2, .08), scaffoldPlankMat);
+      const gantryRail = new THREE.Mesh(new THREE.BoxGeometry(7.2, .88, .08), ladderMat);
+      gantryRail.position.set(0, .54, 1.05);
+
+      // 4 Sturdy Corner Support Columns extending down to ground floor
+      for (const gx of [-3.2, 3.2]) {
+        for (const gz of [-0.85, 0.85]) {
+          const supportPost = new THREE.Mesh(new THREE.CylinderGeometry(.1, .1, 3.4, 8), scaffoldMat);
+          supportPost.position.set(gx, -1.7, gz);
+          
+          const footBase = new THREE.Mesh(new THREE.BoxGeometry(.32, .08, .32), shaftTrimMat);
+          footBase.position.set(gx, -3.36, gz);
+          frontScafGantry.add(supportPost, footBase);
+        }
+      }
+      frontScafGantry.add(gantryDeck, gantryRail);
+      hangarGroup.add(frontScafGantry);
+
+      // --- HERO PILOT CHARACTER (`heroPilot`) ---
+      const pilotSuitMat = new THREE.MeshStandardMaterial({ color: 0x1d2e38, roughness: .5, metalness: .6 });
+      const pilotArmorMat = new THREE.MeshStandardMaterial({ color: 0x374d5c, roughness: .35, metalness: .8 });
+      const pilotGoldMat = new THREE.MeshStandardMaterial({ color: 0xe5aa39, roughness: .4, metalness: .7 });
+      const pilotVisorMat = new THREE.MeshBasicMaterial({ color: 0x6cefff, toneMapped: false });
+
+      const heroHuman = createArticulatedHumanModel({ suitMat: pilotSuitMat, vestMat: pilotGoldMat, visorMat: pilotVisorMat, toolMat: pilotArmorMat });
+      heroPilot = heroHuman.root;
+      heroPilot.position.set(0, 3.52, 4.5);
+      heroPilot.scale.setScalar(.55);
+
+      const heroHoloTerminal = new THREE.Mesh(
+        new THREE.PlaneGeometry(.42, .28),
+        new THREE.MeshBasicMaterial({ color: 0x6cefff, transparent: true, opacity: .8, side: THREE.DoubleSide, toneMapped: false })
+      );
+      heroHoloTerminal.position.set(.38, 1.35, .32);
+      heroHoloTerminal.rotation.y = -Math.PI * .2;
+      heroHuman.spineGroup.add(heroHoloTerminal);
+
+      heroPilot.userData = { humanRef: heroHuman, heroHoloTerminal };
+      hangarGroup.add(heroPilot);
+
+      // --- WANDERING PATROL CREW (`wanderingPatrolCrew`) ---
+      const patrolRoutes = [
+        { start: new THREE.Vector3(-6.2, 0, -4.5), end: new THREE.Vector3(-6.2, 0, 4.5) },
+        { start: new THREE.Vector3(6.2, 0, -4.5), end: new THREE.Vector3(6.2, 0, 4.5) },
+        { start: new THREE.Vector3(-7.0, 3.6, -3.8), end: new THREE.Vector3(-7.0, 3.6, 3.8) },
+        { start: new THREE.Vector3(7.0, 3.6, -3.8), end: new THREE.Vector3(7.0, 3.6, 3.8) },
+        { start: new THREE.Vector3(-4.5, 0, -5.2), end: new THREE.Vector3(4.5, 0, -5.2) },
+        { start: new THREE.Vector3(-2.8, 3.4, 4.5), end: new THREE.Vector3(2.8, 3.4, 4.5) }
+      ];
+
+      patrolRoutes.forEach((route, index) => {
+        const humanRef = createArticulatedHumanModel({ suitMat, vestMat, visorMat, toolMat });
+        const officer = humanRef.root;
+        officer.position.copy(route.start);
+        officer.scale.setScalar(.5);
+
+        const tablet = new THREE.Mesh(new THREE.BoxGeometry(.35, .04, .25), visorMat);
+        tablet.position.set(0, -.25, .15);
+        humanRef.arms.right.wristGroup.add(tablet);
+
+        officer.userData = {
+          route,
+          humanRef,
+          targetPos: route.end.clone(),
+          movingToEnd: true,
+          speed: 0.52 + (index % 3) * 0.08,
+          gaitPhase: index * 1.3,
+          pauseTimer: 0
+        };
+
+        wanderingPatrolCrew.push(officer);
+        hangarGroup.add(officer);
+      });
+
+      // --- ATMOSPHERIC HANGAR DUST PARTICLES ---
+      const dustGeo = new THREE.SphereGeometry(.08, 6, 4);
+      const dustMat = new THREE.MeshBasicMaterial({ color: 0x8cefff, transparent: true, opacity: .3, toneMapped: false });
+      for (let i = 0; i < 40; i++) {
+        const dust = new THREE.Mesh(dustGeo, dustMat);
+        dust.position.set(
+          (Math.random() - .5) * 14,
+          Math.random() * 12,
+          (Math.random() - .5) * 14
+        );
+        dust.userData = { phase: i * .35, speedY: .15 + Math.random() * .2 };
+        hangarDustParticles.push(dust);
+        hangarGroup.add(dust);
       }
 
       const steamGeo = new THREE.IcosahedronGeometry(.34, 1);
@@ -3936,24 +4681,61 @@
           mechanic.userData.upperPivot.rotation.x = .34 + Math.sin(phase * .37) * .045;
           mechanic.userData.toolLight.scale.setScalar(.72 + Math.sin(phase * 5) * .25);
         } else {
-          mechanic.userData.toolArm.rotation.x = -.65 + Math.sin(phase) * .38;
-          mechanic.userData.toolArm.rotation.z = Math.cos(phase * .7) * .2;
-          mechanic.userData.toolLight.scale.setScalar(.75 + Math.sin(phase * 4) * .22);
-        }
-        if (hangarLaunching) {
-          const retreat = Math.min(1, hangarLaunchTime / 1.1);
-          mechanic.position.x = mechanic.userData.basePosition.x * (1 + retreat * .62);
-          mechanic.position.z = mechanic.userData.basePosition.z * (1 + retreat * .38);
-        } else {
-          mechanic.position.x = mechanic.userData.basePosition.x;
-          mechanic.position.z = mechanic.userData.basePosition.z;
+          const data = mechanic.userData;
+          const revealProgress = titleActive ? THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.35) : 1;
+
+          // State Machine: IDLE -> WALKING -> REPAIRING
+          if (data.state === 'IDLE') {
+            const triggerWalk = (!titleActive && hangarActive) || (titleActive && revealProgress >= 0.70);
+            if (triggerWalk) {
+              data.startDelay -= dt;
+              if (data.startDelay <= 0) {
+                data.state = 'WALKING';
+              }
+            }
+          }
+
+          if (data.state === 'WALKING' && !hangarLaunching) {
+            const dx = data.workPosition.x - mechanic.position.x;
+            const dz = data.workPosition.z - mechanic.position.z;
+            const dist = Math.hypot(dx, dz);
+
+            if (dist > 0.15) {
+              const walkSpeed = 0.58;
+              const moveStep = Math.min(dist, dt * walkSpeed);
+              mechanic.position.x += (dx / dist) * moveStep;
+              mechanic.position.z += (dz / dist) * moveStep;
+              
+              const targetRot = Math.atan2(dx, dz);
+              mechanic.rotation.y = THREE.MathUtils.lerp(mechanic.rotation.y, targetRot, 0.15);
+
+              data.gaitPhase = (data.gaitPhase || (data.phase || 0)) + (moveStep / 0.62) * Math.PI * 2;
+              updateHumanGaitPhysics(data.humanRef, data.gaitPhase, 0.85);
+            } else {
+              mechanic.position.copy(data.workPosition);
+              updateHumanGaitPhysics(data.humanRef, 0, 0);
+              mechanic.rotation.y = Math.atan2(-data.workPosition.x, -data.workPosition.z);
+              data.state = 'REPAIRING';
+            }
+          }
+
+          if (data.state === 'REPAIRING' || !data.state) {
+            data.toolArm.rotation.x = -.65 + Math.sin(phase) * .38;
+            data.toolArm.rotation.z = Math.cos(phase * .7) * .2;
+            data.toolLight.scale.setScalar(.75 + Math.sin(phase * 4) * .22);
+          }
+
+          if (hangarLaunching) {
+            const retreat = Math.min(1, hangarLaunchTime / 1.1);
+            const targetPos = data.workPosition || data.basePosition;
+            mechanic.position.x = targetPos.x * (1 + retreat * .62);
+            mechanic.position.z = targetPos.z * (1 + retreat * .38);
+          }
         }
       }
       for (const spark of robotArmSparks) {
         const arm = maintenanceMechanics[spark.userData.armIndex];
         const life = (now * 3.8 + spark.userData.phase) % 1;
-        // Sparks now emit directly from the industrial tool head: no visible
-        // repair beam is drawn across the title composition.
         arm.userData.toolLight.updateWorldMatrix(true, false);
         arm.userData.toolLight.getWorldPosition(spark.userData.origin);
         hangarGroup.worldToLocal(spark.userData.origin);
@@ -3961,27 +4743,55 @@
         spark.scale.setScalar(.55 + (1 - life) * 1.5);
         spark.material.opacity = hangarLaunching ? 0 : Math.sin(life * Math.PI) * .85;
       }
-      for (const drone of hangarServiceDrones) {
-        const loop = (now * drone.userData.speed + drone.userData.phase) % 1;
-        const edge = loop * 4;
-        const lane = 5.65;
-        let x = 0;
-        let z = 0;
-        let heading = 0;
-        if (edge < 1) {
-          x = -lane + edge * lane * 2; z = -4.8; heading = Math.PI / 2;
-        } else if (edge < 2) {
-          x = lane; z = -4.8 + (edge - 1) * 9.6; heading = 0;
-        } else if (edge < 3) {
-          x = lane - (edge - 2) * lane * 2; z = 4.8; heading = -Math.PI / 2;
-        } else {
-          x = -lane; z = 4.8 - (edge - 3) * 9.6; heading = Math.PI;
+      // Update Hero Pilot (`heroPilot`)
+      if (heroPilot) {
+        const breath = Math.sin(now * 2.2) * 0.04;
+        if (heroPilot.userData.humanRef) {
+          heroPilot.userData.humanRef.spineGroup.rotation.x = breath;
+          heroPilot.userData.humanRef.arms.right.shoulderGroup.rotation.x = -Math.PI * .42 + breath;
+          heroPilot.userData.humanRef.arms.right.elbowGroup.rotation.x = -.45;
         }
-        drone.position.set(x, .02, z);
-        drone.rotation.y = heading;
-        const scanPulse = .78 + Math.sin(now * 7 + drone.userData.phase * 12) * .22;
-        drone.userData.scanner.scale.x = scanPulse;
-        drone.userData.cargo.position.y = .78 + Math.sin(now * 3 + drone.userData.phase * 8) * .025;
+        if (heroPilot.userData.heroHoloTerminal) {
+          heroPilot.userData.heroHoloTerminal.material.opacity = .75 + Math.sin(now * 5) * .2;
+        }
+      }
+
+      // Update Wandering Patrol Crew (`wanderingPatrolCrew`)
+      for (const officer of wanderingPatrolCrew) {
+        const data = officer.userData;
+        if (data.pauseTimer > 0) {
+          data.pauseTimer -= dt;
+          updateHumanGaitPhysics(data.humanRef, 0, 0); // Idle standing stance while checking tablet
+          continue;
+        }
+
+        const target = data.movingToEnd ? data.route.end : data.route.start;
+        const dx = target.x - officer.position.x;
+        const dz = target.z - officer.position.z;
+        const dist = Math.hypot(dx, dz);
+
+        if (dist > 0.15) {
+          const moveStep = Math.min(dist, dt * data.speed);
+          officer.position.x += (dx / dist) * moveStep;
+          officer.position.z += (dz / dist) * moveStep;
+
+          const targetRot = Math.atan2(dx, dz);
+          officer.rotation.y = THREE.MathUtils.lerp(officer.rotation.y, targetRot, 0.15);
+
+          data.gaitPhase = (data.gaitPhase || 0) + (moveStep / 0.65) * Math.PI * 2;
+          updateHumanGaitPhysics(data.humanRef, data.gaitPhase, 0.85);
+        } else {
+          data.movingToEnd = !data.movingToEnd;
+          data.pauseTimer = 1.2 + Math.random() * 1.5; // Brief 1-2s pause at route ends
+        }
+      }
+
+      // Update Hangar Dust Particles
+      for (const dust of hangarDustParticles) {
+        dust.position.y += dt * dust.userData.speedY;
+        dust.position.x += Math.sin(now * 0.8 + dust.userData.phase) * dt * 0.15;
+        if (dust.position.y > 12) dust.position.y = 0.2;
+        dust.material.opacity = (Math.sin(now * 2 + dust.userData.phase) * 0.5 + 0.5) * 0.35;
       }
       for (const light of hangarTunnelLights) {
         const pulse = .68 + Math.sin(now * 5.4 + (light.userData.phase || light.position.y)) * .32;
@@ -4866,6 +5676,43 @@ let landingRecoveryTimer = 0;
     document.getElementById('visualSettingsButton').addEventListener('click', openVisualSettings);
     document.getElementById('visualHudButton').addEventListener('click', openVisualSettings);
     document.getElementById('visualSettingsClose').addEventListener('click', () => document.getElementById('visualSettings').classList.remove('active'));
+
+    const visualSettingsCopyBtn = document.getElementById('visualSettingsCopy');
+    if (visualSettingsCopyBtn) {
+      visualSettingsCopyBtn.addEventListener('click', () => {
+        const configData = {};
+        Object.entries(visualControls).forEach(([id, [, fallback]]) => {
+          configData[id] = visualSettings[id] ?? fallback;
+        });
+        const jsonStr = JSON.stringify(configData, null, 2);
+        navigator.clipboard.writeText(jsonStr).then(() => {
+          visualSettingsCopyBtn.textContent = 'COPIED! ✓';
+          visualSettingsCopyBtn.style.borderColor = '#8affb8';
+          visualSettingsCopyBtn.style.color = '#c9ffd9';
+          showMessage('VISUAL SETTINGS COPIED TO CLIPBOARD');
+          setTimeout(() => {
+            visualSettingsCopyBtn.textContent = 'COPY CONFIG';
+            visualSettingsCopyBtn.style.borderColor = '#73e8ff';
+            visualSettingsCopyBtn.style.color = '#a1f4ff';
+          }, 1800);
+        }).catch(err => {
+          prompt('Copy Visual Settings JSON:', jsonStr);
+        });
+      });
+    }
+
+    const visualSettingsResetBtn = document.getElementById('visualSettingsReset');
+    if (visualSettingsResetBtn) {
+      visualSettingsResetBtn.addEventListener('click', () => {
+        Object.entries(visualControls).forEach(([id, [, fallback]]) => {
+          const control = document.getElementById(id);
+          control.value = fallback;
+          control.nextElementSibling.value = id === 'windowColor' ? fallback : Number(fallback).toFixed(2);
+          applyVisualSetting(id, fallback);
+        });
+        showMessage('VISUAL SETTINGS RESET TO DEFAULTS');
+      });
+    }
 
     function addVerticalMullions(facadeDecor, floors, coreHeight, buildingId) {
       const height = Math.max(3, (floors - 2) * 1.55);
