@@ -21,45 +21,48 @@ This index file provides key line ranges, data structures, and function mappings
 
 ---
 
-## 2. Key Line Range Map for `index.html` (Total Lines: ~11,200)
+## 2. Key Line Range Map for `index.html` (Total Lines: ~13,380)
 
 ### UI & Styling
-- **L1 - L340**: CSS Styles, HUD, Vitals Overlay, Radar, Minimap, Loading Screen, Title Screen, Hangar UI Panel.
+- **L1 - L265**: CSS Styles, HUD, Vitals Overlay, Radar, Minimap, Loading Screen, Title Screen, Hangar UI Panel.
+- **L176**: `.settings-panel` CSS style (`max-height: calc(100vh - 48px); overflow-y: auto;`).
 
 ### HTML Structure
-- **L340 - L550**: Hangar Overlay, Weapon Slot Selectors, Customizer Modal, Controls hint panels.
+- **L340 - L560**: Hangar Overlay, Weapon Slot Selectors, Customizer Modal, Controls hint panels.
+- **L533 - L548**: Visual Settings Modal Panel (`#visualSettings`), containing Hangar Atmosphere & Fog Controls (Fog Mode, Color, Density, Near/Far, Steam, Dust).
 
 ### Script Imports & Core Setup
-- **L553 - L568**: Script tags (`js/mecha-config-store.js`, `js/weapon-system.js`, `js/mecha-rigidbody.js`, `js/cannon-physics.js`, `js/enemy-ai.js`, `js/mecha-character.js`, `js/audio-manager.js`) and importmap (`three`, `cannon-es`).
+- **L600 - L615**: Script tags (`js/mecha-config-store.js`, `js/weapon-system.js`, `js/mecha-rigidbody.js`, `js/cannon-physics.js`, `js/enemy-ai.js`, `js/mecha-character.js`, `js/audio-manager.js`) and importmap (`three`, `cannon-es`).
 
 ### Mecha Mesh Construction & Rigging
-- **L1940 - L1965**: Leg root attachment setup (`playerLegs`, `REVERSE_LEG_GROUND_OFFSET`, `pelvis.add(leg)`).
-- **L1966 - L2085**: Hip, Thigh, Knee, Shin, Calf, Ankle, Sole construction.
-- **L2086 - L2110**: Toe Construction (`toeLayout`, 2 front toes + 1 rear toe pivot).
-- **L2125 - L2350**: Dual Gatling Arms & Weapon Pods.
-- **L2360 - L2410**: Missile Launcher Hardpoints.
-- **L2875 - L3500**: Hangar Environment 3D Scene Construction (Drones, Gate, Platform, Lights, Steam).
+- **L1970 - L1995**: Leg root attachment setup (`playerLegs`, `REVERSE_LEG_GROUND_OFFSET`, `pelvis.add(leg)`).
+- **L1996 - L2115**: Hip, Thigh, Knee, Shin, Calf, Ankle, Sole construction.
+- **L2116 - L2140**: Toe Construction (`toeLayout`, 2 front toes + 1 rear toe pivot).
+- **L2155 - L2380**: Dual Gatling Arms & Weapon Pods.
+- **L2390 - L2440**: Missile Launcher Hardpoints.
+- **L3660 - L4430**: Hangar Environment 3D Scene Construction (Platform, Lights, GDI Emblem, Enclosure Box, Sci-Fi Scaffolding Railings, Hanging Cables).
+- **L4431 - L5140**: High-Detail Industrial Robot Arms, Hangar Floor Cable Bundles (`CatmullRomCurve3`) & Junction Boxes (outside elevator radius R > 3.2m), Linear Hangar Fog (`THREE.Fog`), 3D Quadcopter Drones.
 
 ### Hangar & Launch Sequence Logic
-- **L3547 - L3660**: Hangar maintenance updates, Title screen camera/platform lift motion.
-- **L3661 - L3717**: `hangarLaunching` update block (Gate open animation, `player.position.y` launch ascent, leg root snapping & flight pose lock).
-- **L5757 - L5770**: `plantCustomizerFeet()` (Customizer sole level alignment).
-- **L5981 - L6000**: `battleStartButton` click listener (Launch sequence trigger, leg position reset).
+- **L5145 - L5550**: `updateHangar` maintenance updates, Elevator Platform Arrival & 1-Second Delayed Safety Fence Lowering sequence (`fenceLowerProgress`), Quadcopter Drone Motion Blending Physics.
+- **L5785 - L5800**: `plantCustomizerFeet()` (Customizer sole level alignment).
+- **L6195 - L6245**: Visual Settings Modal Event Listeners & Hangar Fog/Atmosphere Update Logic.
 
 ### Customizer Data Sync & Presets
-- **L5784 - L5806**: `customSaveButton` and `customExportButton` event listeners (saving to `MechaConfigStore.saveCustomization` and `MechaConfigStore.saveLoadout`).
+- **L5840 - L5865**: `customSaveButton` and `customExportButton` event listeners (saving to `MechaConfigStore.saveCustomization` and `MechaConfigStore.saveLoadout`).
 
 ### Leg Motion, IK & Ground Adaptation Physics
-- **L8358 - L8395**: Stride evaluation function (`evaluateHeavyMechStep`).
-- **L8680 - L8740**: Stride cycle updates, ground speed calculation, footstep sound/particles.
-- **L8770 - L8831**: Leg IK joint target interpolation (Hip, Knee, Shin, Ankle, Foot Pitch, Toe Curl).
-- **L8833 - L8897**: Ground Adaptation & Raycasting (Sole height alignment, terrain pitch slope angle adaptation, toe curl).
-- **L8930 - L8980**: Pelvic stance follow, hip socket carrier position sync, waist rotation isolation.
+- **L8415 - L8450**: Stride evaluation function (`evaluateHeavyMechStep`).
+- **L8740 - L8800**: Stride cycle updates, ground speed calculation, footstep sound/particles.
+- **L8830 - L8890**: Leg IK joint target interpolation (Hip, Knee, Shin, Ankle, Foot Pitch, Toe Curl).
+- **L8891 - L8955**: Ground Adaptation & Raycasting (Sole height alignment, terrain pitch slope angle adaptation, toe curl).
+- **L8990 - L9040**: Pelvic stance follow, hip socket carrier position sync, waist rotation isolation.
 
 ### Camera, Controls & Main Game Loop
-- **L10010 - L10023**: Hangar maintenance & launch camera tracking logic.
-- **L10765 - L10777**: `resetPlayerState()` (Leg and joint reset to neutral pose).
-- **L11190 - L11215**: Main `animate()` requestAnimationFrame loop.
+- **L7770 - L7800**: Hangar & Title screen mouse/touch Drag Event Listeners (Yaw & Vertical Pitch camera orbit control).
+- **L11755 - L11795**: `updateCamera()` Hangar & Title screen camera tracking interpolation (Yaw + Pitch height rotation).
+- **L10825 - L10840**: `resetPlayerState()` (Leg and joint reset to neutral pose).
+- **L11270 - L11340**: Main `animate()` requestAnimationFrame loop.
 
 ---
 

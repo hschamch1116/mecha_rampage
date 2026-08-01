@@ -173,7 +173,7 @@
     #visualSettingsButton { width:100%; min-height:42px; margin-bottom:9px; border:1px solid #a98cf5; background:rgba(122,75,210,.17); color:#e1d7ff; font:900 11px Orbitron,sans-serif; letter-spacing:.12em; cursor:pointer; }
     #visualSettings { position:fixed; inset:0; z-index:26; display:none; pointer-events:none; color:#e9fbff; background:rgba(2,7,12,.52); }
     #visualSettings.active { display:block; }
-    .settings-panel { position:absolute; right:24px; top:24px; width:min(360px,calc(100vw - 48px)); padding:22px; pointer-events:auto; border:1px solid rgba(169,140,245,.55); background:rgba(6,10,20,.94); box-shadow:0 0 36px rgba(104,75,215,.22); }
+    .settings-panel { position:absolute; right:24px; top:24px; max-height:calc(100vh - 48px); overflow-y:auto; width:min(360px,calc(100vw - 48px)); padding:22px; pointer-events:auto; border:1px solid rgba(169,140,245,.55); background:rgba(6,10,20,.94); box-shadow:0 0 36px rgba(104,75,215,.22); }
     .settings-panel h2 { margin:0 0 18px; font:900 20px Orbitron,sans-serif; }
     .settings-row { display:grid; grid-template-columns:1fr 120px 42px; gap:9px; align-items:center; margin:13px 0; color:#c9c8e7; font:800 10px Orbitron,sans-serif; letter-spacing:.08em; }
     .settings-row input { width:100%; accent-color:#aa91ff; }
@@ -262,6 +262,74 @@
     #pauseOverlay small { display:block; margin-top:12px; color:#91bec6; font:800 11px Orbitron, sans-serif; letter-spacing:.11em; }
     body::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 2; background: radial-gradient(circle at center, transparent 48%, rgba(3,7,15,.28) 100%), linear-gradient(to bottom, rgba(255,255,255,.025), rgba(0,0,0,.08)); mix-blend-mode: multiply; }
     #hud { z-index: 3; }
+
+    /* Hangar Fog & Atmosphere Control Panel */
+    #hangarFogPanel {
+      position: absolute;
+      left: 18px;
+      top: 140px;
+      z-index: 5;
+      width: 240px;
+      padding: 14px;
+      pointer-events: auto;
+      border: 1px solid rgba(73, 220, 240, 0.45);
+      border-radius: 10px;
+      background: rgba(5, 12, 22, 0.88);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 25px rgba(0, 180, 220, 0.25);
+      color: #bcebf1;
+      font: 800 11px Orbitron, sans-serif;
+      letter-spacing: 0.06em;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+    #hangarFogPanel.hidden { display: none; }
+    .fog-panel-title {
+      font-size: 11px;
+      color: #49dcf0;
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(73, 220, 240, 0.3);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .fog-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 6px;
+    }
+    .fog-row label { font-size: 10px; color: #a4d8e2; }
+    .fog-row input[type="range"] {
+      width: 100px;
+      accent-color: #49dcf0;
+      cursor: pointer;
+    }
+    .fog-row input[type="color"] {
+      width: 28px;
+      height: 22px;
+      border: none;
+      border-radius: 4px;
+      background: none;
+      cursor: pointer;
+    }
+    .fog-row select {
+      background: rgba(10, 25, 40, 0.9);
+      color: #49dcf0;
+      border: 1px solid rgba(73, 220, 240, 0.4);
+      border-radius: 4px;
+      padding: 2px 4px;
+      font: 800 9px Orbitron, sans-serif;
+      cursor: pointer;
+    }
+    .fog-value {
+      font-size: 9px;
+      color: #ffffff;
+      min-width: 32px;
+      text-align: right;
+    }
 
     /* VS Intro Styles */
     #vsOverlay {
@@ -462,6 +530,23 @@
       <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.35"><output>0.35</output></label>
       <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="1"><output>1.00</output></label>
       <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.05"><output>0.05</output></label>
+
+      <h3 style="margin: 14px 0 8px 0; color: #49dcf0; font-size: 11px; letter-spacing: 0.1em; border-top: 1px solid rgba(73,220,240,0.3); padding-top: 10px;">HANGAR ATMOSPHERE & FOG</h3>
+      <label class="settings-row">FOG ENABLED <input type="checkbox" id="fogToggle" checked><output style="font-size:10px;">ON</output></label>
+      <label class="settings-row">FOG MODE 
+        <select id="fogModeSelect" style="background:rgba(10,25,40,0.9); color:#49dcf0; border:1px solid rgba(73,220,240,0.4); border-radius:4px; padding:2px 4px; font:800 9px Orbitron,sans-serif; cursor:pointer;">
+          <option value="exp2">EXPONENTIAL</option>
+          <option value="linear">LINEAR</option>
+        </select>
+        <output></output>
+      </label>
+      <label class="settings-row">FOG COLOR <input type="color" id="fogColorInput" value="#0a1622"><output>#0a1622</output></label>
+      <label class="settings-row" id="fogDensityRow">FOG DENSITY <input type="range" id="fogDensityInput" min="0.002" max="0.06" step="0.001" value="0.015"><output id="fogDensityVal">0.015</output></label>
+      <label class="settings-row hidden" id="fogNearRow">FOG NEAR <input type="range" id="fogNearInput" min="2" max="30" step="1" value="10"><output id="fogNearVal">10m</output></label>
+      <label class="settings-row hidden" id="fogFarRow">FOG FAR <input type="range" id="fogFarInput" min="30" max="150" step="2" value="70"><output id="fogFarVal">70m</output></label>
+      <label class="settings-row">STEAM VOL <input type="range" id="steamIntensityInput" min="0" max="2" step="0.1" value="1.0"><output id="steamIntensityVal">1.0x</output></label>
+      <label class="settings-row">DUST PARTICLES <input type="range" id="dustIntensityInput" min="0" max="2" step="0.1" value="1.0"><output id="dustIntensityVal">1.0x</output></label>
+
       <div class="settings-actions" style="display:flex; gap:8px; margin-top:16px;">
         <button id="visualSettingsCopy" type="button" style="flex:1; padding:12px; border:1px solid #73e8ff; background:#143442; color:#a1f4ff; font:900 10px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">COPY CONFIG</button>
         <button id="visualSettingsReset" type="button" style="flex:1; padding:12px; border:1px solid #ff735f; background:#351816; color:#ffac9f; font:900 10px Orbitron,sans-serif; cursor:pointer; letter-spacing:0.05em; border-radius:3px;">RESET</button>
@@ -1127,9 +1212,9 @@
     }
 
     const gameplayBackground = createSkyTexture();
-    const hangarBackground = new THREE.Color(0x071017);
+    const hangarBackground = new THREE.Color(0x08121a);
     const gameplayFog = new THREE.FogExp2(0xdceaf5, .0035);
-    const hangarFog = new THREE.FogExp2(0x071017, .018);
+    const hangarFog = new THREE.FogExp2(0x0c1720, .0095);
     scene.background = gameplayBackground;
     scene.fog = gameplayFog;
 
@@ -2062,6 +2147,15 @@
     const dorsalSpine = mechBox(.66, .24, 3.42, gunmetalMat, .08);
     dorsalSpine.position.set(0, 1.66, -.26);
     body.add(dorsalSpine);
+
+    // Dual Tac-Comm Signal Antennae on Back Dorsal Spine
+    for (const antX of [-.24, .24]) {
+      const antenna = mechCylinder(.03, .015, 1.25, gunmetalMat, 8);
+      antenna.position.set(antX, 2.28, -1.2);
+      antenna.rotation.x = -.18;
+      body.add(antenna);
+    }
+
     const centerKeel = mechBox(.72, 1.34, .3, gunmetalMat, .07);
     centerKeel.position.set(0, -.08, 1.94);
     centerKeel.rotation.x = -.1;
@@ -2070,6 +2164,17 @@
     centralChestPlate.position.set(0, -.34, 2.22);
     centralChestPlate.rotation.x = -.08;
     body.add(centralChestPlate);
+
+    // Explosive Reactive Armor (ERA) Modular Tiles on Central Chest
+    for (const eraX of [-.42, .42]) {
+      for (const eraY of [-.45, -.22]) {
+        const eraTile = mechBox(.34, .18, .08, armorMat, .02);
+        eraTile.position.set(eraX, eraY, 2.36);
+        eraTile.rotation.x = -.08;
+        body.add(eraTile);
+      }
+    }
+
     const centralSensor = mechBox(.58, .18, .1, eyeGreenMat, .025);
     centralSensor.position.set(0, -.24, 2.4);
     body.add(centralSensor);
@@ -3263,6 +3368,7 @@
     let hangarLiftGateLeft = null;
     let hangarLiftGateRight = null;
     let hangarLiftPlatform = null;
+    let elevatorSafetyFenceGroup = null;
     const TITLE_LIFT_START_Y = -8.6;
     const HANGAR_LIFT_GATE_OPEN_X = 5.9;
     const HANGAR_LIFT_GATE_CLOSED_X = 0;
@@ -3468,7 +3574,7 @@
 
     // --- 3D GOLD GDI EAGLE EMBLEM MESH GENERATOR (BACK WALL ONLY) ---
     // --- 3D GOLD GDI EAGLE EMBLEM MESH GENERATOR (UNBROKEN GEOMETRY & SYMMETRIC WINGS) ---
-    function create3DGDIEagleLogo() {
+    function create3DGDIEagleLogo(isDeck = false) {
       const eagleGroup = new THREE.Group();
 
       const goldMat = new THREE.MeshStandardMaterial({
@@ -3499,12 +3605,12 @@
       ringShape.closePath();
 
       const ringGeo = new THREE.ExtrudeGeometry(ringShape, {
-        depth: .16,
+        depth: isDeck ? .04 : .16,
         bevelEnabled: true,
-        bevelSegments: 3,
+        bevelSegments: isDeck ? 2 : 3,
         steps: 1,
-        bevelSize: .03,
-        bevelThickness: .03
+        bevelSize: isDeck ? .01 : .03,
+        bevelThickness: isDeck ? .01 : .03
       });
       const ringMesh = new THREE.Mesh(ringGeo, goldMat);
       ringMesh.position.z = 0;
@@ -3513,7 +3619,7 @@
       // Inner Glowing Ring Accent
       const glowRing = new THREE.Mesh(new THREE.TorusGeometry(2.85, .035, 8, 48, Math.PI * 1.44), glowGoldMat);
       glowRing.rotation.z = Math.PI * 0.28;
-      glowRing.position.z = .18;
+      glowRing.position.z = isDeck ? .01 : .18;
       eagleGroup.add(glowRing);
 
       // 2. Symmetric Layered Wing Feathers (Left and Right Wings)
@@ -3540,19 +3646,24 @@
       f3Shape.lineTo(-1.4, -0.7);
       f3Shape.closePath();
 
-      const extrudeOpts = { depth: .18, bevelEnabled: true, bevelSize: .03, bevelThickness: .03 };
+      const extrudeOpts = {
+        depth: isDeck ? .04 : .18,
+        bevelEnabled: true,
+        bevelSize: isDeck ? .01 : .03,
+        bevelThickness: isDeck ? .01 : .03
+      };
       [f1Shape, f2Shape, f3Shape].forEach((wShape, idx) => {
         const wGeo = new THREE.ExtrudeGeometry(wShape, extrudeOpts);
         
         // Left Wing Feather
         const leftFeather = new THREE.Mesh(wGeo, idx === 0 ? goldMat : darkGoldMat);
-        leftFeather.position.z = .04 + idx * .04;
+        leftFeather.position.z = isDeck ? (0.008 + idx * 0.008) : (.04 + idx * .04);
         wingsGroup.add(leftFeather);
 
         // Right Wing Feather (Symmetric Reflection)
         const rightFeather = new THREE.Mesh(wGeo, idx === 0 ? goldMat : darkGoldMat);
         rightFeather.scale.x = -1;
-        rightFeather.position.z = .04 + idx * .04;
+        rightFeather.position.z = isDeck ? (0.008 + idx * 0.008) : (.04 + idx * .04);
         wingsGroup.add(rightFeather);
       });
       eagleGroup.add(wingsGroup);
@@ -3570,13 +3681,13 @@
       crestShape.closePath();
 
       const crestGeo = new THREE.ExtrudeGeometry(crestShape, {
-        depth: .22,
+        depth: isDeck ? .045 : .22,
         bevelEnabled: true,
-        bevelSize: .04,
-        bevelThickness: .04
+        bevelSize: isDeck ? .012 : .04,
+        bevelThickness: isDeck ? .012 : .04
       });
       const crestMesh = new THREE.Mesh(crestGeo, goldMat);
-      crestMesh.position.z = .08;
+      crestMesh.position.z = isDeck ? .018 : .08;
       eagleGroup.add(crestMesh);
 
       // Eagle Head Silhouette & Hooked Beak
@@ -3597,13 +3708,13 @@
       headShape.closePath();
 
       const headGeo = new THREE.ExtrudeGeometry(headShape, {
-        depth: .24,
+        depth: isDeck ? .05 : .24,
         bevelEnabled: true,
-        bevelSize: .03,
-        bevelThickness: .03
+        bevelSize: isDeck ? .012 : .03,
+        bevelThickness: isDeck ? .012 : .03
       });
       const headMesh = new THREE.Mesh(headGeo, goldMat);
-      headMesh.position.z = .14;
+      headMesh.position.z = isDeck ? .026 : .14;
       eagleGroup.add(headMesh);
 
       // Twin Eye Accents
@@ -3623,12 +3734,12 @@
     }
 
     function createHangarScene() {
-      const floorMat = new THREE.MeshStandardMaterial({ color: 0x111a20, roughness: .58, metalness: .72 });
-      const steelMat = new THREE.MeshStandardMaterial({ color: 0x26343c, roughness: .34, metalness: .82 });
-      const hazardMat = new THREE.MeshStandardMaterial({ color: 0xe5a93a, roughness: .42, metalness: .58 });
-      const workLightMat = new THREE.MeshBasicMaterial({ color: 0xa9f4ff, toneMapped: false });
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x16222b, roughness: .52, metalness: .75 });
+      const steelMat = new THREE.MeshStandardMaterial({ color: 0x243b4d, roughness: .32, metalness: .85 });
+      const hazardMat = new THREE.MeshStandardMaterial({ color: 0x8a5422, roughness: .35, metalness: .82 });
+      const workLightMat = new THREE.MeshBasicMaterial({ color: 0x5eeaff, toneMapped: false });
       // Upgraded Industrial Hangar Floor Details
-      const hazardStripeMat = new THREE.MeshStandardMaterial({ color: 0xd89a2d, roughness: .48, metalness: .6 });
+      const hazardStripeMat = new THREE.MeshStandardMaterial({ color: 0x6e431a, roughness: .42, metalness: .7 });
       for (const side of [-1, 1]) {
         // Yellow/Black Caution Edge Guide Bars
         const cautionBar = new THREE.Mesh(new THREE.BoxGeometry(.35, .04, 11.8), hazardStripeMat);
@@ -3653,11 +3764,11 @@
 
       // Open-ended outer drum plus an annular deck: the centre is deliberately
       // empty so opening the lift hatch exposes the deep shaft below.
-      const platform = new THREE.Mesh(new THREE.CylinderGeometry(7.2, 7.8, .72, 48, 1, true), floorMat);
+      const platform = new THREE.Mesh(new THREE.CylinderGeometry(11.2, 11.8, .72, 48, 1, true), floorMat);
       platform.position.y = -.36;
       platform.receiveShadow = true;
       hangarGroup.add(platform);
-      const platformDeck = new THREE.Mesh(new THREE.RingGeometry(4.12, 7.2, 48), floorMat);
+      const platformDeck = new THREE.Mesh(new THREE.RingGeometry(4.12, 11.2, 48), floorMat);
       platformDeck.rotation.x = -Math.PI / 2;
       platformDeck.position.y = .012;
       platformDeck.receiveShadow = true;
@@ -3779,12 +3890,12 @@
       liftCorePlate.position.y = .014;
       hangarLiftPlatform.add(liftCorePlate);
 
-      // 3-Meter 3D Gold GDI Eagle Emblem on Circular Elevator Floor Deck (Raised slightly to avoid Z-fighting)
-      const floorGDIEagleLogo = create3DGDIEagleLogo();
+      // 3-Meter 3D Gold GDI Eagle Emblem on Circular Elevator Floor Deck (Raised 3D profile mode)
+      const floorGDIEagleLogo = create3DGDIEagleLogo(true);
       floorGDIEagleLogo.rotation.x = -Math.PI / 2;
       floorGDIEagleLogo.rotation.z = Math.PI;
       floorGDIEagleLogo.scale.setScalar(0.47); // 3.0m diameter emblem on circular deck
-      floorGDIEagleLogo.position.set(0, .048, 0);
+      floorGDIEagleLogo.position.set(0, .035, 0);
       hangarLiftPlatform.add(floorGDIEagleLogo);
 
       // 12 Radial Cyan LED Guide Strips dividing circular platform into 12 sectors
@@ -3847,6 +3958,130 @@
       deckLightRing.rotation.x = Math.PI / 2;
       deckLightRing.position.y = .028;
       hangarLiftPlatform.add(deckLightRing);
+
+      // --- ELEVATOR INDUSTRIAL SAFETY GUARD NETTING & HAZARD WARNING SYSTEM ---
+      const safetyPostMat = new THREE.MeshStandardMaterial({ color: 0x784a1e, roughness: .35, metalness: .85 });
+      const warningBeaconMat = new THREE.MeshBasicMaterial({ color: 0xff3b19, toneMapped: false });
+
+      // Wireframe / Mesh texture pattern for Industrial Safety Netting
+      const netCanvas = document.createElement('canvas');
+      netCanvas.width = 256;
+      netCanvas.height = 256;
+      const netCtx = netCanvas.getContext('2d');
+      netCtx.fillStyle = 'rgba(10, 20, 25, 0.35)';
+      netCtx.fillRect(0, 0, 256, 256);
+      netCtx.strokeStyle = '#3d647a';
+      netCtx.lineWidth = 4;
+      for (let x = 0; x <= 256; x += 16) {
+        netCtx.beginPath(); netCtx.moveTo(x, 0); netCtx.lineTo(x, 256); netCtx.stroke();
+      }
+      for (let y = 0; y <= 256; y += 16) {
+        netCtx.beginPath(); netCtx.moveTo(0, y); netCtx.lineTo(256, y); netCtx.stroke();
+      }
+      const netTexture = new THREE.CanvasTexture(netCanvas);
+      netTexture.wrapS = THREE.RepeatWrapping;
+      netTexture.wrapT = THREE.RepeatWrapping;
+      netTexture.repeat.set(16, 2);
+      const safetyNetMat = new THREE.MeshStandardMaterial({
+        map: netTexture,
+        transparent: true,
+        opacity: 0.72,
+        roughness: 0.5,
+        metalness: 0.4,
+        side: THREE.DoubleSide
+      });
+
+      // 16 Heavy Steel Safety Guard Stanchion Posts around Perimeter
+      elevatorSafetyFenceGroup = new THREE.Group();
+      const safetyPostsGroup = new THREE.Group();
+      const numSafetyPosts = 16;
+      const postRadius = 4.08;
+      for (let i = 0; i < numSafetyPosts; i++) {
+        const angle = (i / numSafetyPosts) * Math.PI * 2;
+        const px = Math.sin(angle) * postRadius;
+        const pz = Math.cos(angle) * postRadius;
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(.045, .055, .95, 10), safetyPostMat);
+        post.position.set(px, .48, pz);
+
+        // Heavy Base Flange Plate
+        const baseFlange = new THREE.Mesh(new THREE.CylinderGeometry(.09, .1, .06, 12), shaftTrimMat);
+        baseFlange.position.set(px, .04, pz);
+        safetyPostsGroup.add(baseFlange);
+
+        // Flashing Emergency Beacon Light on Post Cap
+        if (i % 2 === 0) {
+          const capBeacon = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .08, 8), warningBeaconMat);
+          capBeacon.position.set(px, .99, pz);
+          safetyPostsGroup.add(capBeacon);
+        }
+        safetyPostsGroup.add(post);
+      }
+      elevatorSafetyFenceGroup.add(safetyPostsGroup);
+
+      // Dual Safety Railings (Upper & Lower Horizontal Guard Tubes)
+      for (const railY of [.45, .88]) {
+        const guardRail = new THREE.Mesh(new THREE.TorusGeometry(postRadius, .028, 8, 64), safetyPostMat);
+        guardRail.rotation.x = Math.PI / 2;
+        guardRail.position.y = railY;
+        elevatorSafetyFenceGroup.add(guardRail);
+      }
+
+      // Cylindrical Safety Wire Netting Screen
+      const safetyNetMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(postRadius, postRadius, .48, 64, 1, true),
+        safetyNetMat
+      );
+      safetyNetMesh.position.y = .66;
+      elevatorSafetyFenceGroup.add(safetyNetMesh);
+      hangarLiftPlatform.add(elevatorSafetyFenceGroup);
+
+      // 45-Degree Industrial Hazard Stripe Texture Generator
+      const hazardCanvas = document.createElement('canvas');
+      hazardCanvas.width = 512;
+      hazardCanvas.height = 256;
+      const hazardCtx = hazardCanvas.getContext('2d');
+
+      hazardCtx.fillStyle = '#1a2b38';
+      hazardCtx.fillRect(0, 0, 512, 256);
+
+      // Heavy Burnt Bronze Industrial Accent Stripes
+      hazardCtx.fillStyle = '#5e3b19';
+      hazardCtx.beginPath();
+      const stripeW = 48;
+      for (let x = -256; x < 768; x += stripeW * 2) {
+        hazardCtx.moveTo(x, 0);
+        hazardCtx.lineTo(x + stripeW, 0);
+        hazardCtx.lineTo(x + stripeW - 256, 256);
+        hazardCtx.lineTo(x - 256, 256);
+        hazardCtx.closePath();
+      }
+      hazardCtx.fill();
+
+      // Outer Heavy Tactical Cyan Border Frame
+      hazardCtx.strokeStyle = '#2ba5bc';
+      hazardCtx.lineWidth = 14;
+      hazardCtx.strokeRect(7, 7, 498, 242);
+
+      const hazardDecalTex = new THREE.CanvasTexture(hazardCanvas);
+      const hazardDecalMat = new THREE.MeshStandardMaterial({
+        map: hazardDecalTex,
+        roughness: .4,
+        metalness: .6
+      });
+
+      for (let i = 0; i < 4; i++) {
+        const a = (i / 4) * Math.PI * 2 + Math.PI / 4;
+        const signGroup = new THREE.Group();
+        signGroup.position.set(Math.sin(a) * 3.75, .036, Math.cos(a) * 3.75);
+        signGroup.rotation.y = a;
+
+        const flatDecal = new THREE.Mesh(new THREE.PlaneGeometry(.76, .38), hazardDecalMat);
+        flatDecal.rotation.x = -Math.PI / 2;
+        signGroup.add(flatDecal);
+
+        hangarLiftPlatform.add(signGroup);
+      }
+
       hangarLiftPlatform.position.y = TITLE_LIFT_START_Y;
       hangarGroup.add(hangarLiftPlatform);
 
@@ -3925,7 +4160,7 @@
           hangarTunnelLights.push(redBar);
         }
         if ((y - 14) % 8 === 0) {
-          const redLight = new THREE.PointLight(0xff2418, 9, 12, 2);
+          const redLight = new THREE.PointLight(0xff2418, 81, 72, 1.8);
           redLight.position.set(0, y, -6.8);
           redLight.userData.phase = y * .37;
           tunnelGroup.add(redLight);
@@ -4088,7 +4323,108 @@
         }
         const megaBeam = new THREE.Mesh(new THREE.BoxGeometry(27.8, .72, .86), steelMat);
         megaBeam.position.set(0, 27.5, z);
+        megaBeam.position.y = 27.5;
         hangarGroup.add(megaBeam);
+      }
+
+      // --- FULL HANGAR ENCLOSURE BOX (BACK, LEFT, RIGHT, CEILING) ---
+      // Encloses the background outer space so Fog has solid geometry to render volumetric depth against,
+      // placed outside the hangar structure boundary so vent fans and wall details are fully visible.
+      const enclosureWallMat = new THREE.MeshStandardMaterial({
+        color: 0x0c161f,
+        roughness: 0.75,
+        metalness: 0.35
+      });
+
+      // 1. Far Outer Back Enclosure Wall
+      const bgBackWall = new THREE.Mesh(new THREE.BoxGeometry(60, 40, 1), enclosureWallMat);
+      bgBackWall.position.set(0, 15, 25);
+      hangarGroup.add(bgBackWall);
+
+      // 2. Outer Left & Right Enclosure Walls (pushed out to X=±18)
+      for (const side of [-1, 1]) {
+        const bgSideWall = new THREE.Mesh(new THREE.BoxGeometry(1, 40, 60), enclosureWallMat);
+        bgSideWall.position.set(side * 18, 15, 0);
+        hangarGroup.add(bgSideWall);
+      }
+
+      // 3. High Ceiling Enclosure Roof
+      const bgCeiling = new THREE.Mesh(new THREE.BoxGeometry(60, 1, 60), enclosureWallMat);
+      bgCeiling.position.set(0, 30, 0);
+      hangarGroup.add(bgCeiling);
+
+      // --- HIGH-TECH SCI-FI ELEVATED SCAFFOLDING & NEON GUARD RAILINGS ---
+      // Adds multi-tiered high-altitude walkways with glowing cyan/amber safety rails along sides and back
+      const scaffoldingFloorMat = new THREE.MeshStandardMaterial({ color: 0x1a2b36, roughness: 0.42, metalness: 0.85 });
+      const sciFiRailMat = new THREE.MeshStandardMaterial({ color: 0x2bb5d0, roughness: 0.3, metalness: 0.9 });
+      const sciFiGlowRailMat = new THREE.MeshBasicMaterial({ color: 0x49eaff, toneMapped: false });
+      const amberGlowRailMat = new THREE.MeshBasicMaterial({ color: 0xffaa22, toneMapped: false });
+
+      for (const side of [-1, 1]) {
+        for (const yHeight of [3.5, 7.8]) {
+          const walkwayGroup = new THREE.Group();
+          walkwayGroup.position.set(side * 7.55, yHeight, 0);
+
+          // Floor Deck Plate
+          const deck = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 13.5), scaffoldingFloorMat);
+          deck.receiveShadow = true;
+          walkwayGroup.add(deck);
+
+          // Sci-Fi Railing Support Posts & Horizontal Glowing Safety Beams
+          const innerX = side > 0 ? -0.42 : 0.42;
+          for (let z = -6.2; z <= 6.2; z += 1.55) {
+            const post = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.032, 1.05, 8), sciFiRailMat);
+            post.position.set(innerX, 0.58, z);
+            walkwayGroup.add(post);
+
+            // Sci-Fi Diagonal Truss Brackets under the walkway
+            const truss = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.7, 0.04), sciFiRailMat);
+            truss.rotation.z = side * -0.55;
+            truss.position.set(-innerX * 0.5, -0.38, z);
+            walkwayGroup.add(truss);
+          }
+
+          // Top Glowing Rail Bar
+          const topRailGlow = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 13.5), sciFiGlowRailMat);
+          topRailGlow.position.set(innerX, 1.1, 0);
+
+          // Mid Protection Bar
+          const midRail = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 13.5), sciFiRailMat);
+          midRail.position.set(innerX, 0.6, 0);
+
+          // Bottom Amber Toe-Board Hazard Glow Line
+          const toeBoardGlow = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 13.5), amberGlowRailMat);
+          toeBoardGlow.position.set(innerX, 0.08, 0);
+
+          walkwayGroup.add(topRailGlow, midRail, toeBoardGlow);
+          hangarGroup.add(walkwayGroup);
+        }
+      }
+
+      // --- OVERHEAD SAGGING HIGH-VOLTAGE POWER CABLE & WIRE BUNDLES ---
+      // Realistic catenary curves for hanging industrial power conduits across ceiling beams
+      const cableMat = new THREE.MeshStandardMaterial({ color: 0x12181c, roughness: 0.65, metalness: 0.4 });
+      const thickCableMat = new THREE.MeshStandardMaterial({ color: 0x221814, roughness: 0.55, metalness: 0.5 });
+      const glowingWireMat = new THREE.MeshBasicMaterial({ color: 0x3bdbeb, toneMapped: false });
+
+      for (let w = 0; w < 12; w++) {
+        const startX = (Math.random() - 0.5) * 22;
+        const endX = (Math.random() - 0.5) * 22;
+        const startZ = -12 + (w % 6) * 4.5 + (Math.random() - 0.5) * 1.5;
+        const endZ = startZ + (Math.random() - 0.5) * 3;
+        const yTop = 26.5 + (Math.random() - 0.5) * 2;
+        const sag = 2.5 + Math.random() * 4.2;
+
+        const curve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(startX, yTop, startZ),
+          new THREE.Vector3((startX + endX) * 0.5, yTop - sag, (startZ + endZ) * 0.5),
+          new THREE.Vector3(endX, yTop, endZ)
+        );
+
+        const radius = w % 3 === 0 ? 0.06 : 0.035;
+        const wireGeo = new THREE.TubeGeometry(curve, 20, radius, 8, false);
+        const wireMesh = new THREE.Mesh(wireGeo, w % 4 === 0 ? glowingWireMat : (w % 2 === 0 ? thickCableMat : cableMat));
+        hangarGroup.add(wireMesh);
       }
 
       const keySpot = new THREE.SpotLight(0xb9f5ff, 180, 78, Math.PI / 5, .48, 1.2);
@@ -4226,11 +4562,17 @@
       logoCtx.shadowColor = '#6fe6f2';
       logoCtx.fill();
 
-      logoCtx.fillStyle = '#ffffff';
-      logoCtx.font = '900 44px Orbitron, sans-serif';
-      logoCtx.textAlign = 'center';
-      logoCtx.textBaseline = 'middle';
-      logoCtx.fillText('🦅', 512, 175);
+      // Clean Sci-Fi Graphic Emblem Chevron
+      logoCtx.fillStyle = '#6fe6f2';
+      logoCtx.shadowColor = '#6fe6f2';
+      logoCtx.shadowBlur = 12;
+      logoCtx.beginPath();
+      logoCtx.moveTo(512, 140);
+      logoCtx.lineTo(540, 185);
+      logoCtx.lineTo(512, 215);
+      logoCtx.lineTo(484, 185);
+      logoCtx.closePath();
+      logoCtx.fill();
 
       logoCtx.fillStyle = '#ffffff';
       logoCtx.font = '900 44px Orbitron, sans-serif';
@@ -4260,28 +4602,28 @@
         emissiveIntensity: .55
       });
       const backLogoMesh = new THREE.Mesh(new THREE.PlaneGeometry(15.2, 7.6), logoMat);
-      backLogoMesh.position.set(0, 15.5, -8.7);
+      backLogoMesh.position.set(0, 9.2, -8.5);
       hangarGroup.add(backLogoMesh);
       for (const side of [-1, 1]) {
         const sideLogoMesh = new THREE.Mesh(new THREE.PlaneGeometry(9.6, 4.8), logoMat);
-        sideLogoMesh.position.set(side * 8.7, 14.5, 0);
+        sideLogoMesh.position.set(side * 8.7, 9.2, 0);
         sideLogoMesh.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
         hangarGroup.add(sideLogoMesh);
       }
 
       // --- ARTICULATED HUMAN JOINT MODELING & NATURAL GAIT PHYSICS HELPERS ---
       const suitMat = new THREE.MeshStandardMaterial({ color: 0xd9e2e3, roughness: .7, metalness: .18 });
-      const vestMat = new THREE.MeshStandardMaterial({ color: 0xd89a2d, roughness: .62, metalness: .25 });
+      const vestMat = new THREE.MeshStandardMaterial({ color: 0x2c404e, roughness: .62, metalness: .45 });
       const visorMat = new THREE.MeshBasicMaterial({ color: 0x6fe6f2, toneMapped: false });
       const toolMat = new THREE.MeshStandardMaterial({ color: 0x33454f, roughness: .3, metalness: .84 });
 
 
 
       const mechanicPositions = [
-        [-4.8, 2.5], [4.8, 2.5],
-        [-4.2, -2.8], [4.2, -2.8],
+        [-3.6, 1.4], [3.6, 1.4],
+        [-3.2, -3.8], [3.2, -3.8],
         [-5.8, -0.2], [5.8, -0.2],
-        [-2.8, 4.8], [2.8, 4.8]
+        [-1.4, 4.2], [1.4, 4.2]
       ];
       mechanicPositions.forEach(([x, z], index) => {
         const humanRef = createArticulatedHumanModel({ suitMat, vestMat, visorMat, toolMat });
@@ -4319,64 +4661,153 @@
         hangarGroup.add(mechanic);
       });
 
-      const robotDarkMat = new THREE.MeshStandardMaterial({ color: 0x101a21, roughness: .28, metalness: .9 });
-      const robotHydraulicMat = new THREE.MeshStandardMaterial({ color: 0x8d9ca2, roughness: .22, metalness: .96 });
+      const robotDarkMat = new THREE.MeshStandardMaterial({ color: 0x16222b, roughness: .35, metalness: .85 });
+      const robotArmHousingMat = new THREE.MeshStandardMaterial({ color: 0x2b3b46, roughness: .28, metalness: .9 });
+      const robotHydraulicMat = new THREE.MeshStandardMaterial({ color: 0x9eb1bb, roughness: .18, metalness: .96 });
+      const robotJointDiscMat = new THREE.MeshStandardMaterial({ color: 0x111920, roughness: .25, metalness: .92 });
+      const robotCableMat = new THREE.MeshStandardMaterial({ color: 0x0b1116, roughness: .65, metalness: .4 });
       const robotGlowMat = new THREE.MeshBasicMaterial({ color: 0x60e9f5, toneMapped: false });
+      const robotWarningAmberMat = new THREE.MeshBasicMaterial({ color: 0xffa01a, toneMapped: false });
+
       for (const [index, [x, z]] of [[-4.55, 2.35], [4.55, 2.35], [-4.4, -2.35], [4.4, -2.35]].entries()) {
         const robot = new THREE.Group();
         robot.position.set(x, 0, z);
         robot.rotation.y = Math.atan2(-x, -z);
-        const anchorPlate = new THREE.Mesh(new RoundedBoxGeometry(1.75, .2, 1.75, 2, .08), robotDarkMat);
-        anchorPlate.position.y = .1;
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(.72, .92, .55, 14), steelMat);
-        base.position.y = .28;
-        const turntable = new THREE.Mesh(new THREE.TorusGeometry(.76, .07, 6, 16), robotHydraulicMat);
-        turntable.rotation.x = Math.PI / 2;
-        turntable.position.y = .6;
-        const shoulderHousing = new THREE.Mesh(new RoundedBoxGeometry(1.18, .82, .9, 2, .12), robotDarkMat);
-        shoulderHousing.position.y = 1.05;
-        const shoulder = new THREE.Mesh(new THREE.SphereGeometry(.48, 12, 8), hazardMat);
-        shoulder.position.y = 1.05;
+
+        // 1. Multi-Tiered Heavy Industrial Base Pedestal (다단 원형 기단부)
+        const anchorPlate = new THREE.Mesh(new RoundedBoxGeometry(2.1, .22, 2.1, 2, .08), robotDarkMat);
+        anchorPlate.position.y = .11;
+
+        // Tier 1 Base Flange Ring with Bolt Cutouts
+        const basePedestal = new THREE.Mesh(new THREE.CylinderGeometry(.92, 1.15, .45, 18), robotArmHousingMat);
+        basePedestal.position.y = .34;
+        
+        // Tier 2 Rotary Actuator Housing & Walkway Guard Ring
+        const rotaryHousing = new THREE.Mesh(new THREE.CylinderGeometry(.78, .88, .52, 18), robotDarkMat);
+        rotaryHousing.position.y = .75;
+
+        const BaseGuardRing = new THREE.Mesh(new THREE.TorusGeometry(.98, .035, 6, 24), hazardMat);
+        BaseGuardRing.rotation.x = Math.PI / 2;
+        BaseGuardRing.position.y = .62;
+
+        // Tier 3 Heavy Dual Circular Joint Drive Discs (어깨 관절 대형 감속기 디스크)
+        const shoulderJointDiscLeft = new THREE.Mesh(new THREE.CylinderGeometry(.52, .52, .18, 16), robotJointDiscMat);
+        shoulderJointDiscLeft.rotation.z = Math.PI / 2;
+        shoulderJointDiscLeft.position.set(-.45, 1.25, 0);
+
+        const shoulderJointDiscRight = shoulderJointDiscLeft.clone();
+        shoulderJointDiscRight.position.set(.45, 1.25, 0);
+
+        const shoulderCapCap = new THREE.Mesh(new THREE.CylinderGeometry(.28, .28, .98, 16), robotHydraulicMat);
+        shoulderCapCap.rotation.z = Math.PI / 2;
+        shoulderCapCap.position.y = 1.25;
+
+        robot.add(anchorPlate, basePedestal, rotaryHousing, BaseGuardRing, shoulderJointDiscLeft, shoulderJointDiscRight, shoulderCapCap);
+
+        // 2. Lower Main Arm (하부 메인 암 - 중장업 유압 피스톤 & 케이블 배선)
         const lowerPivot = new THREE.Group();
-        lowerPivot.position.y = 1.05;
-        const lowerArm = new THREE.Mesh(new RoundedBoxGeometry(.42, 2.7, .48, 3, .12), steelMat);
-        lowerArm.position.y = 1.25;
+        lowerPivot.position.y = 1.25;
+
+        // Reinforced Lower Arm Structural Beam
+        const lowerArmBeam = new THREE.Mesh(new RoundedBoxGeometry(.48, 2.85, .58, 3, .12), robotArmHousingMat);
+        lowerArmBeam.position.y = 1.35;
+        lowerArmBeam.castShadow = true;
+        lowerPivot.add(lowerArmBeam);
+
+        // Heavy Side Armor Plates & Structural Cutouts
         for (const side of [-1, 1]) {
-          const lowerRail = new THREE.Mesh(new THREE.BoxGeometry(.12, 2.3, .13), robotDarkMat);
-          lowerRail.position.set(side * .31, 1.25, .16);
-          lowerPivot.add(lowerRail);
-          const lowerPiston = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 1.78, 8), robotHydraulicMat);
-          lowerPiston.position.set(side * .26, 1.28, -.2);
-          lowerPiston.rotation.z = side * .12;
-          lowerPivot.add(lowerPiston);
+          const sideArmor = new THREE.Mesh(new THREE.BoxGeometry(.12, 2.5, .42), robotDarkMat);
+          sideArmor.position.set(side * .28, 1.35, 0);
+          lowerPivot.add(sideArmor);
+
+          // Heavy Hydraulic Piston Cylinders (유압 피스톤 실린더)
+          const pistonCylinder = new THREE.Mesh(new THREE.CylinderGeometry(.085, .085, 1.95, 10), robotDarkMat);
+          pistonCylinder.position.set(side * .28, 1.35, -.24);
+          const pistonShaft = new THREE.Mesh(new THREE.CylinderGeometry(.052, .052, 1.95, 10), robotHydraulicMat);
+          pistonShaft.position.set(side * .28, 1.45, -.24);
+          lowerPivot.add(pistonCylinder, pistonShaft);
         }
-        const elbow = new THREE.Mesh(new THREE.SphereGeometry(.38, 12, 8), hazardMat);
-        elbow.position.y = 2.6;
-        const elbowHousing = new THREE.Mesh(new RoundedBoxGeometry(.92, .58, .82, 2, .1), robotDarkMat);
-        elbowHousing.position.y = 2.6;
+
+        // Corrugated Power & Oil Cable Bundle along Lower Arm
+        const lowerCableCurve = new THREE.QuadraticBezierCurve3(
+          new THREE.Vector3(0, 0.2, 0.32),
+          new THREE.Vector3(0, 1.35, 0.58),
+          new THREE.Vector3(0, 2.6, 0.32)
+        );
+        const lowerCableGeo = new THREE.TubeGeometry(lowerCableCurve, 12, .065, 8, false);
+        const lowerCableMesh = new THREE.Mesh(lowerCableGeo, robotCableMat);
+        lowerPivot.add(lowerCableMesh);
+
+        // 3. Elbow Rotary Joint (팔꿈치 대형 로터리 감속 관절 디스크)
+        const elbowJointDiscLeft = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, .16, 16), robotJointDiscMat);
+        elbowJointDiscLeft.rotation.z = Math.PI / 2;
+        elbowJointDiscLeft.position.set(-.38, 2.75, 0);
+
+        const elbowJointDiscRight = elbowJointDiscLeft.clone();
+        elbowJointDiscRight.position.set(.38, 2.75, 0);
+
+        const elbowCenterShaft = new THREE.Mesh(new THREE.CylinderGeometry(.25, .25, .86, 16), robotHydraulicMat);
+        elbowCenterShaft.rotation.z = Math.PI / 2;
+        elbowCenterShaft.position.y = 2.75;
+
+        lowerPivot.add(elbowJointDiscLeft, elbowJointDiscRight, elbowCenterShaft);
+
+        // 4. Upper Arm & Wrist Assembly (상부 암 & 손목 기어)
         const upperPivot = new THREE.Group();
-        upperPivot.position.y = 2.6;
-        const upperArm = new THREE.Mesh(new RoundedBoxGeometry(.34, 2.25, .38, 3, .1), steelMat);
-        upperArm.position.y = 1.02;
+        upperPivot.position.y = 2.75;
+
+        const upperArmBeam = new THREE.Mesh(new RoundedBoxGeometry(.42, 2.45, .46, 3, .1), robotArmHousingMat);
+        upperArmBeam.position.y = 1.15;
+        upperArmBeam.castShadow = true;
+        upperPivot.add(upperArmBeam);
+
+        // Upper Arm Auxiliary Hydraulic Actuators
         for (const side of [-1, 1]) {
-          const upperRail = new THREE.Mesh(new THREE.BoxGeometry(.1, 1.9, .12), robotDarkMat);
-          upperRail.position.set(side * .26, 1.02, .12);
-          upperPivot.add(upperRail);
-          const upperPiston = new THREE.Mesh(new THREE.CylinderGeometry(.055, .055, 1.5, 8), robotHydraulicMat);
-          upperPiston.position.set(side * .2, 1.05, -.16);
-          upperPivot.add(upperPiston);
+          const upperRail = new THREE.Mesh(new THREE.BoxGeometry(.09, 2.1, .14), robotDarkMat);
+          upperRail.position.set(side * .24, 1.15, .16);
+          const upperPiston = new THREE.Mesh(new THREE.CylinderGeometry(.05, .05, 1.7, 8), robotHydraulicMat);
+          upperPiston.position.set(side * .22, 1.2, -.18);
+          upperPivot.add(upperRail, upperPiston);
         }
-        const toolHead = new THREE.Mesh(new THREE.CylinderGeometry(.22, .3, .72, 10), toolMat);
-        toolHead.position.y = 2.25;
-        const wrist = new THREE.Mesh(new RoundedBoxGeometry(.68, .4, .62, 2, .08), robotDarkMat);
-        wrist.position.y = 2.07;
-        const scanner = new THREE.Mesh(new THREE.BoxGeometry(.28, .11, .34), robotGlowMat);
-        scanner.position.set(0, 2.46, .3);
-        const toolLight = new THREE.Mesh(new THREE.SphereGeometry(.13, 8, 6), visorMat);
-        toolLight.position.y = 2.62;
-        upperPivot.add(upperArm, wrist, toolHead, scanner, toolLight);
-        lowerPivot.add(lowerArm, elbow, elbowHousing, upperPivot);
-        robot.add(anchorPlate, base, turntable, shoulderHousing, shoulder, lowerPivot);
+
+        // Wrist Rotary Collar & Sensor Unit
+        const wristHousing = new THREE.Mesh(new THREE.CylinderGeometry(.32, .38, .45, 14), robotDarkMat);
+        wristHousing.position.y = 2.25;
+
+        const scannerUnit = new THREE.Mesh(new THREE.BoxGeometry(.32, .14, .38), robotGlowMat);
+        scannerUnit.position.set(0, 2.42, .26);
+
+        const toolLight = new THREE.Mesh(new THREE.SphereGeometry(.14, 8, 6), visorMat);
+        toolLight.position.y = 2.72;
+
+        // 5. Heavy Duty 3-Claw Mechanical Gripper Jaw Tool (3지 중장비 로봇 집게)
+        const clawBasePlate = new THREE.Mesh(new THREE.CylinderGeometry(.36, .32, .16, 12), robotJointDiscMat);
+        clawBasePlate.position.y = 2.45;
+        upperPivot.add(clawBasePlate);
+
+        for (let c = 0; c < 3; c++) {
+          const clawAngle = (c / 3) * Math.PI * 2;
+          const clawPivotGroup = new THREE.Group();
+          clawPivotGroup.position.set(Math.sin(clawAngle) * .22, 2.52, Math.cos(clawAngle) * .22);
+          clawPivotGroup.rotation.y = clawAngle;
+
+          // Upper Jaw Segment
+          const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(.08, .48, .12), robotArmHousingMat);
+          upperJaw.position.set(0, .22, .06);
+          upperJaw.rotation.x = -0.25;
+
+          // Lower Curved Claw Tip
+          const lowerClawTip = new THREE.Mesh(new THREE.BoxGeometry(.07, .42, .09), robotHydraulicMat);
+          lowerClawTip.position.set(0, .58, .18);
+          lowerClawTip.rotation.x = 0.55;
+
+          clawPivotGroup.add(upperJaw, lowerClawTip);
+          upperPivot.add(clawPivotGroup);
+        }
+
+        upperPivot.add(wristHousing, scannerUnit, toolLight);
+        lowerPivot.add(upperPivot);
+        robot.add(lowerPivot);
         robot.userData = {
           isRobotArm: true,
           lowerPivot,
@@ -4394,25 +4825,370 @@
         maintenanceMechanics.push(robot);
         hangarGroup.add(robot);
       }
-      const sparkGeo = new THREE.BoxGeometry(.025, .025, .28);
-      const sparkMat = new THREE.MeshBasicMaterial({ color: 0xffc34a, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
-      for (let i = 0; i < 24; i++) {
-        const spark = new THREE.Mesh(sparkGeo, sparkMat.clone());
-        const angle = (i / 24) * Math.PI * 2;
+
+      // --- INDUSTRIAL FLOOR CABLE BUNDLES & JUNCTION CONDUITS ---
+      // Adds organic 3D serpentine power/oil cables running along the hangar floor outside the elevator radius (R > 3.2m),
+      // connecting power junction boxes, scaffolding posts, and robot arm pedestals.
+      const floorCableMat1 = new THREE.MeshStandardMaterial({ color: 0x11171d, roughness: .65, metalness: .35 });
+      const floorCableMat2 = new THREE.MeshStandardMaterial({ color: 0x22323d, roughness: .55, metalness: .45 });
+      const junctionBoxMat = new THREE.MeshStandardMaterial({ color: 0x1c2832, roughness: .35, metalness: .85 });
+      const yellowStrapMat = new THREE.MeshBasicMaterial({ color: 0xecb736 });
+
+      const cableCurvesData = [
+        // Cable 1: From Left Power Terminal (-7.2, -6.0) around outer elevator perimeter to Robot Arm 1 (-4.55, 2.35)
+        [ new THREE.Vector3(-7.2, 0.04, -6.0), new THREE.Vector3(-6.5, 0.05, -2.5), new THREE.Vector3(-5.2, 0.05, 0.5), new THREE.Vector3(-4.55, 0.08, 2.35) ],
+        // Cable 2: Parallel Oil Hose along Left Wall Base to Rear Scaffolding Base (-6.5, 6.2)
+        [ new THREE.Vector3(-7.5, 0.03, -7.0), new THREE.Vector3(-7.2, 0.04, 0.0), new THREE.Vector3(-6.8, 0.05, 4.5), new THREE.Vector3(-6.5, 0.06, 6.2) ],
+        // Cable 3: From Right Power Terminal (7.2, -6.0) curving outside elevator to Robot Arm 2 (4.55, 2.35)
+        [ new THREE.Vector3(7.2, 0.04, -6.0), new THREE.Vector3(6.5, 0.05, -2.5), new THREE.Vector3(5.2, 0.05, 0.5), new THREE.Vector3(4.55, 0.08, 2.35) ],
+        // Cable 4: Heavy Trunk Line behind Rear Platform (-4.0, 7.2) to Right Power Hub (6.0, 5.5)
+        [ new THREE.Vector3(-4.0, 0.05, 7.2), new THREE.Vector3(-1.2, 0.06, 7.5), new THREE.Vector3(2.5, 0.05, 7.0), new THREE.Vector3(6.0, 0.06, 5.5) ],
+        // Cable 5: Front Left Apron Feeder Cable (-6.8, -4.5) to Front Scaffolding Gantry Post (-3.2, -0.85)
+        [ new THREE.Vector3(-6.8, 0.03, -4.5), new THREE.Vector3(-5.2, 0.04, -3.2), new THREE.Vector3(-4.2, 0.05, -2.0), new THREE.Vector3(-3.2, 0.05, -0.85) ],
+        // Cable 6: Front Right Apron Feeder Cable (6.8, -4.5) to Front Scaffolding Gantry Post (3.2, -0.85)
+        [ new THREE.Vector3(6.8, 0.03, -4.5), new THREE.Vector3(5.2, 0.04, -3.2), new THREE.Vector3(4.2, 0.05, -2.0), new THREE.Vector3(3.2, 0.05, -0.85) ]
+      ];
+
+      for (let c = 0; c < cableCurvesData.length; c++) {
+        const points = cableCurvesData[c];
+        const curve = new THREE.CatmullRomCurve3(points);
+        const radius = (c % 2 === 0 ? 0.075 : 0.055);
+        const cableGeo = new THREE.TubeGeometry(curve, 28, radius, 8, false);
+        const cableMesh = new THREE.Mesh(cableGeo, c % 2 === 0 ? floorCableMat1 : floorCableMat2);
+        cableMesh.receiveShadow = true;
+        hangarGroup.add(cableMesh);
+
+        // Heavy Floor Junction Distribution Boxes & Yellow Cable Straps
+        for (let s = 1; s <= 3; s++) {
+          const t = s / 4;
+          const pos = curve.getPoint(t);
+          
+          // Yellow Safety Tie Strap
+          const strap = new THREE.Mesh(new THREE.TorusGeometry(radius * 1.35, 0.016, 6, 12), yellowStrapMat);
+          strap.position.copy(pos);
+          strap.rotation.x = Math.PI / 2;
+          hangarGroup.add(strap);
+
+          // Junction Box at mid-points
+          if (s === 2 && c < 4) {
+            const jBox = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.22, 0.36, 2, 0.06), junctionBoxMat);
+            jBox.position.set(pos.x, 0.11, pos.z);
+            jBox.castShadow = true;
+            hangarGroup.add(jBox);
+          }
+        }
+      }
+
+      // --- HIGH-QUALITY PROCEDURAL PARTICLE TEXTURES GENERATOR ---
+      const sparkCanvas = document.createElement('canvas');
+      sparkCanvas.width = 128; sparkCanvas.height = 128;
+      const sparkCtx = sparkCanvas.getContext('2d');
+      const sparkGrad = sparkCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      sparkGrad.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+      sparkGrad.addColorStop(0.2, 'rgba(255, 215, 110, 0.95)');
+      sparkGrad.addColorStop(0.5, 'rgba(255, 130, 30, 0.5)');
+      sparkGrad.addColorStop(1, 'rgba(255, 60, 0, 0.0)');
+      sparkCtx.fillStyle = sparkGrad;
+      sparkCtx.fillRect(0, 0, 128, 128);
+      const particleGlowTexture = new THREE.CanvasTexture(sparkCanvas);
+
+      const smokeCanvas = document.createElement('canvas');
+      smokeCanvas.width = 128; smokeCanvas.height = 128;
+      const smokeCtx = smokeCanvas.getContext('2d');
+      const smokeGrad = smokeCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      smokeGrad.addColorStop(0, 'rgba(220, 245, 255, 0.85)');
+      smokeGrad.addColorStop(0.3, 'rgba(165, 215, 238, 0.48)');
+      smokeGrad.addColorStop(0.7, 'rgba(110, 170, 198, 0.15)');
+      smokeGrad.addColorStop(1, 'rgba(70, 125, 155, 0.0)');
+      smokeCtx.fillStyle = smokeGrad;
+      smokeCtx.fillRect(0, 0, 128, 128);
+      const particleSmokeTexture = new THREE.CanvasTexture(smokeCanvas);
+
+      // High-Energy Industrial Arc Welding Spark Particles
+      const sparkGeo = new THREE.PlaneGeometry(.24, .24);
+      const sparkBaseMat = new THREE.MeshBasicMaterial({
+        map: particleGlowTexture,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide,
+        toneMapped: false
+      });
+      for (let i = 0; i < 12; i++) {
+        const spark = new THREE.Mesh(sparkGeo, sparkBaseMat.clone());
+        const angle = (i / 12) * Math.PI * 2 + (Math.random() - .5) * .8;
+        const speed = .35 + Math.random() * .55;
         spark.userData = {
           armIndex: i % maintenanceMechanics.length,
-          phase: i / 24,
-          direction: new THREE.Vector3(Math.cos(angle), .35 + (i % 3) * .18, Math.sin(angle)).normalize(),
+          phase: Math.random() * 10.0,
+          speedMult: 1.2 + Math.random() * 1.4,
+          burstOffset: (i % 4) * 1.4 + Math.random() * 0.8,
+          velocity: new THREE.Vector3(Math.cos(angle) * speed, .25 + Math.random() * .5, Math.sin(angle) * speed),
           origin: new THREE.Vector3()
         };
         robotArmSparks.push(spark);
         hangarGroup.add(spark);
       }
 
+      // --- ADVANCED REALISTIC HANGAR FOG & PARTICLES CONTROLLER ---
+      window.hangarFogParams = {
+        enabled: true,
+        mode: 'linear',
+        color: 0x0a1622,
+        density: 0.015,
+        near: 12.0,
+        far: 48.0,
+        steamIntensity: 1.0,
+        dustIntensity: 1.0
+      };
+
+      scene.fog = new THREE.Fog(window.hangarFogParams.color, window.hangarFogParams.near, window.hangarFogParams.far);
+
+      window.updateHangarFog = function() {
+        if (!window.hangarFogParams.enabled) {
+          scene.fog = null;
+          return;
+        }
+        if (window.hangarFogParams.mode === 'linear') {
+          scene.fog = new THREE.Fog(window.hangarFogParams.color, window.hangarFogParams.near, window.hangarFogParams.far);
+        } else {
+          scene.fog = new THREE.FogExp2(window.hangarFogParams.color, window.hangarFogParams.density);
+        }
+      };
+
+      // Realistic Volumetric Hangar Steam Plumes (Floor vent rising steam)
+      const steamParticles = [];
+      const steamPlaneGeo = new THREE.PlaneGeometry(1.8, 1.8);
+      const steamMatBase = new THREE.MeshBasicMaterial({
+        map: particleSmokeTexture,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false,
+        blending: THREE.NormalBlending,
+        side: THREE.DoubleSide,
+        toneMapped: false
+      });
+
+      for (let i = 0; i < 32; i++) {
+        const steamMesh = new THREE.Mesh(steamPlaneGeo, steamMatBase.clone());
+        const vx = (Math.random() - 0.5) * 12.0;
+        const vz = (Math.random() - 0.5) * 12.0;
+        steamMesh.position.set(vx, 0.1 + Math.random() * 6.0, vz);
+        steamMesh.rotation.z = Math.random() * Math.PI * 2;
+        steamMesh.userData = {
+          baseX: vx,
+          baseZ: vz,
+          speedY: 0.8 + Math.random() * 1.2,
+          rotSpeed: (Math.random() - 0.5) * 0.8,
+          scaleSpeed: 0.4 + Math.random() * 0.6,
+          life: Math.random(),
+          maxLife: 3.0 + Math.random() * 2.5
+        };
+        steamParticles.push(steamMesh);
+        hangarGroup.add(steamMesh);
+      }
+      window.hangarSteamParticles = steamParticles;
+
+      // Realistic Floating Atmospheric Dust Particles (Micro particles glittering in light beams)
+      const dustParticles = [];
+      const dustGeo = new THREE.SphereGeometry(0.045, 6, 6);
+      const dustMatBase = new THREE.MeshBasicMaterial({
+        color: 0x8cefff,
+        transparent: true,
+        opacity: 0.6,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        toneMapped: false
+      });
+
+      for (let i = 0; i < 60; i++) {
+        const dustMesh = new THREE.Mesh(dustGeo, dustMatBase.clone());
+        const dx = (Math.random() - 0.5) * 18.0;
+        const dy = 0.5 + Math.random() * 12.0;
+        const dz = (Math.random() - 0.5) * 18.0;
+        dustMesh.position.set(dx, dy, dz);
+        dustMesh.userData = {
+          origin: new THREE.Vector3(dx, dy, dz),
+          phaseX: Math.random() * Math.PI * 2,
+          phaseY: Math.random() * Math.PI * 2,
+          phaseZ: Math.random() * Math.PI * 2,
+          speed: 0.5 + Math.random() * 0.8,
+          baseOpacity: 0.2 + Math.random() * 0.5
+        };
+        dustParticles.push(dustMesh);
+        hangarGroup.add(dustMesh);
+      }
+      window.hangarDustParticles = dustParticles;
+
+      // --- HIGH-TECH SCI-FI QUADCOPTER REPAIR & CARRIER DRONES (3 UNITS) ---
+      // Heavy industrial quadcopter drones with 4 spinning rotors, articulated mechanical repair arms, 
+      // bottom cargo pods/welding lasers, cyan/orange LED status beacons, and quadcopter physics motion.
+      function createSciFiRepairDrone(idIndex) {
+        const droneGroup = new THREE.Group();
+        const hullMat = new THREE.MeshStandardMaterial({ color: 0x1e2d36, roughness: 0.35, metalness: 0.82 });
+        const metalFrameMat = new THREE.MeshStandardMaterial({ color: 0x3d4e59, roughness: 0.28, metalness: 0.9 });
+        const rotorBladeMat = new THREE.MeshStandardMaterial({ color: 0x8aa5b5, roughness: 0.2, metalness: 0.95 });
+        const blueSensorMat = new THREE.MeshBasicMaterial({ color: 0x3be5ff, toneMapped: false });
+        const orangeBeaconMat = new THREE.MeshBasicMaterial({ color: 0xffa01a, toneMapped: false });
+        const laserMat = new THREE.MeshBasicMaterial({ color: 0x47f5ff, transparent: true, opacity: 0.75, toneMapped: false });
+
+        // 1. Central Armored Main Chassis Body (중앙 장갑 동체)
+        const mainBody = new THREE.Mesh(new RoundedBoxGeometry(0.95, 0.42, 1.25, 3, 0.08), hullMat);
+        mainBody.castShadow = true;
+        droneGroup.add(mainBody);
+
+        // Top Optical Sensor Array Turret Dome
+        const sensorDome = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.16, 12), metalFrameMat);
+        sensorDome.position.set(0, 0.28, -0.15);
+        const sensorLens = new THREE.Mesh(new THREE.SphereGeometry(0.1, 12, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), blueSensorMat);
+        sensorLens.position.set(0, 0.36, -0.15);
+        droneGroup.add(sensorDome, sensorLens);
+
+        // 2. 4 Heavy Quadcopter Outrigger Rotor Arms (4개 쿼드콥터 날개 암)
+        const rotorBlades = [];
+        const armAngles = [Math.PI * 0.25, Math.PI * 0.75, Math.PI * 1.25, Math.PI * 1.75];
+        const armRadius = 1.15;
+
+        for (let i = 0; i < 4; i++) {
+          const a = armAngles[i];
+          const rx = Math.sin(a) * armRadius;
+          const rz = Math.cos(a) * armRadius;
+
+          // Outrigger Strut Arm
+          const strut = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, armRadius), metalFrameMat);
+          strut.position.set(rx * 0.5, 0.05, rz * 0.5);
+          strut.rotation.y = a + Math.PI * 0.5;
+          droneGroup.add(strut);
+
+          // Rotor Duct Engine Housing Collar
+          const ductCollar = new THREE.Mesh(new THREE.CylinderGeometry(0.48, 0.48, 0.18, 16, 1, true), hullMat);
+          ductCollar.position.set(rx, 0.1, rz);
+          const ductRim = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.035, 6, 20), metalFrameMat);
+          ductRim.rotation.x = Math.PI * 0.5;
+          ductRim.position.set(rx, 0.19, rz);
+          droneGroup.add(ductCollar, ductRim);
+
+          // Rotor Motor Hub & 3-Blade Propeller
+          const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 10), metalFrameMat);
+          hub.position.set(rx, 0.12, rz);
+
+          const propellerGroup = new THREE.Group();
+          propellerGroup.position.set(rx, 0.18, rz);
+
+          for (let b = 0; b < 3; b++) {
+            const bladeAngle = (b / 3) * Math.PI * 2;
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.018, 0.07), rotorBladeMat);
+            blade.position.set(Math.sin(bladeAngle) * 0.22, 0, Math.cos(bladeAngle) * 0.22);
+            blade.rotation.y = bladeAngle;
+            blade.rotation.x = 0.25; // Aerodynamic pitch angle
+            propellerGroup.add(blade);
+          }
+          droneGroup.add(hub, propellerGroup);
+          rotorBlades.push(propellerGroup);
+
+          // LED Rotor Tip Warning Beacons
+          const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 8), i % 2 === 0 ? blueSensorMat : orangeBeaconMat);
+          beacon.position.set(rx * 1.18, 0.1, rz * 1.18);
+          droneGroup.add(beacon);
+        }
+
+        // 3. Bottom Articulated Mechanical Repair Arm & Welding Tool (아래쪽 굴절 수리 로봇암)
+        const armBase = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, 0.15, 12), metalFrameMat);
+        armBase.position.set(0, -0.28, 0.25);
+
+        const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.55, 8), metalFrameMat);
+        upperArm.position.set(0, -0.55, 0.3);
+        upperArm.rotation.x = 0.4;
+
+        const lowerArm = new THREE.Mesh(new THREE.CylinderGeometry(0.032, 0.032, 0.5, 8), hullMat);
+        lowerArm.position.set(0, -0.85, 0.45);
+        lowerArm.rotation.x = -0.6;
+
+        const clawClamps = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.025, 6, 12, Math.PI * 1.4), metalFrameMat);
+        clawClamps.position.set(0, -1.08, 0.55);
+        clawClamps.rotation.x = Math.PI * 0.5;
+
+        // Active Repair Laser Ray Beam (수리 비임 발사 라이트)
+        const repairBeam = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.18, 1.8, 12, 1, true), laserMat);
+        repairBeam.position.set(0, -1.95, 0.55);
+        repairBeam.rotation.x = 0.1;
+        repairBeam.visible = true;
+
+        droneGroup.add(armBase, upperArm, lowerArm, clawClamps, repairBeam);
+
+        // 4. Bottom Heavy Cargo Container / Power Cell Pod (하단 카고 팟)
+        const cargoPod = new THREE.Mesh(new RoundedBoxGeometry(0.65, 0.48, 0.75, 2, 0.06), hullMat);
+        cargoPod.position.set(0, -0.48, -0.25);
+        const cargoStrap = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.08, 0.78), orangeBeaconMat);
+        cargoStrap.position.set(0, -0.48, -0.25);
+        droneGroup.add(cargoPod, cargoStrap);
+
+        droneGroup.scale.setScalar(0.32);
+
+        // Quadcopter Curved Bezier Flight Paths through Unblocked Open Corridors
+        // (1. Front Open Hangar Bay Doorway Z: -22 -> -32 & 2. High Ceiling Open Vent Shaft Y: 28 -> 35)
+        const openCorridorWaypoints = [
+          // Drone 1: Enters from Front Left Open Bay Runway (Z = -28.0), curves up to Mech shoulder, exits through Front Right Open Runway
+          {
+            start: new THREE.Vector3(-12.5, 6.2, -28.0),
+            ctrlIn: new THREE.Vector3(-7.5, 5.8, -14.0),
+            work: new THREE.Vector3(-3.8, 5.2, -1.8),
+            ctrlOut: new THREE.Vector3(6.5, 7.2, -14.0),
+            exit: new THREE.Vector3(12.5, 8.5, -28.0)
+          },
+          // Drone 2: Enters from Front Right Open Bay Runway (Z = -28.0), curves to Mech Gatling arm, exits through Front Left Open Runway
+          {
+            start: new THREE.Vector3(13.5, 7.5, -28.0),
+            ctrlIn: new THREE.Vector3(8.2, 6.2, -14.0),
+            work: new THREE.Vector3(3.8, 4.8, 1.2),
+            ctrlOut: new THREE.Vector3(-6.8, 8.0, -14.0),
+            exit: new THREE.Vector3(-13.5, 9.2, -28.0)
+          },
+          // Drone 3: Enters from High Open Top Ceiling Shaft (Y = 29.5, Z = 0), curves down to Mech Torso, exits through Front Open Runway
+          {
+            start: new THREE.Vector3(-1.5, 29.5, -4.0),
+            ctrlIn: new THREE.Vector3(-1.0, 16.0, -1.5),
+            work: new THREE.Vector3(0.5, 7.8, 2.5),
+            ctrlOut: new THREE.Vector3(2.5, 12.0, -15.0),
+            exit: new THREE.Vector3(4.0, 14.5, -29.0)
+          }
+        ];
+        const route = openCorridorWaypoints[idIndex % openCorridorWaypoints.length];
+
+        droneGroup.userData = {
+          id: idIndex,
+          rotorBlades,
+          repairBeam,
+          route,
+          state: 'ENTERING', // 'ENTERING', 'REPAIRING', 'EXITING', 'WAITING'
+          progress: 0,
+          flightDuration: 6.2 + idIndex * 0.8, // Smooth 6+ seconds curved flight
+          workTimer: 0,
+          maxWorkDuration: 5.5 + idIndex * 2.2,
+          waitTimer: idIndex * 3.8, // Staggered initial entrance
+          velocity: new THREE.Vector3(),
+          tiltRoll: 0,
+          tiltPitch: 0,
+          phase: idIndex * 2.1
+        };
+
+        droneGroup.position.copy(route.start);
+        return droneGroup;
+        return droneGroup;
+      }
+
+      window.hangarRepairDrones = [];
+      for (let d = 0; d < 3; d++) {
+        const drone = createSciFiRepairDrone(d);
+        hangarRepairDrones.push(drone);
+        hangarGroup.add(drone);
+      }
+
       // --- 8-METER MECH SCALE ENHANCEMENT: HIGH-RISE SCAFFOLDING & UMBILICAL POWER CONDUITS ---
       const scaffoldMat = new THREE.MeshStandardMaterial({ color: 0x3d4e56, roughness: .42, metalness: .82 });
       const scaffoldPlankMat = new THREE.MeshStandardMaterial({ color: 0x1d272d, roughness: .68, metalness: .45 });
-      const ladderMat = new THREE.MeshStandardMaterial({ color: 0xd89a2d, roughness: .5, metalness: .6 });
+      const ladderMat = new THREE.MeshStandardMaterial({ color: 0x314450, roughness: .38, metalness: .82 });
 
       // Scaffolding Towers flanking the 8m Mech (Left & Right)
       for (const side of [-1, 1]) {
@@ -4520,10 +5296,10 @@
       const patrolRoutes = [
         { start: new THREE.Vector3(-6.2, 0, -4.5), end: new THREE.Vector3(-6.2, 0, 4.5) },
         { start: new THREE.Vector3(6.2, 0, -4.5), end: new THREE.Vector3(6.2, 0, 4.5) },
-        { start: new THREE.Vector3(-7.0, 3.6, -3.8), end: new THREE.Vector3(-7.0, 3.6, 3.8) },
-        { start: new THREE.Vector3(7.0, 3.6, -3.8), end: new THREE.Vector3(7.0, 3.6, 3.8) },
+        { start: new THREE.Vector3(-7.55, 3.56, -3.2), end: new THREE.Vector3(-7.55, 3.56, 3.2) },
+        { start: new THREE.Vector3(7.55, 3.56, -3.2), end: new THREE.Vector3(7.55, 3.56, 3.2) },
         { start: new THREE.Vector3(-4.5, 0, -5.2), end: new THREE.Vector3(4.5, 0, -5.2) },
-        { start: new THREE.Vector3(-2.8, 3.4, 4.5), end: new THREE.Vector3(2.8, 3.4, 4.5) }
+        { start: new THREE.Vector3(-2.8, 3.52, 4.5), end: new THREE.Vector3(2.8, 3.52, 4.5) }
       ];
 
       patrolRoutes.forEach((route, index) => {
@@ -4549,63 +5325,71 @@
         wanderingPatrolCrew.push(officer);
         hangarGroup.add(officer);
       });
-
-      // --- ATMOSPHERIC HANGAR DUST PARTICLES ---
-      const dustGeo = new THREE.SphereGeometry(.08, 6, 4);
-      const dustMat = new THREE.MeshBasicMaterial({ color: 0x8cefff, transparent: true, opacity: .3, toneMapped: false });
-      for (let i = 0; i < 40; i++) {
-        const dust = new THREE.Mesh(dustGeo, dustMat);
-        dust.position.set(
-          (Math.random() - .5) * 14,
-          Math.random() * 12,
-          (Math.random() - .5) * 14
-        );
-        dust.userData = { phase: i * .35, speedY: .15 + Math.random() * .2 };
-        hangarDustParticles.push(dust);
-        hangarGroup.add(dust);
-      }
-
-      const steamGeo = new THREE.IcosahedronGeometry(.34, 1);
-      const steamMat = new THREE.MeshBasicMaterial({ color: 0xc9d9dd, transparent: true, opacity: 0, depthWrite: false });
-      for (let i = 0; i < 24; i++) {
-        const steam = new THREE.Mesh(steamGeo, steamMat.clone());
-        steam.userData = {
-          phase: i / 24,
-          ventX: i % 2 ? -6.25 : 6.25,
-          ventZ: -5 + (i % 6) * 2
-        };
-        hangarSteamParticles.push(steam);
-        hangarGroup.add(steam);
-      }
       // Repeating industrial exhaust fans give the long hangar walls a clear
       // factory rhythm without adding dynamic lights or shadow cost.
-      const ventHousingMat = new THREE.MeshStandardMaterial({ color: 0x1d2b31, roughness: .4, metalness: .9 });
-      const ventBladeMat = new THREE.MeshStandardMaterial({ color: 0x536870, roughness: .28, metalness: .82 });
+      // High-Detail Industrial Turbine Ventilation Duct Assembly
+      const ventBoxMat = new THREE.MeshStandardMaterial({ color: 0x141f26, roughness: .35, metalness: .85 });
+      const ventBarrelMat = new THREE.MeshStandardMaterial({ color: 0x080e12, roughness: .7, metalness: .3 });
+      const ventRimMat = new THREE.MeshStandardMaterial({ color: 0x384a56, roughness: .25, metalness: .9 });
+      const ventTurbineMat = new THREE.MeshStandardMaterial({ color: 0x8aa0ac, roughness: .22, metalness: .92 });
+      const ventGlowMat = new THREE.MeshBasicMaterial({ color: 0x39d5e6, toneMapped: false });
+
       for (const side of [-1, 1]) {
         for (const z of [-4.6, 0, 4.6]) {
           const fan = new THREE.Group();
-          fan.position.set(side * 7.08, 6.15, z);
-          fan.rotation.z = side * Math.PI / 2;
-          const housing = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, .28, 18), ventHousingMat);
-          const rim = new THREE.Mesh(new THREE.TorusGeometry(.9, .09, 8, 22), hazardMat);
-          rim.rotation.x = Math.PI / 2;
+          fan.position.set(side * 7.15, 6.15, z);
+          fan.rotation.y = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+
+          // 1. Recessed Heavy Square Duct Housing with Chamfered Frame
+          const housing = new THREE.Mesh(new RoundedBoxGeometry(2.35, 2.35, .28, 2, .08), ventBoxMat);
+          housing.position.z = .06;
+
+          // 2. Interior Dark Barrel Well
+          const barrel = new THREE.Mesh(new THREE.CylinderGeometry(1.02, 1.02, .32, 28, 1, true), ventBarrelMat);
+          barrel.rotation.x = Math.PI / 2;
+          barrel.position.z = .06;
+
+          const barrelBack = new THREE.Mesh(new THREE.CircleGeometry(1.0, 28), ventBarrelMat);
+          barrelBack.position.z = -.08;
+
+          // 3. Glowing Interior Engine Motor Accent Ring
+          const motorGlow = new THREE.Mesh(new THREE.TorusGeometry(.42, .035, 6, 24), ventGlowMat);
+          motorGlow.position.z = -.06;
+
+          // 4. Dark Titanium Steel Rim Ring on Outer Mouth (Replacing Yellow)
+          const ductRim = new THREE.Mesh(new THREE.TorusGeometry(1.02, .06, 8, 32), ventRimMat);
+          ductRim.position.z = .20;
+
+          // 5. 6-Blade Aerodynamic Turbine Rotor Assembly (구멍 입구 전면에 시원하게 복구)
           const rotor = new THREE.Group();
-          rotor.position.y = .17;
-          const hub = new THREE.Mesh(new THREE.CylinderGeometry(.2, .2, .18, 12), ventBladeMat);
-          for (let bladeIndex = 0; bladeIndex < 5; bladeIndex++) {
-            // Rotor spins around local Y.  Put each blade in its X/Z face
-            // plane, not along the shaft, so it reads as a real fan blade.
-            const blade = new THREE.Mesh(new RoundedBoxGeometry(.68, .18, .1, 2, .03), ventBladeMat);
-            blade.position.set(.43, 0, .035);
-            blade.rotation.y = .34;
+          rotor.position.z = .21;
+
+          const noseCone = new THREE.Mesh(new THREE.ConeGeometry(.28, .42, 16), ventTurbineMat);
+          noseCone.rotation.x = Math.PI / 2;
+          rotor.add(noseCone);
+
+          const numBlades = 6;
+          for (let b = 0; b < numBlades; b++) {
+            const angle = (b / numBlades) * Math.PI * 2;
             const bladePivot = new THREE.Group();
-            bladePivot.rotation.y = bladeIndex * Math.PI * .4;
+            bladePivot.rotation.z = angle;
+
+            // Curved, angled turbine blade pitch (확장된 회전 날개)
+            const blade = new THREE.Mesh(new THREE.BoxGeometry(.65, .18, .035), ventTurbineMat);
+            blade.position.set(.48, 0, 0);
+            blade.rotation.x = .48; // Aerodynamic pitch angle
             bladePivot.add(blade);
             rotor.add(bladePivot);
           }
-          rotor.add(hub);
-          fan.add(housing, rim, rotor);
-          fan.userData = { rotor, phase: z * .22 + side, speed: .9 + Math.abs(z) * .035 };
+
+          // 6. Protective Cross-Bar Grill Guard (십자 프로텍터 그릴)
+          const grillX = new THREE.Mesh(new THREE.BoxGeometry(2.15, .05, .05), ventBoxMat);
+          grillX.position.z = .26;
+          const grillY = new THREE.Mesh(new THREE.BoxGeometry(.05, 2.15, .05), ventBoxMat);
+          grillY.position.z = .26;
+
+          fan.add(housing, barrel, barrelBack, motorGlow, ductRim, rotor, grillX, grillY);
+          fan.userData = { rotor, phase: z * .22 + side, speed: 2.2 + Math.abs(z) * .05 };
           hangarVentFans.push(fan);
           hangarGroup.add(fan);
         }
@@ -4621,6 +5405,7 @@
       if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : -HANGAR_LIFT_GATE_OPEN_X;
       if (hangarLiftGateRight) hangarLiftGateRight.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : HANGAR_LIFT_GATE_OPEN_X;
       if (hangarLiftPlatform) hangarLiftPlatform.position.y = titleActive ? TITLE_LIFT_START_Y : 0;
+      if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = titleActive ? 0 : -0.96;
       for (const particle of hangarLaunchParticles) {
         particle.visible = false;
         particle.material.opacity = 0;
@@ -4638,7 +5423,7 @@
       battleStarted = false;
       battleCountdownActive = false;
       scene.background = hangarBackground;
-      scene.fog = hangarFog;
+      if (window.updateHangarFog) window.updateHangarFog();
       hemi.intensity = .26;
       sun.intensity = .16;
       rimLight.intensity = .34;
@@ -4660,13 +5445,15 @@
       if (!hangarActive && !hangarLaunching) return;
       const now = performance.now() * .001;
       if (titleActive && !hangarLaunching) {
-        titleRevealTime = Math.min(3.8, titleRevealTime + dt);
-        const reveal = THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.35);
-        const gateOpen = THREE.MathUtils.smoothstep(reveal, .04, .64);
-        const liftProgress = THREE.MathUtils.smoothstep(reveal, .10, 1);
+        titleRevealTime = Math.min(4.8, titleRevealTime + dt);
+        const reveal = THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.0);
+        const gateOpen = THREE.MathUtils.smoothstep(titleRevealTime, .04, .64);
+        const liftProgress = THREE.MathUtils.smoothstep(titleRevealTime, .10, 3.0); // Elevator arrives completely at ground level at 3.0s
+        const fenceLowerProgress = THREE.MathUtils.smoothstep(titleRevealTime, 4.0, 4.8); // 1.0s delay after arrival (starts lowering at 4.0s)
         if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = -gateOpen * HANGAR_LIFT_GATE_OPEN_X;
         if (hangarLiftGateRight) hangarLiftGateRight.position.x = gateOpen * HANGAR_LIFT_GATE_OPEN_X;
         if (hangarLiftPlatform) hangarLiftPlatform.position.y = THREE.MathUtils.lerp(TITLE_LIFT_START_Y, 0, liftProgress);
+        if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = THREE.MathUtils.lerp(0, -0.96, fenceLowerProgress);
         // Keep the walker locked to the whole rising plate, not just a vertical pose offset.
         player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET;
         player.rotation.y = Math.PI + (reveal < .995 ? Math.sin(now * .65) * .08 * (1 - reveal) : 0);
@@ -4735,13 +5522,150 @@
       }
       for (const spark of robotArmSparks) {
         const arm = maintenanceMechanics[spark.userData.armIndex];
-        const life = (now * 3.8 + spark.userData.phase) % 1;
+        const life = (now * spark.userData.speedMult + spark.userData.phase) % 1;
+        const armPhase = now * 1.5 + spark.userData.burstOffset;
+        const isArmWelding = Math.sin(armPhase) > 0.65;
+
         arm.userData.toolLight.updateWorldMatrix(true, false);
         arm.userData.toolLight.getWorldPosition(spark.userData.origin);
         hangarGroup.worldToLocal(spark.userData.origin);
-        spark.position.copy(spark.userData.origin).addScaledVector(spark.userData.direction, life * .55);
-        spark.scale.setScalar(.55 + (1 - life) * 1.5);
-        spark.material.opacity = hangarLaunching ? 0 : Math.sin(life * Math.PI) * .85;
+
+        // Realistic Parabolic Arc Welding Spark Trajectory with Gravity & Drag
+        const vel = spark.userData.velocity;
+        spark.position.set(
+          spark.userData.origin.x + vel.x * life * .45,
+          spark.userData.origin.y + vel.y * life * .45 - 2.2 * life * life,
+          spark.userData.origin.z + vel.z * life * .45
+        );
+        spark.scale.setScalar((.25 + (1 - life) * 0.9) * (.6 + Math.sin(now * 24 + spark.userData.phase) * .4));
+        spark.material.opacity = (hangarLaunching || !isArmWelding) ? 0 : Math.sin(life * Math.PI) * .45;
+      }
+
+      // --- UPDATE 3D SCI-FI QUADCOPTER REPAIR DRONES (3 UNITS) ---
+      // Realistic Quadcopter flight physics & Cyclic Offscreen In-Out Patrol State Machine:
+      // [WAITING (Offscreen)] -> [ENTERING (Fly in from far outer space)] -> [REPAIRING (Hover & Welding Laser)] -> [EXITING (Fly away offscreen)] -> Repeat
+      if (window.hangarRepairDrones) {
+        for (const drone of window.hangarRepairDrones) {
+          const data = drone.userData;
+          
+          // 1. High-Speed 4-Rotor Blade Spin
+          for (let r = 0; r < data.rotorBlades.length; r++) {
+            const spinDirection = (r % 2 === 0 ? 1 : -1);
+            data.rotorBlades[r].rotation.y += dt * 42.0 * spinDirection;
+          }
+
+          if (hangarLaunching) {
+            // Fast Emergency Evacuation flight retreat during Mech Launch sequence
+            drone.position.lerp(new THREE.Vector3(data.route.start.x * 1.5, data.route.start.y + 6.0, data.route.start.z * 1.5), dt * 3.5);
+            drone.rotation.z = THREE.MathUtils.lerp(drone.rotation.z, (data.route.start.x > 0 ? 0.45 : -0.45), dt * 4.0);
+            if (data.repairBeam) data.repairBeam.visible = false;
+            continue;
+          }
+
+          // Smooth Motion Blending (Cross-Fade Blend Weighting between Bezier Trajectory and Hover Sway)
+          if (data.state === 'WAITING') {
+            data.waitTimer -= dt;
+            drone.position.copy(data.route.start);
+            if (data.repairBeam) data.repairBeam.visible = false;
+            if (data.waitTimer <= 0) {
+              data.state = 'ENTERING';
+              data.progress = 0;
+            }
+            continue;
+          }
+
+          let prevPos = drone.position.clone();
+          const hoverX = Math.sin(now * 1.2 + data.phase) * 0.55;
+          const hoverY = Math.cos(now * 1.5 + data.phase) * 0.28;
+          const hoverZ = Math.sin(now * 0.9 + data.phase * 1.5) * 0.45;
+          const hoverOffset = new THREE.Vector3(hoverX, hoverY, hoverZ);
+
+          if (data.state === 'ENTERING') {
+            data.progress = Math.min(1.0, data.progress + dt / data.flightDuration);
+            if (data.repairBeam) data.repairBeam.visible = false;
+
+            const p = data.progress;
+            const easeT = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+
+            // Quadratic Bezier Base Path
+            const t1 = 1 - easeT;
+            const bezierPos = new THREE.Vector3()
+              .addScaledVector(data.route.start, t1 * t1)
+              .addScaledVector(data.route.ctrlIn, 2 * t1 * easeT)
+              .addScaledVector(data.route.work, easeT * easeT);
+
+            // Blend hover sway seamlessly as drone approaches work position (t = 0.7 -> 1.0)
+            const hoverBlendWeight = THREE.MathUtils.smoothstep(p, 0.65, 1.0);
+            const targetPos = bezierPos.addScaledVector(hoverOffset, hoverBlendWeight);
+
+            drone.position.copy(targetPos);
+
+            if (data.progress >= 1.0) {
+              data.state = 'REPAIRING';
+              data.workTimer = 0;
+            }
+          } else if (data.state === 'REPAIRING') {
+            data.workTimer += dt;
+
+            // Pure Hovering Sway at Work Position
+            const targetPos = data.route.work.clone().add(hoverOffset);
+            drone.position.lerp(targetPos, dt * 3.5);
+
+            // Active Repair Laser Ray Beam Pulsing
+            if (data.repairBeam) {
+              const laserActive = Math.sin(now * 4.2 + data.phase) > -0.25;
+              data.repairBeam.visible = laserActive;
+              if (laserActive) {
+                data.repairBeam.material.opacity = 0.55 + Math.sin(now * 26.0) * 0.38;
+              }
+            }
+
+            if (data.workTimer >= data.maxWorkDuration) {
+              data.state = 'EXITING';
+              data.progress = 0;
+            }
+          } else if (data.state === 'EXITING') {
+            data.progress = Math.min(1.0, data.progress + dt / (data.flightDuration * 0.9));
+            if (data.repairBeam) data.repairBeam.visible = false;
+
+            const p = data.progress;
+            const easeT = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+
+            const t1 = 1 - easeT;
+            const exitBezierPos = new THREE.Vector3()
+              .addScaledVector(data.route.work, t1 * t1)
+              .addScaledVector(data.route.ctrlOut, 2 * t1 * easeT)
+              .addScaledVector(data.route.exit, easeT * easeT);
+
+            // Fade out hover sway smoothly as drone leaves work position (t = 0.0 -> 0.35)
+            const hoverBlendOut = 1.0 - THREE.MathUtils.smoothstep(p, 0.0, 0.35);
+            const targetPos = exitBezierPos.addScaledVector(hoverOffset, hoverBlendOut);
+
+            drone.position.copy(targetPos);
+
+            if (data.progress >= 1.0) {
+              data.state = 'WAITING';
+              data.waitTimer = 4.5 + Math.random() * 5.5;
+              drone.position.copy(data.route.start);
+            }
+          }
+
+          // Aerodynamic Banking Tilt (Roll & Pitch) calculated from frame-by-frame velocity vector
+          const moveVec = drone.position.clone().sub(prevPos);
+          const speed = moveVec.length();
+
+          if (speed > 0.001) {
+            const desiredRoll = THREE.MathUtils.clamp(-moveVec.x * 2.2, -0.45, 0.45);
+            const desiredPitch = THREE.MathUtils.clamp(moveVec.z * 2.2, -0.45, 0.45);
+
+            data.tiltRoll = THREE.MathUtils.lerp(data.tiltRoll, desiredRoll, dt * 4.5);
+            data.tiltPitch = THREE.MathUtils.lerp(data.tiltPitch, desiredPitch, dt * 4.5);
+
+            drone.rotation.z = data.tiltRoll;
+            drone.rotation.x = data.tiltPitch;
+            drone.rotation.y = THREE.MathUtils.lerp(drone.rotation.y, Math.atan2(moveVec.x, moveVec.z), dt * 3.5);
+          }
+        }
       }
       // Update Hero Pilot (`heroPilot`)
       if (heroPilot) {
@@ -4786,16 +5710,33 @@
         }
       }
 
-      // Update Hangar Dust Particles
+      // Update Atmospheric Volumetric Dust Motes & Realistic Light Beam Dust
+      const dustMult = window.hangarFogParams ? window.hangarFogParams.dustIntensity : 1.0;
       for (const dust of hangarDustParticles) {
-        dust.position.y += dt * dust.userData.speedY;
-        dust.position.x += Math.sin(now * 0.8 + dust.userData.phase) * dt * 0.15;
-        if (dust.position.y > 12) dust.position.y = 0.2;
-        dust.material.opacity = (Math.sin(now * 2 + dust.userData.phase) * 0.5 + 0.5) * 0.35;
+        if (!dust.userData.origin) {
+          dust.position.y += dt * dust.userData.speedY;
+          dust.position.x += Math.sin(now * 0.7 + dust.userData.phase) * dt * 0.22 + dust.userData.driftX * dt;
+          dust.position.z += Math.cos(now * 0.6 + dust.userData.phase * 1.5) * dt * 0.22 + dust.userData.driftZ * dt;
+          if (dust.position.y > 12) dust.position.y = 0.2;
+          const pulse = Math.sin(now * dust.userData.pulseFreq + dust.userData.phase) * 0.5 + 0.5;
+          dust.scale.setScalar(dust.userData.scaleBase * (0.8 + pulse * 0.4));
+          dust.material.opacity = pulse * 0.38 * dustMult;
+        } else {
+          // Realistic Beam Glittering Micro Dust
+          const data = dust.userData;
+          data.phaseX += dt * data.speed;
+          data.phaseY += dt * data.speed * 0.8;
+          data.phaseZ += dt * data.speed * 1.2;
+          dust.position.x = data.origin.x + Math.sin(data.phaseX) * 0.45;
+          dust.position.y = data.origin.y + Math.cos(data.phaseY) * 0.35;
+          dust.position.z = data.origin.z + Math.sin(data.phaseZ) * 0.45;
+          const glitter = (Math.sin(now * 8.0 + data.phaseX) * 0.5 + 0.5);
+          dust.material.opacity = data.baseOpacity * glitter * dustMult;
+        }
       }
       for (const light of hangarTunnelLights) {
         const pulse = .68 + Math.sin(now * 5.4 + (light.userData.phase || light.position.y)) * .32;
-        if (light.isLight) light.intensity = hangarLaunching ? 8 + pulse * 9 : 2.5 + pulse * 2;
+        if (light.isLight) light.intensity = hangarLaunching ? 72 + pulse * 81 : 22.5 + pulse * 18;
         else light.scale.y = .8 + pulse * .35;
       }
       for (const searchlight of hangarSearchlights) {
@@ -4824,17 +5765,44 @@
       }
       for (const fan of hangarVentFans) {
         const speed = hangarLaunching ? fan.userData.speed * 2.2 : fan.userData.speed;
-        fan.userData.rotor.rotation.y = now * speed * 7 + fan.userData.phase;
+        fan.userData.rotor.rotation.z = now * speed * 7 + fan.userData.phase;
       }
+      // Update Volumetric Industrial Steam & Exhaust Plumes (Staggered Vent Puffs)
+      const steamMult = window.hangarFogParams ? window.hangarFogParams.steamIntensity : 1.0;
       for (const steam of hangarSteamParticles) {
-        const life = (now * .26 + steam.userData.phase) % 1;
-        steam.position.set(
-          steam.userData.ventX + Math.sin(life * 8 + steam.userData.phase * 12) * .35,
-          .4 + life * 2.7,
-          steam.userData.ventZ + Math.cos(life * 7) * .24
-        );
-        steam.scale.setScalar(.35 + life * 1.45);
-        steam.material.opacity = hangarLaunching ? 0 : Math.sin(life * Math.PI) * .16;
+        if (steam.userData.baseX !== undefined) {
+          // Volumetric Floor Vent Steam Plume
+          const data = steam.userData;
+          data.life += dt;
+          if (data.life > data.maxLife) {
+            data.life = 0;
+            data.baseX = (Math.random() - 0.5) * 12.0;
+            data.baseZ = (Math.random() - 0.5) * 12.0;
+          }
+          const progress = data.life / data.maxLife;
+          steam.position.x = data.baseX + Math.sin(progress * Math.PI * 2) * 0.4;
+          steam.position.y = 0.1 + progress * 6.5;
+          steam.position.z = data.baseZ + Math.cos(progress * Math.PI * 2) * 0.4;
+          steam.rotation.z += dt * data.rotSpeed;
+          const scale = 1.0 + progress * 2.5;
+          steam.scale.setScalar(scale);
+          const opacity = Math.sin(progress * Math.PI) * 0.45 * steamMult;
+          steam.material.opacity = hangarLaunching ? 0 : opacity;
+        } else {
+          const life = (now * steam.userData.puffSpeed + steam.userData.ventPhase) % 1;
+          steam.position.set(
+            steam.userData.ventX + Math.sin(life * 7.5 + steam.userData.ventPhase * 10) * .48,
+            .35 + life * 3.4,
+            steam.userData.ventZ + Math.cos(life * 6.5 + steam.userData.ventPhase * 8) * .36
+          );
+          steam.rotation.z = life * steam.userData.spinSpeed;
+          steam.scale.setScalar(.45 + life * 2.2);
+          steam.material.opacity = hangarLaunching ? 0 : Math.sin(life * Math.PI) * .42 * steamMult;
+        }
+      }
+      if (hangarLaunching && elevatorSafetyFenceGroup) {
+        const fenceRaiseProgress = THREE.MathUtils.smoothstep(hangarLaunchTime, 0, .45);
+        elevatorSafetyFenceGroup.position.y = THREE.MathUtils.lerp(-0.96, 0, fenceRaiseProgress);
       }
       if (!hangarLaunching) return;
       hangarLaunchTime += dt;
@@ -4993,11 +5961,15 @@ let landingRecoveryTimer = 0;
     let customCameraPointerStartX = 0;
     let customCameraPointerStartY = 0;
     let hangarCameraYaw = 0;
+    let hangarCameraPitch = 0;
     let hangarCameraDragging = false;
     let hangarCameraPointerX = 0;
+    let hangarCameraPointerY = 0;
     let titleCameraYaw = 0;
+    let titleCameraPitch = 0;
     let titleCameraDragging = false;
     let titleCameraPointerX = 0;
+    let titleCameraPointerY = 0;
     let titleActive = true;
     let titleRevealTime = 0;
     let hangarLaunching = false;
@@ -5362,8 +6334,12 @@ let landingRecoveryTimer = 0;
     let evacueeHeads = null;
     let evacueeLeftArms = null;
     let evacueeRightArms = null;
-    let evacueeLeftLegs = null;
-    let evacueeRightLegs = null;
+    let evacueeLeftForearms = null;
+    let evacueeRightForearms = null;
+    let evacueeLeftThighs = null;
+    let evacueeRightThighs = null;
+    let evacueeLeftShins = null;
+    let evacueeRightShins = null;
     let evacueeBackpacks = null;
     const blocks = [];
     const columns = [];
@@ -5676,6 +6652,82 @@ let landingRecoveryTimer = 0;
     document.getElementById('visualSettingsButton').addEventListener('click', openVisualSettings);
     document.getElementById('visualHudButton').addEventListener('click', openVisualSettings);
     document.getElementById('visualSettingsClose').addEventListener('click', () => document.getElementById('visualSettings').classList.remove('active'));
+
+    // --- HANGAR FOG & PARTICLES UI EVENT LISTENERS ---
+    const fogToggle = document.getElementById('fogToggle');
+    const fogModeSelect = document.getElementById('fogModeSelect');
+    const fogColorInput = document.getElementById('fogColorInput');
+    const fogDensityInput = document.getElementById('fogDensityInput');
+    const fogDensityVal = document.getElementById('fogDensityVal');
+    const fogNearInput = document.getElementById('fogNearInput');
+    const fogNearVal = document.getElementById('fogNearVal');
+    const fogFarInput = document.getElementById('fogFarInput');
+    const fogFarVal = document.getElementById('fogFarVal');
+    const fogDensityRow = document.getElementById('fogDensityRow');
+    const fogNearRow = document.getElementById('fogNearRow');
+    const fogFarRow = document.getElementById('fogFarRow');
+    const steamIntensityInput = document.getElementById('steamIntensityInput');
+    const steamIntensityVal = document.getElementById('steamIntensityVal');
+    const dustIntensityInput = document.getElementById('dustIntensityInput');
+    const dustIntensityVal = document.getElementById('dustIntensityVal');
+
+    const updateFogState = () => {
+      const p = window.hangarFogParams;
+      if (!p) return;
+      p.enabled = fogToggle.checked;
+      p.mode = fogModeSelect.value;
+      p.color = parseInt(fogColorInput.value.replace('#', '0x'), 16);
+      p.density = parseFloat(fogDensityInput.value);
+      p.near = parseFloat(fogNearInput.value);
+      p.far = parseFloat(fogFarInput.value);
+      p.steamIntensity = parseFloat(steamIntensityInput.value);
+      p.dustIntensity = parseFloat(dustIntensityInput.value);
+
+      fogDensityVal.textContent = p.density.toFixed(3);
+      fogNearVal.textContent = p.near.toFixed(0) + 'm';
+      fogFarVal.textContent = p.far.toFixed(0) + 'm';
+      steamIntensityVal.textContent = p.steamIntensity.toFixed(1) + 'x';
+      dustIntensityVal.textContent = p.dustIntensity.toFixed(1) + 'x';
+
+      if (!p.enabled) {
+        scene.fog = null;
+        return;
+      }
+
+      if (p.mode === 'exp2') {
+        fogDensityRow.classList.remove('hidden');
+        fogNearRow.classList.add('hidden');
+        fogFarRow.classList.add('hidden');
+        if (!(scene.fog instanceof THREE.FogExp2)) {
+          scene.fog = new THREE.FogExp2(p.color, p.density);
+        } else {
+          scene.fog.color.setHex(p.color);
+          scene.fog.density = p.density;
+        }
+      } else {
+        fogDensityRow.classList.add('hidden');
+        fogNearRow.classList.remove('hidden');
+        fogFarRow.classList.remove('hidden');
+        if (!(scene.fog instanceof THREE.Fog)) {
+          scene.fog = new THREE.Fog(p.color, p.near, p.far);
+        } else {
+          scene.fog.color.setHex(p.color);
+          scene.fog.near = p.near;
+          scene.fog.far = p.far;
+        }
+      }
+    };
+
+    if (fogToggle) {
+      fogToggle.addEventListener('change', updateFogState);
+      fogModeSelect.addEventListener('change', updateFogState);
+      fogColorInput.addEventListener('input', updateFogState);
+      fogDensityInput.addEventListener('input', updateFogState);
+      fogNearInput.addEventListener('input', updateFogState);
+      fogFarInput.addEventListener('input', updateFogState);
+      steamIntensityInput.addEventListener('input', updateFogState);
+      dustIntensityInput.addEventListener('input', updateFogState);
+    }
 
     const visualSettingsCopyBtn = document.getElementById('visualSettingsCopy');
     if (visualSettingsCopyBtn) {
@@ -7238,30 +8290,38 @@ let landingRecoveryTimer = 0;
     const hangarOverlay = document.getElementById('hangarOverlay');
     const titleScreen = document.getElementById('titleScreen');
     titleScreen.addEventListener('pointerdown', event => {
-      if (event.button !== 0 || !titleActive) return;
+      if (event.button !== 0 || !titleActive || hangarLaunching) return;
       if (event.target.closest('.title-panel, button')) return;
       titleCameraDragging = true;
       titleCameraPointerX = event.clientX;
+      titleCameraPointerY = event.clientY;
       titleScreen.classList.add('orbiting');
       titleScreen.setPointerCapture?.(event.pointerId);
     });
     hangarOverlay.addEventListener('pointerdown', event => {
       if (event.button !== 0 || !hangarActive || titleActive || hangarLaunching) return;
-      if (event.target.closest('.hangar-loadout, button, select, input')) return;
+      if (event.target.closest('.hangar-loadout, button, select, input, #visualSettings')) return;
       hangarCameraDragging = true;
       hangarCameraPointerX = event.clientX;
+      hangarCameraPointerY = event.clientY;
       hangarOverlay.setPointerCapture?.(event.pointerId);
     });
     addEventListener('pointermove', event => {
       if (titleCameraDragging) {
         const deltaX = event.clientX - titleCameraPointerX;
+        const deltaY = event.clientY - titleCameraPointerY;
         titleCameraPointerX = event.clientX;
-        titleCameraYaw = THREE.MathUtils.clamp(titleCameraYaw - deltaX * .0045, -.58, .58);
+        titleCameraPointerY = event.clientY;
+        titleCameraYaw = THREE.MathUtils.clamp(titleCameraYaw - deltaX * .0045, -.85, .85);
+        titleCameraPitch = THREE.MathUtils.clamp(titleCameraPitch + deltaY * .0045, -.85, .95);
       }
       if (!hangarCameraDragging) return;
       const deltaX = event.clientX - hangarCameraPointerX;
+      const deltaY = event.clientY - hangarCameraPointerY;
       hangarCameraPointerX = event.clientX;
-      hangarCameraYaw = THREE.MathUtils.clamp(hangarCameraYaw - deltaX * .004, -.42, .42);
+      hangarCameraPointerY = event.clientY;
+      hangarCameraYaw = THREE.MathUtils.clamp(hangarCameraYaw - deltaX * .004, -.68, .68);
+      hangarCameraPitch = THREE.MathUtils.clamp(hangarCameraPitch + deltaY * .004, -.95, 1.15);
     });
     addEventListener('pointerup', () => {
       titleCameraDragging = false;
@@ -7276,6 +8336,7 @@ let landingRecoveryTimer = 0;
       titleActive = false;
       titleCameraDragging = false;
       hangarCameraYaw = 0;
+      hangarCameraPitch = 0;
       player.position.y = 0;
       player.rotation.y = Math.PI;
       if (hangarGateLeft) hangarGateLeft.position.x = -3.9;
@@ -8055,8 +9116,12 @@ let landingRecoveryTimer = 0;
       evacueeHeads = null;
       evacueeLeftArms = null;
       evacueeRightArms = null;
-      evacueeLeftLegs = null;
-      evacueeRightLegs = null;
+      evacueeLeftForearms = null;
+      evacueeRightForearms = null;
+      evacueeLeftThighs = null;
+      evacueeRightThighs = null;
+      evacueeLeftShins = null;
+      evacueeRightShins = null;
       evacueeBackpacks = null;
       treeTrunks = [];
       treeCrowns = [];
@@ -8356,16 +9421,32 @@ let landingRecoveryTimer = 0;
         evacueeSkinMat,
         evacueeCount
       );
-      evacueeLeftArms = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.065, .46, 3, 6), evacueeClothingMat, evacueeCount);
-      evacueeRightArms = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.065, .46, 3, 6), evacueeClothingMat, evacueeCount);
-      evacueeLeftLegs = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.085, .52, 3, 6), evacueePantsMat, evacueeCount);
-      evacueeRightLegs = new THREE.InstancedMesh(new THREE.CapsuleGeometry(.085, .52, 3, 6), evacueePantsMat, evacueeCount);
+      // Articulated Arms: Upper Arm (Shoulder->Elbow) & Forearm (Elbow->Wrist)
+      const armUpperGeo = new THREE.CapsuleGeometry(.065, .24, 3, 6);
+      armUpperGeo.translate(0, -.14, 0);
+      const armLowerGeo = new THREE.CapsuleGeometry(.055, .24, 3, 6);
+      armLowerGeo.translate(0, -.14, 0);
+
+      evacueeLeftArms = new THREE.InstancedMesh(armUpperGeo, evacueeClothingMat, evacueeCount);
+      evacueeRightArms = new THREE.InstancedMesh(armUpperGeo, evacueeClothingMat, evacueeCount);
+      evacueeLeftForearms = new THREE.InstancedMesh(armLowerGeo, evacueeSkinMat, evacueeCount);
+      evacueeRightForearms = new THREE.InstancedMesh(armLowerGeo, evacueeSkinMat, evacueeCount);
+
+      // Articulated Legs: Thigh (Hip->Knee) & Shin (Knee->Ankle)
+      const legThighGeo = new THREE.CapsuleGeometry(.085, .28, 3, 6);
+      legThighGeo.translate(0, -.16, 0);
+      const legShinGeo = new THREE.CapsuleGeometry(.075, .28, 3, 6);
+      legShinGeo.translate(0, -.16, 0);
+
+      evacueeLeftThighs = new THREE.InstancedMesh(legThighGeo, evacueePantsMat, evacueeCount);
+      evacueeRightThighs = new THREE.InstancedMesh(legThighGeo, evacueePantsMat, evacueeCount);
+      evacueeLeftShins = new THREE.InstancedMesh(legShinGeo, evacueePantsMat, evacueeCount);
+      evacueeRightShins = new THREE.InstancedMesh(legShinGeo, evacueePantsMat, evacueeCount);
       evacueeBackpacks = new THREE.InstancedMesh(new RoundedBoxGeometry(.34, .45, .16, 2, .04), evacueePackMat, evacueeCount);
-      // Their instances travel far beyond the geometry's initial bounds.
-      // Disable stale-bounds culling so crowds do not vanish as the camera moves.
+
       const evacueeMeshes = [
-        evacueeBodies, evacueeHeads, evacueeLeftArms, evacueeRightArms,
-        evacueeLeftLegs, evacueeRightLegs, evacueeBackpacks
+        evacueeBodies, evacueeHeads, evacueeLeftArms, evacueeRightArms, evacueeLeftForearms, evacueeRightForearms,
+        evacueeLeftThighs, evacueeRightThighs, evacueeLeftShins, evacueeRightShins, evacueeBackpacks
       ];
       for (const mesh of evacueeMeshes) {
         mesh.frustumCulled = false;
@@ -8393,10 +9474,14 @@ let landingRecoveryTimer = 0;
         evacueeBodies.setColorAt(i, clothingColor);
         evacueeLeftArms.setColorAt(i, clothingColor);
         evacueeRightArms.setColorAt(i, clothingColor);
+        evacueeLeftForearms.setColorAt(i, clothingColor);
+        evacueeRightForearms.setColorAt(i, clothingColor);
       }
       evacueeBodies.instanceColor.needsUpdate = true;
       evacueeLeftArms.instanceColor.needsUpdate = true;
       evacueeRightArms.instanceColor.needsUpdate = true;
+      evacueeLeftForearms.instanceColor.needsUpdate = true;
+      evacueeRightForearms.instanceColor.needsUpdate = true;
       cityDecor.add(...evacueeMeshes);
 
       const propMat = new THREE.MeshStandardMaterial({ color: 0x263846, roughness: .42, metalness: .72 });
@@ -8509,7 +9594,7 @@ let landingRecoveryTimer = 0;
     }
 
     function updateEvacuees(dt) {
-      if (!evacueeBodies || !evacueeHeads || !evacueeLeftArms || !evacueeRightArms || !evacueeLeftLegs || !evacueeRightLegs) return;
+      if (!evacueeBodies || !evacueeHeads || !evacueeLeftArms || !evacueeRightArms || !evacueeLeftThighs || !evacueeRightThighs) return;
       const matrix = new THREE.Matrix4();
       const rotation = new THREE.Quaternion();
       const partRotation = new THREE.Quaternion();
@@ -8519,14 +9604,23 @@ let landingRecoveryTimer = 0;
       const xAxis = new THREE.Vector3(1, 0, 0);
       const scale = new THREE.Vector3(1, 1, 1);
       const evacueeMeshes = [
-        evacueeBodies, evacueeHeads, evacueeLeftArms, evacueeRightArms,
-        evacueeLeftLegs, evacueeRightLegs, evacueeBackpacks
+        evacueeBodies, evacueeHeads, evacueeLeftArms, evacueeRightArms, evacueeLeftForearms, evacueeRightForearms,
+        evacueeLeftThighs, evacueeRightThighs, evacueeLeftShins, evacueeRightShins, evacueeBackpacks
       ];
       const threats = [];
       if (!playerDestroyed && player.visible) threats.push(player.position);
       if (enemyAI?.alive && enemyAI.group.visible) threats.push(enemyAI.group.position);
       if (enemyAI2?.alive && enemyAI2.group.visible) threats.push(enemyAI2.group.position);
       const now = performance.now() * .001;
+      const yAxis = new THREE.Vector3(0, 1, 0);
+      const rootQuat = new THREE.Quaternion();
+      const bodyRot = new THREE.Quaternion();
+      const personQuat = new THREE.Quaternion();
+      const thighRot = new THREE.Quaternion();
+      const kneeRot = new THREE.Quaternion();
+      const shoulderRot = new THREE.Quaternion();
+      const elbowRot = new THREE.Quaternion();
+
       evacuees.forEach((person, index) => {
         if (!person.active || person.exitDelay > 0 || !battleStarted) {
           if (person.active && battleStarted && Number.isFinite(person.exitDelay)) person.exitDelay = Math.max(0, person.exitDelay - dt);
@@ -8552,41 +9646,96 @@ let landingRecoveryTimer = 0;
           person.side *= -1;
           person.position.set(person.side * THREE.MathUtils.randFloat(12, 16), 0, THREE.MathUtils.randFloat(-arenaHalfSize + 8, arenaHalfSize - 8));
         }
-        const yaw = Math.atan2(escape.x, escape.z);
-        rotation.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-        const stridePhase = now * runSpeed * 4.2 + person.phase;
-        const stride = Math.sin(stridePhase);
-        const bob = Math.abs(Math.sin(stridePhase * 2)) * .075;
-        const armSwing = stride * .72;
-        const legSwing = stride * .82;
-        const setPartMatrix = (mesh, x, y, z, swing = 0) => {
-          localOffset.set(x, y, z).applyQuaternion(rotation);
-          partPosition.copy(person.position).add(localOffset);
-          partPosition.y += bob;
-          swingRotation.setFromAxisAngle(xAxis, swing);
-          partRotation.copy(rotation).multiply(swingRotation);
-          matrix.compose(partPosition, partRotation, scale);
-          mesh.setMatrixAt(index, matrix);
-        };
 
-        localOffset.set(0, 1.04, 0).applyQuaternion(rotation);
+        const stridePhase = now * runSpeed * 4.8 + person.phase;
+        const strideSin = Math.sin(stridePhase);
+        const doubleSin = Math.sin(stridePhase * 2);
+
+        // Pelvic Bounce, Forward Lean into Sprint, and Weight Transfer Twist
+        const bob = Math.abs(doubleSin) * .095;
+        const forwardLean = .22 + danger * .15;
+        const pelvisRoll = strideSin * .05;
+        const pelvisYaw = -strideSin * .08;
+
+        const yaw = Math.atan2(escape.x, escape.z);
+        rootQuat.setFromAxisAngle(yAxis, yaw);
+
+        // Torso / Core Matrix
+        bodyRot.setFromEuler(new THREE.Euler(forwardLean, pelvisYaw, pelvisRoll));
+        personQuat.copy(rootQuat).multiply(bodyRot);
+        localOffset.set(0, .96, 0).applyQuaternion(rootQuat);
         partPosition.copy(person.position).add(localOffset);
         partPosition.y += bob;
-        swingRotation.setFromAxisAngle(xAxis, .12 + danger * .1);
-        partRotation.copy(rotation).multiply(swingRotation);
-        matrix.compose(partPosition, partRotation, scale);
+        matrix.compose(partPosition, personQuat, scale);
         evacueeBodies.setMatrixAt(index, matrix);
 
-        partPosition.copy(person.position).add(localOffset.set(0, 1.52, .025).applyQuaternion(rotation));
+        // Head Matrix
+        localOffset.set(0, 1.48, .04).applyQuaternion(personQuat);
+        partPosition.copy(person.position).add(localOffset);
         partPosition.y += bob;
-        matrix.compose(partPosition, rotation, scale);
+        matrix.compose(partPosition, personQuat, scale);
         evacueeHeads.setMatrixAt(index, matrix);
 
-        setPartMatrix(evacueeLeftArms, -.29, 1.04, 0, -armSwing);
-        setPartMatrix(evacueeRightArms, .29, 1.04, 0, armSwing);
-        setPartMatrix(evacueeLeftLegs, -.13, .43, stride * .09, legSwing);
-        setPartMatrix(evacueeRightLegs, .13, .43, -stride * .09, -legSwing);
-        setPartMatrix(evacueeBackpacks, 0, 1.04, -.24, .12 + danger * .1);
+        // Backpack Matrix
+        localOffset.set(0, .96, -.22).applyQuaternion(personQuat);
+        partPosition.copy(person.position).add(localOffset);
+        partPosition.y += bob;
+        matrix.compose(partPosition, personQuat, scale);
+        evacueeBackpacks.setMatrixAt(index, matrix);
+
+        // --- ARTICULATED LEG KINEMATICS (Thigh -> Knee Flex -> Shin) ---
+        for (const side of [-1, 1]) {
+          const isLeft = side < 0;
+          const legPhase = isLeft ? stridePhase : stridePhase + Math.PI;
+          const legSin = Math.sin(legPhase);
+
+          const hipAngle = legSin * .68;
+          const kneeFlex = legSin < 0 ? Math.abs(legSin) * 1.18 : 0.08;
+
+          // Thigh Pivot at Hip
+          thighRot.setFromAxisAngle(xAxis, hipAngle);
+          const thighQuat = personQuat.clone().multiply(thighRot);
+          localOffset.set(side * .14, .62, 0).applyQuaternion(personQuat);
+          const hipPos = person.position.clone().add(localOffset);
+          hipPos.y += bob;
+          matrix.compose(hipPos, thighQuat, scale);
+          (isLeft ? evacueeLeftThighs : evacueeRightThighs).setMatrixAt(index, matrix);
+
+          // Shin Pivot at Knee
+          kneeRot.setFromAxisAngle(xAxis, kneeFlex);
+          const shinQuat = thighQuat.clone().multiply(kneeRot);
+          const kneeOffset = new THREE.Vector3(0, -.28, 0).applyQuaternion(thighQuat);
+          const kneePos = hipPos.clone().add(kneeOffset);
+          matrix.compose(kneePos, shinQuat, scale);
+          (isLeft ? evacueeLeftShins : evacueeRightShins).setMatrixAt(index, matrix);
+        }
+
+        // --- ARTICULATED ARM KINEMATICS (Shoulder -> Elbow Flex -> Forearm) ---
+        for (const side of [-1, 1]) {
+          const isLeft = side < 0;
+          const armPhase = isLeft ? stridePhase + Math.PI : stridePhase;
+          const armSin = Math.sin(armPhase);
+
+          const shoulderAngle = -armSin * .62;
+          const elbowFlex = -.48 - Math.max(0, -armSin) * .52;
+
+          // Upper Arm Pivot at Shoulder
+          shoulderRot.setFromEuler(new THREE.Euler(shoulderAngle, 0, side * -.12));
+          const armQuat = personQuat.clone().multiply(shoulderRot);
+          localOffset.set(side * .27, 1.16, 0).applyQuaternion(personQuat);
+          const shoulderPos = person.position.clone().add(localOffset);
+          shoulderPos.y += bob;
+          matrix.compose(shoulderPos, armQuat, scale);
+          (isLeft ? evacueeLeftArms : evacueeRightArms).setMatrixAt(index, matrix);
+
+          // Forearm Pivot at Elbow
+          elbowRot.setFromAxisAngle(xAxis, elbowFlex);
+          const forearmQuat = armQuat.clone().multiply(elbowRot);
+          const elbowOffset = new THREE.Vector3(0, -.26, 0).applyQuaternion(armQuat);
+          const elbowPos = shoulderPos.clone().add(elbowOffset);
+          matrix.compose(elbowPos, forearmQuat, scale);
+          (isLeft ? evacueeLeftForearms : evacueeRightForearms).setMatrixAt(index, matrix);
+        }
       });
       for (const mesh of evacueeMeshes) mesh.instanceMatrix.needsUpdate = true;
     }
@@ -11132,10 +12281,10 @@ if (!wasGrounded && grounded) {
         const drift = reducedMotion ? 0 : Math.sin(performance.now() * .00045) * .32;
         const revealFocus = THREE.MathUtils.smoothstep(titleRevealTime, .35, 3.25);
         const targetPos = new THREE.Vector3(-3.0, THREE.MathUtils.lerp(-1.45, 4.25, revealFocus), 0);
-        const orbitOffset = new THREE.Vector3(6.4 + drift, 10.8, -19.6)
+        const orbitOffset = new THREE.Vector3(6.4 + drift, 10.8 + titleCameraPitch * 8.5, -19.6)
           .applyAxisAngle(new THREE.Vector3(0, 1, 0), titleCameraYaw);
         const camPos = targetPos.clone().add(orbitOffset);
-        camPos.y = 10.8;
+        camPos.y = 10.8 + titleCameraPitch * 10.5;
         const riseShake = reducedMotion ? 0 : THREE.MathUtils.clamp((3.35 - titleRevealTime) / 3.35, 0, 1) * .18;
         if (riseShake > 0) {
           camPos.x += (Math.random() - .5) * riseShake;
@@ -11155,12 +12304,12 @@ if (!wasGrounded && grounded) {
       }
       if (hangarActive || hangarLaunching) {
         // Keep the walker in the clear right-hand viewport beside the loadout panel.
-        const targetPos = player.position.clone().add(new THREE.Vector3(-.8, 5.25, 0));
+        const targetPos = player.position.clone().add(new THREE.Vector3(-.8, 5.25 - hangarCameraPitch * 4.5, 0));
         const camPos = player.position.clone().add(hangarLaunching
           ? new THREE.Vector3(0, 1.35, -8.05)
           : new THREE.Vector3(
               -3.4 + Math.sin(hangarCameraYaw) * 10.8,
-              1.3,
+              1.3 + hangarCameraPitch * 22.0,
               -Math.cos(hangarCameraYaw) * 18.2
             ));
         camera.position.lerp(camPos, 1 - Math.exp(-4.5 * dt));
