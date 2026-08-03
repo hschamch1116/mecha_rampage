@@ -313,3 +313,30 @@ mecha_rampage_siege_walker_v5/
 - `git diff --check` 통과.
 - 로컬 HTTP 미리보기에서 기존 타이틀 → 행거 → 작전 모드 선택 흐름을 통해 전장 진입 확인.
 - 전장 분위기 설정이 새로고침 후에도 유지되고, 선택한 시간대 색상이 전장 화면에 반영되는 것을 확인.
+## 2026-08-03 Performance and Battle Presentation Update
+
+This update records the latest battlefield performance, visibility, presentation, and startup-protection work.
+
+### Rendering and performance
+
+- Added a small loading status before battle assets and effects are used, including a battle-render prewarm pass.
+- Disabled the camera-obstruction fade path while retaining the scene's regular visibility checks.
+- Applied frustum culling to instanced meshes, rain, particles, items, and jetpack flame descendants with conservative bounds where needed.
+- Reused temporary vectors, matrices, quaternions, and threat arrays in evacuee, traffic, and pickup update loops to reduce garbage collection spikes.
+- Kept the restored evacuation-citizen and vehicle counts while moving the FPS counter to the top of the HUD for easier profiling.
+
+### Movement and effects
+
+- Jetpack and dash flames now follow movement direction and are clamped so a backward dash or boost cannot drive the flame into the mech body.
+- Visual defaults are now bloom `0.4`, chromatic aberration `0.008`, film grain `0.3`, and rain `0.05`.
+- Existing saved visual settings are migrated once to these requested defaults and remain user-adjustable afterward.
+
+### Spawn protection
+
+- The first battle start grants a 10-second spawn shield and displays a countdown.
+- Respawns and later level transitions do not restart the countdown.
+- Permanent spawn-area damage immunity was removed; the timed protection is now the damage-immunity rule.
+
+### Verification
+
+- `git diff --check` passes after the update.

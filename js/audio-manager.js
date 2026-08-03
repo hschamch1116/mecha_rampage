@@ -967,7 +967,8 @@ window.AudioManager = class AudioManager {
       gatling: [185, 92, 0.07, 0.065, "square"],
       laser: [720, 210, 0.15, 0.075, "sawtooth"],
       homing: [210, 900, 0.25, 0.1, "sawtooth"],
-      alarm: [320, 640, 1.4, 0.08, "sawtooth"]
+      alarm: [320, 640, 1.4, 0.08, "sawtooth"],
+      pickup: [520, 1320, 0.12, 0.11, "sine"]
     };
 
     const profile = profiles[type];

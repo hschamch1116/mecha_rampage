@@ -91,7 +91,7 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
         float breathing = 0.82 + 0.18 * sin(uTime * 2.0 + vWorldPosition.y * 0.9);
         float energyFloor = 0.58 + 0.42 * sqrt(max(uEnergyRatio, 0.0));
         float alpha = (0.018 + fresnel * 0.54 + caustic * 0.095 + scan * 0.075 + hitRing * 0.9)
-                    * uStrength * breathing * energyFloor;
+                    * uStrength * breathing * energyFloor * 0.5;
 
         vec3 shieldColor = mix(uColor, uRimColor, clamp(fresnel * 0.9 + hitRing, 0.0, 1.0));
         float glow = 1.25 + fresnel * 4.4 + caustic * 1.35 + scan * 1.65 + hitRing * 7.5;
@@ -145,19 +145,13 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
       }
       let sourceVisible = source.visible;
       if (sourceVisible && source.material) {
-        if (Array.isArray(source.material)) {
-          sourceVisible = source.material.some(m => m && m.visible !== false);
-        } else {
-          sourceVisible = source.material.visible !== false;
-        }
+        if (Array.isArray(source.material)) sourceVisible = source.material.some(m => m && m.visible !== false);
+        else sourceVisible = source.material.visible !== false;
       }
       if (sourceVisible) {
         let ancestor = source.parent;
         while (ancestor && ancestor !== root) {
-          if (ancestor.visible === false) {
-            sourceVisible = false;
-            break;
-          }
+          if (ancestor.visible === false) { sourceVisible = false; break; }
           ancestor = ancestor.parent;
         }
       }

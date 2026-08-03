@@ -134,7 +134,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
   }
 
   // Phase C: Foot Lock Hysteresis Update
-  function updateFootLockState(index, dt, gaitState, grounded, dashing, turnRate, speedRatio) {
+  function updateFootLockState(index, dt, gaitState, grounded, dashing, turnRate, speedRatio, locomotionActive) {
     if (!playerLegs || !playerLegs[index]) return;
     const leg = playerLegs[index];
     const joints = leg.userData?.joints;
@@ -168,8 +168,12 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       if (canPlant) {
         footLocked[index] = true;
         footPlantWorld[index] = pool.currentFootWorld.clone();
-        if (typeof playFootstepSound === 'function') playFootstepSound();
-        if (typeof spawnFootstepEffect === 'function') spawnFootstepEffect(pool.currentFootWorld);
+        // Settling a stationary foot is not a step. Keep the lock, but only
+        // emit audio and the ground shockwave while locomotion is active.
+        if (locomotionActive) {
+          if (typeof playFootstepSound === 'function') playFootstepSound();
+          if (typeof spawnFootstepEffect === 'function') spawnFootstepEffect(pool.currentFootWorld);
+        }
       }
     } else {
       const shouldRelease = gaitState.swingProgress > 0.08 ||
@@ -371,7 +375,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
     // Foot Lock Update
     player.updateWorldMatrix(true, true);
     for (let index = 0; index < 2; index++) {
-      updateFootLockState(index, dt, gaitStates[index], grounded, dashing, turnRate, speedRatio);
+      updateFootLockState(index, dt, gaitStates[index], grounded, dashing, turnRate, speedRatio, walking || turningInPlace || dashing);
     }
 
     // ====== ENHANCED T-REX PELVIS BOUNCE & UPPER BODY WEIGHT SHIFT ======
@@ -525,12 +529,24 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
 
         const joints = leg.userData?.joints;
         if (joints) {
-          if (joints.thigh) joints.thigh.rotation.set(-0.08, 0, 0);
-          if (joints.knee) joints.knee.rotation.set(-0.32, 0, 0);
-          if (joints.shin) joints.shin.rotation.set(-0.5, 0, 0);
-          if (joints.rearCalf) joints.rearCalf.rotation.set(-0.42, 0, 0);
-          if (joints.ankle) joints.ankle.rotation.set(0.12, 0, 0);
-          if (joints.foot) joints.foot.rotation.set(reverseFootLevelPitch, 0, 0);
+          const restoreJoint = (joint) => {
+            if (!joint) return;
+            if (joint.userData.initialPosition) joint.position.copy(joint.userData.initialPosition);
+            if (joint.userData.initialRotation) joint.rotation.copy(joint.userData.initialRotation);
+          };
+          restoreJoint(joints.thigh);
+          restoreJoint(joints.knee);
+          restoreJoint(joints.shin);
+          restoreJoint(joints.rearCalf);
+          restoreJoint(joints.ankle);
+          restoreJoint(joints.foot);
+          for (const toePivot of joints.toePivots || []) restoreJoint(toePivot);
+          if (joints.knee?.userData.initialPosition) {
+            joints.knee.userData.basePosY = joints.knee.userData.initialPosition.y;
+          }
+          if (joints.ankle?.userData.initialPosition) {
+            joints.ankle.userData.basePosY = joints.ankle.userData.initialPosition.y;
+          }
         }
       }
     }

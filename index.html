@@ -59,7 +59,7 @@
     #tacticalMap.danger #nearestEnemyDistance { color:#fff; text-shadow:0 0 8px #ff173d; }
     @keyframes radarDanger { from { filter:none; } to { filter:drop-shadow(0 0 8px #ff173d); } }
     #minimapCanvas { display:block; width: 180px; height: 180px; border-radius:50%; clip-path:circle(50% at 50% 50%); }
-    #fpsCounter { position:fixed; z-index:40; right:18px; top:224px; min-width:124px; padding:8px 10px; border:1px solid rgba(95,223,239,.56); border-left-width:3px; background:rgba(3,12,19,.76); color:#8ff3ff; font:800 11px Orbitron,sans-serif; letter-spacing:.08em; text-align:right; text-shadow:0 0 8px #19b9d3; box-shadow:inset 0 0 16px rgba(40,187,209,.11); pointer-events:none; }
+    #fpsCounter { position:fixed; z-index:40; right:18px; top:18px; min-width:124px; padding:8px 10px; border:1px solid rgba(95,223,239,.56); border-left-width:3px; background:rgba(3,12,19,.76); color:#8ff3ff; font:800 11px Orbitron,sans-serif; letter-spacing:.08em; text-align:right; text-shadow:0 0 8px #19b9d3; box-shadow:inset 0 0 16px rgba(40,187,209,.11); pointer-events:none; }
     #hudControlsBar { position: fixed; left: 160px; top: 18px; z-index: 10; display: flex; align-items: center; gap: 8px; pointer-events: auto; }
     #pauseButton, #freeCamButton, #cockpitCameraButton, #visualHudButton, #audioControls { position: static !important; }
     #fpsCounter.performance-warn { color:#ffe179; border-color:rgba(255,204,82,.72); text-shadow:0 0 8px #ffb429; }
@@ -92,6 +92,8 @@
     #titleScreen.orbiting { cursor:grabbing; }
     #loadingScreen { position:fixed; inset:0; z-index:70; display:grid; place-items:center; overflow:hidden; color:#ddfbff; background:radial-gradient(circle at 50% 44%,rgba(18,68,84,.38),transparent 34%),linear-gradient(135deg,#02070b 0%,#07131b 55%,#010407 100%); transition:opacity .55s ease,visibility .55s ease; }
     #loadingScreen.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+    #bootLoadingIndicator { position:fixed; left:50%; top:50%; z-index:90; transform:translate(-50%,-50%); color:rgba(210,248,255,.78); font:700 11px/1 Orbitron,"Segoe UI",sans-serif; letter-spacing:.18em; text-shadow:0 0 10px rgba(89,234,246,.65); pointer-events:none; transition:opacity .2s ease, visibility .2s ease; }
+    #bootLoadingIndicator.hidden { opacity:0; visibility:hidden; }
     .loading-grid { position:absolute; inset:-40%; opacity:.35; background-image:linear-gradient(rgba(82,218,239,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(82,218,239,.12) 1px,transparent 1px); background-size:30px 30px; transform:perspective(460px) rotateX(62deg) translateY(18%); transform-origin:center; animation:loadingGrid 5s linear infinite; }
     .loading-core { position:relative; width:min(390px,76vw); padding:32px 30px 28px; border:1px solid rgba(108,234,249,.55); background:rgba(3,14,21,.74); box-shadow:0 0 42px rgba(36,206,230,.18),inset 0 0 28px rgba(51,194,215,.08); font-family:Orbitron,"Segoe UI",sans-serif; }
     .loading-kicker { color:#73e8f5; font-size:10px; font-weight:900; letter-spacing:.28em; }
@@ -467,6 +469,7 @@
   </style>
 </head>
 <body>
+  <div id="bootLoadingIndicator" role="status" aria-live="polite">로딩중...</div>
   <section id="loadingScreen" aria-live="polite" aria-label="Game loading">
     <div class="loading-grid" aria-hidden="true"></div>
     <div class="loading-core">
@@ -589,9 +592,9 @@
       <label class="settings-row">WINDOW COLOR <input id="windowColor" type="color" value="#004d5c"><output>#004d5c</output></label>
       <label class="settings-row">WINDOW OPACITY <input id="windowOpacity" type="range" min="0.25" max="1" step="0.05" value="0.55"><output>0.55</output></label>
       <label class="settings-row">WINDOW ROUGHNESS <input id="windowRoughness" type="range" min="0" max="0.65" step="0.01" value="0"><output>0.00</output></label>
-      <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.05"><output>0.05</output></label>
-      <label class="settings-row">CHROMATIC ABERRATION <input id="chromaticAberration" type="range" min="0" max="0.008" step="0.0001" value="0.0015"><output>0.0015</output></label>
-      <label class="settings-row">FILM GRAIN <input id="filmGrain" type="range" min="0" max="0.3" step="0.005" value="0.075"><output>0.075</output></label>
+      <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.4"><output>0.4</output></label>
+      <label class="settings-row">CHROMATIC ABERRATION <input id="chromaticAberration" type="range" min="0" max="0.008" step="0.0001" value="0.008"><output>0.008</output></label>
+      <label class="settings-row">FILM GRAIN <input id="filmGrain" type="range" min="0" max="0.3" step="0.005" value="0.3"><output>0.3</output></label>
       <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="0.85"><output>0.85</output></label>
       <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.05"><output>0.05</output></label>
 
@@ -837,6 +840,8 @@
     import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
     import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
     import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    const bootLoadingIndicator = document.getElementById('bootLoadingIndicator');
+    if (bootLoadingIndicator) bootLoadingIndicator.classList.add('hidden');
     // AudioManager is loaded as a classic script above so file:// launches also work.
     const LEVEL1_MAP = Object.freeze({
       arenaHalfSize: 82,
@@ -859,6 +864,7 @@
     const cannonPhysics = window.createCannonPhysicsContext(CANNON, THREE);
     let currentLevel = 1;
     let arenaHalfSize = LEVEL1_MAP.arenaHalfSize;
+    const DANGER_ZONE_INSET = -10;
     const MAX_ARENA_HALF_SIZE = 164;
     const ARENA_SIZE = MAX_ARENA_HALF_SIZE * 2;
     const envGroup = new THREE.Group();
@@ -882,11 +888,16 @@
     arrivalGateGroup.visible = false;
     envGroup.add(arrivalGateGroup);
     let arrivalSequenceTimer = 0;
+    let elevatorLandingImpactTimer = 0;
+    let elevatorLandingImpactPlayed = false;
     let playerSpawnProtectionUntil = 0;
     let enemySpawnProtectionUntil = 0;
+    let initialSpawnProtectionGranted = false;
     let lastWeaponDisabledMessageAt = 0;
     const SPAWN_PROTECTION_MS = 10000;
-    function grantSpawnProtection() {
+    function grantInitialSpawnProtection() {
+      if (initialSpawnProtectionGranted) return;
+      initialSpawnProtectionGranted = true;
       const expiresAt = performance.now() + SPAWN_PROTECTION_MS;
       playerSpawnProtectionUntil = expiresAt;
       enemySpawnProtectionUntil = expiresAt;
@@ -916,13 +927,10 @@
     envGroup.add(safeZoneGroup);
     function createSafeZones() {
       const ringGeometry = new THREE.RingGeometry(SAFE_ZONE_RADIUS - .28, SAFE_ZONE_RADIUS, 72);
-      const gridGeometry = new THREE.CircleGeometry(SAFE_ZONE_RADIUS - .45, 72);
       for (const [team, color] of [['player', 0x45efff], ['enemy', 0xff506d]]) {
         const zone = new THREE.Group();
         const ring = new THREE.Mesh(ringGeometry, new THREE.MeshBasicMaterial({ color, transparent:true, opacity:.95, side:THREE.DoubleSide, blending:THREE.AdditiveBlending, depthWrite:false }));
         ring.rotation.x = -Math.PI / 2;
-        const fill = new THREE.Mesh(gridGeometry, new THREE.MeshBasicMaterial({ color, transparent:true, opacity:.055, side:THREE.DoubleSide, depthWrite:false }));
-        fill.rotation.x = -Math.PI / 2;
         const light = new THREE.PointLight(color, 5.5, 32);
         light.position.y = 1.4;
         const labelCanvas = document.createElement('canvas');
@@ -935,7 +943,7 @@
         const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(labelCanvas), transparent: true, depthWrite: false }));
         label.position.set(0, .2, -SAFE_ZONE_RADIUS - 1.8);
         label.scale.set(7.6, 1.9, 1);
-        zone.add(ring, fill, light, label);
+        zone.add(ring, light, label);
         zone.userData = { team, ring, light };
         safeZoneGroup.add(zone);
         safeZoneRings.push(zone);
@@ -1248,6 +1256,7 @@
         scene.attach(hangarLiftPlatform);
         hangarLiftPlatform.visible = true;
         hangarLiftPlatform.position.set(arrivalSpawn.x, -7.5, arrivalSpawn.z);
+        hangarLiftPlatform.rotation.set(0, 0, 0);
       }
       player.position.set(arrivalSpawn.x, -7.5, arrivalSpawn.z);
       arrivalGateGroup.position.set(arrivalSpawn.x, .05, arrivalSpawn.z);
@@ -1256,8 +1265,9 @@
       arrivalGateGroup.visible = true;
       // The lift rises first, then the landing gate opens and the safety fence lowers.
       arrivalSequenceTimer = 3.2;
+      elevatorLandingImpactTimer = 0;
+      elevatorLandingImpactPlayed = false;
       if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = 0;
-      grantSpawnProtection();
       enemyAI?.reset();
       if (enemyAI?.group) enemyAI.group.visible = true;
       if (currentLevel >= 2 && enemyAI2) { enemyAI2.reset(); enemyAI2.group.visible = true; }
@@ -1446,6 +1456,7 @@
     const loadingPercent = document.getElementById('loadingPercent');
     const loadingTitle = document.querySelector('.loading-title');
     const loadingCountdown = document.getElementById('loadingCountdown');
+    let battleRenderPrewarmed = false;
     function setStartupLoading(progress, status) {
       const value = Math.round(THREE.MathUtils.clamp(progress, 0, 100));
       loadingFill.style.width = `${value}%`;
@@ -1454,9 +1465,37 @@
     }
     setStartupLoading(8, 'CALIBRATING RENDERER');
 
+    function prewarmBattleRendering() {
+      if (battleRenderPrewarmed) return;
+      battleRenderPrewarmed = true;
+      const previousEnvironmentVisibility = envGroup.visible;
+      const previousHangarVisibility = hangarGroup.visible;
+      const stagedEffects = [explosionPool?.[0], burningEffectPool?.[0], missileTrailPool?.[0]].filter(Boolean);
+      try {
+        envGroup.visible = true;
+        hangarGroup.visible = false;
+        for (const effect of stagedEffects) {
+          effect.visible = true;
+          effect.position.copy(camera.position);
+          scene.add(effect);
+        }
+        renderer.compile(scene, camera);
+        composer.render();
+      } finally {
+        for (const effect of stagedEffects) {
+          scene.remove(effect);
+          effect.visible = false;
+        }
+        envGroup.visible = previousEnvironmentVisibility;
+        hangarGroup.visible = previousHangarVisibility;
+      }
+    }
+
     function showBattleControlsLoading() {
       loadingScreen.classList.remove('hidden');
       if (loadingTitle) loadingTitle.textContent = 'DEPLOYMENT READY';
+      setStartupLoading(98, 'PREWARMING BATTLE EFFECTS');
+      prewarmBattleRendering();
       setStartupLoading(100, 'KEYBOARD CONTROLS');
       const loadingStartedAt = performance.now();
       const loadingDuration = 2000;
@@ -1477,16 +1516,16 @@
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(scene, camera));
     // 주간 씬에 맞게 Bloom 강도를 소폭 낮춤
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .45, .55, .85);
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .4, .55, .85);
     composer.addPass(bloomPass);
     // Fine film grain adds texture without the old CRT-style scanlines.
-    const filmPass = new FilmPass(.075, 0, 0, false);
+    const filmPass = new FilmPass(.3, 0, 0, false);
     composer.addPass(filmPass);
     const filmGrainUniform = filmPass.uniforms?.nIntensity || filmPass.uniforms?.intensity || null;
     const chromaticAberrationPass = new ShaderPass({
       uniforms: {
         tDiffuse: { value: null },
-        amount: { value: .0015 }
+        amount: { value: .008 }
       },
       vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
       fragmentShader: `uniform sampler2D tDiffuse; uniform float amount; varying vec2 vUv; void main() {
@@ -1568,7 +1607,10 @@
         `
       });
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.frustumCulled = false;
+      // The rain is camera-relative, so use a conservative world-space bound
+      // instead of disabling frustum culling for the whole particle volume.
+      mesh.frustumCulled = true;
+      geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 240);
       mesh.renderOrder = 8;
       envGroup.add(mesh);
       const setIntensity = value => {
@@ -1602,16 +1644,19 @@
     sun.shadow.mapSize.set(2048, 2048);
     // Cover the full road/sidewalk evacuation area, including the outer
     // escape lanes where the old 164m shadow box left visible gaps.
-    sun.shadow.camera.left = -110;
-    sun.shadow.camera.right = 110;
-    sun.shadow.camera.top = 110;
-    sun.shadow.camera.bottom = -110;
+    // Keep the full playable area, including the shifted right-side spawn,
+    // inside the directional shadow frustum at every time-of-day angle.
+    sun.shadow.camera.left = -180;
+    sun.shadow.camera.right = 180;
+    sun.shadow.camera.top = 180;
+    sun.shadow.camera.bottom = -180;
     sun.shadow.camera.near = 2;
-    sun.shadow.camera.far = 150;
-    sun.shadow.bias = -.00025;
-    sun.shadow.normalBias = .035;
+    sun.shadow.camera.far = 300;
+    sun.shadow.bias = -.00012;
+    sun.shadow.normalBias = .022;
     sun.shadow.camera.updateProjectionMatrix();
     scene.add(sun);
+    scene.add(sun.target);
 
     // 림 라이트: 기존 마젠타 네온 라이트를 제거하고, 스카이 블루 바운스 라이트로 대체
     const rimLight = new THREE.DirectionalLight(0xbbe2ff, 0.65);
@@ -1654,6 +1699,11 @@
       sun.intensity = sunPower;
       const sunAngle = (battlefieldAtmosphere.timeOfDay - 6) / 12 * Math.PI;
       sun.position.set(Math.cos(sunAngle) * 55, Math.max(8, Math.sin(sunAngle) * 65), -35);
+      // Rebuild the directional shadow view whenever time-of-day moves the
+      // sun; low afternoon angles otherwise leave stale gaps at map edges.
+      sun.shadow.camera.updateMatrixWorld(true);
+      sun.shadow.camera.updateProjectionMatrix();
+      sun.shadow.needsUpdate = true;
       rimLight.color.copy(environmentColor).lerp(new THREE.Color(profile.sun), .35);
       rimLight.intensity = rimPower;
       gameplayFog.color.copy(environmentColor);
@@ -1700,6 +1750,7 @@
 
     // Danger Zone Barrier Setup
     let dangerZoneTexX, dangerZoneTexZ, dangerBarrierGroup;
+    const destructibleBarrierPanels = [];
     function createDangerZoneBarrier() {
       if (dangerBarrierGroup) {
         envGroup.remove(dangerBarrierGroup);
@@ -1708,6 +1759,7 @@
           object.material?.dispose();
         });
       }
+      destructibleBarrierPanels.length = 0;
       const canvas = document.createElement('canvas');
       canvas.width = 256;
       canvas.height = 256;
@@ -1784,31 +1836,268 @@
         toneMapped: false
       });
 
-      const wallGeo = new THREE.PlaneGeometry(arenaHalfSize * 2, 40);
+      const dangerZoneHalfSize = Math.max(1, arenaHalfSize - DANGER_ZONE_INSET);
+      const wallGeo = new THREE.PlaneGeometry(dangerZoneHalfSize * 2, 40);
       const barrierGroup = new THREE.Group();
+      barrierGroup.name = 'DangerZoneTenMeterConcreteBarrier';
+      const barrierConcreteMat = new THREE.MeshStandardMaterial({ color: 0x73797a, roughness: .92, metalness: .04 });
+      const barrierConcreteDarkMat = new THREE.MeshStandardMaterial({ color: 0x4e5659, roughness: .96, metalness: .02 });
+      const barrierTopMat = new THREE.MeshStandardMaterial({ color: 0x9a9d9a, roughness: .78, metalness: .08 });
+      const barrierSeamMat = new THREE.MeshStandardMaterial({ color: 0x343b3d, roughness: .98, metalness: .02 });
+      const barrierAnchorMat = new THREE.MeshStandardMaterial({ color: 0x303b3f, roughness: .42, metalness: .78 });
+      const barrierGateMat = new THREE.MeshStandardMaterial({ color: 0x252d31, roughness: .5, metalness: .72 });
+      const barrierGateDetailMat = new THREE.MeshStandardMaterial({ color: 0x9ca8aa, roughness: .3, metalness: .86 });
+      const barrierGateWarningMat = new THREE.MeshBasicMaterial({ color: 0xffbd38, toneMapped: false });
+      const barrierShadowCatcherMat = new THREE.MeshBasicMaterial({ color: 0x020406, transparent: true, opacity: .14, depthWrite: false, toneMapped: false });
+      const barrierHeight = 10;
+      const barrierThickness = 1.2;
+      const barrierSegmentLength = 12;
+      const addBarrierRun = (axis, fixed) => {
+        // The z-fixed walls are crossed by the north/south road (18m across x),
+        // while the x-fixed walls are crossed by the east/west roads (9m across z).
+        const gateCenters = axis === 'z' ? [0] : [-34, -66];
+        const gateWidth = axis === 'z' ? 18 : 9.8;
+        const gateEdges = gateCenters
+          .flatMap(center => [center - gateWidth * .5, center + gateWidth * .5])
+          .filter(edge => edge > -dangerZoneHalfSize && edge < dangerZoneHalfSize)
+          .sort((a, b) => a - b);
+        const cutPoints = [-dangerZoneHalfSize, ...gateEdges, dangerZoneHalfSize];
+        const wallSpans = [];
+        for (let index = 0; index < cutPoints.length - 1; index++) {
+          const spanStart = cutPoints[index];
+          const spanEnd = cutPoints[index + 1];
+          const spanLength = spanEnd - spanStart;
+          const spanCenter = (spanStart + spanEnd) * .5;
+          if (gateCenters.some(center => Math.abs(spanCenter - center) < gateWidth * .5)) continue;
+          const subSpanCount = Math.max(1, Math.ceil(spanLength / barrierSegmentLength));
+          const subSpanLength = spanLength / subSpanCount;
+          for (let subIndex = 0; subIndex < subSpanCount; subIndex++) {
+            wallSpans.push([
+              spanStart + subIndex * subSpanLength,
+              spanStart + (subIndex + 1) * subSpanLength
+            ]);
+          }
+        }
+        // Only place structural posts at the perimeter and gate edges.  The
+        // sub-panels are allowed to meet/overlap, so a gap-filler post does
+        // not appear halfway along an otherwise continuous wall.
+        const postPositions = new Set(cutPoints);
+        for (const along of postPositions) {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(.72, barrierHeight + .24, .72), barrierConcreteDarkMat);
+          post.position.set(axis === 'z' ? fixed : along, barrierHeight * .5, axis === 'z' ? along : fixed);
+          post.castShadow = true;
+          barrierGroup.add(post);
+        }
+        const panelRecords = [];
+        for (let index = 0; index < wallSpans.length; index++) {
+          const [spanStart, spanEnd] = wallSpans[index];
+          const spanLength = spanEnd - spanStart;
+          const along = (spanStart + spanEnd) * .5;
+          // Let neighboring sub-panels overlap slightly.  The posts above
+          // are structural gate/perimeter posts, not mid-wall gap fillers.
+          const panelDepth = Math.max(.5, spanLength + .18);
+          const panel = new THREE.Mesh(
+            axis === 'z'
+              ? new THREE.BoxGeometry(panelDepth, barrierHeight, barrierThickness)
+              : new THREE.BoxGeometry(barrierThickness, barrierHeight, panelDepth),
+            barrierConcreteMat
+          );
+          panel.position.set(axis === 'z' ? along : fixed, barrierHeight * .5, axis === 'z' ? fixed : along);
+          panel.castShadow = true;
+          panel.receiveShadow = true;
+          barrierGroup.add(panel);
+          const panelRecord = { mesh: panel, details: [], hp: 18, maxHp: 18, destroyed: false };
+          panelRecords[index] = panelRecord;
+          destructibleBarrierPanels.push(panelRecord);
+          panel.userData.destructibleBarrierPanel = panelRecord;
+        }
+        for (const [spanStart, spanEnd] of wallSpans) {
+          const spanLength = spanEnd - spanStart;
+          const cap = new THREE.Mesh(
+            axis === 'z'
+              ? new THREE.BoxGeometry(spanLength, .26, barrierThickness + .16)
+              : new THREE.BoxGeometry(barrierThickness + .16, .26, spanLength),
+            barrierTopMat
+          );
+          cap.position.set(axis === 'z' ? (spanStart + spanEnd) * .5 : fixed, barrierHeight + .13, axis === 'z' ? fixed : (spanStart + spanEnd) * .5);
+          barrierGroup.add(cap);
 
-      // Back (z = -82)
+          // When the sun is on the opposite side, a perimeter wall can cast
+          // its physical shadow outside the arena.  This low-profile catcher
+          // preserves the wall's contact shade inside the playable area while
+          // leaving all gate openings clear.
+          const shadowDepth = 6.5;
+          const shadowCatcher = new THREE.Mesh(
+            axis === 'z'
+              ? new THREE.BoxGeometry(spanLength + .12, .018, shadowDepth)
+              : new THREE.BoxGeometry(shadowDepth, .018, spanLength + .12),
+            barrierShadowCatcherMat
+          );
+          const inward = -Math.sign(fixed || 1);
+          shadowCatcher.position.set(
+            axis === 'z' ? (spanStart + spanEnd) * .5 : fixed + inward * (shadowDepth * .5 + .08),
+            .025,
+            axis === 'z' ? fixed + inward * (shadowDepth * .5 + .08) : (spanStart + spanEnd) * .5
+          );
+          shadowCatcher.name = 'DangerBarrierInteriorShadowCatcher';
+          shadowCatcher.renderOrder = .5;
+          barrierGroup.add(shadowCatcher);
+        }
+
+        // Construction joints and shutter-panel seams give the concrete wall
+        // visible scale instead of reading as one unbroken primitive.
+        for (let index = 0; index < wallSpans.length; index++) {
+          const [spanStart, spanEnd] = wallSpans[index];
+          const panelDepth = Math.max(.5, spanEnd - spanStart + .18);
+          const along = (spanStart + spanEnd) * .5;
+          const panelRecord = panelRecords[index];
+          for (const y of [2.5, 5, 7.5]) {
+            const seam = new THREE.Mesh(
+              axis === 'z'
+                ? new THREE.BoxGeometry(panelDepth * .82, .045, .035)
+                : new THREE.BoxGeometry(.035, .045, panelDepth * .82),
+              barrierSeamMat
+            );
+            seam.position.set(axis === 'z' ? along : fixed - Math.sign(fixed || 1) * (barrierThickness * .5 + .018), y, axis === 'z' ? fixed - Math.sign(fixed || 1) * (barrierThickness * .5 + .018) : along);
+            barrierGroup.add(seam);
+            panelRecord?.details.push(seam);
+          }
+
+          if (index % 2 === 0) {
+            const brace = new THREE.Mesh(
+              axis === 'z'
+                ? new THREE.BoxGeometry(.72, 3.8, 1.5)
+                : new THREE.BoxGeometry(1.5, 3.8, .72),
+              barrierConcreteDarkMat
+            );
+            // Face the structural braces toward the playable area.
+            brace.position.set(axis === 'z' ? along : fixed - Math.sign(fixed || 1) * .85, 1.9, axis === 'z' ? fixed - Math.sign(fixed || 1) * .85 : along);
+            brace.castShadow = true;
+            barrierGroup.add(brace);
+            panelRecord?.details.push(brace);
+          }
+
+          for (const side of [-1, 1]) {
+            const anchor = new THREE.Mesh(new THREE.BoxGeometry(.16, .24, .16), barrierAnchorMat);
+            anchor.position.set(
+              axis === 'z' ? along : fixed + side * (barrierThickness * .5 + .055),
+              1.05 + (index % 3) * 2.65,
+              axis === 'z' ? fixed + side * (barrierThickness * .5 + .055) : along
+            );
+            barrierGroup.add(anchor);
+            panelRecord?.details.push(anchor);
+          }
+        }
+
+        // Vehicle passages are framed as concrete gates instead of being
+        // visually sealed by the perimeter wall.
+        for (const center of gateCenters) {
+          const pillarOffset = gateWidth * .5 + .48;
+          for (const side of [-1, 1]) {
+            const pillar = new THREE.Mesh(
+              axis === 'z'
+                ? new THREE.BoxGeometry(.96, 8.2, 1.05)
+                : new THREE.BoxGeometry(1.05, 8.2, .96),
+              barrierConcreteDarkMat
+            );
+            pillar.position.set(axis === 'z' ? center + side * pillarOffset : fixed, 4.1, axis === 'z' ? fixed : center + side * pillarOffset);
+            pillar.castShadow = true;
+            barrierGroup.add(pillar);
+          }
+          const gateHeader = new THREE.Mesh(
+            axis === 'z'
+              ? new THREE.BoxGeometry(gateWidth + 1.8, .82, 1.32)
+              : new THREE.BoxGeometry(1.32, .82, gateWidth + 1.8),
+            barrierGateMat
+          );
+          gateHeader.position.set(axis === 'z' ? center : fixed, 8.35, axis === 'z' ? fixed : center);
+          barrierGroup.add(gateHeader);
+          const gateSign = new THREE.Mesh(
+            axis === 'z'
+              ? new THREE.BoxGeometry(gateWidth * .68, .42, 1.36)
+              : new THREE.BoxGeometry(1.36, .42, gateWidth * .68),
+            barrierTopMat
+          );
+          gateSign.position.set(axis === 'z' ? center : fixed, 8.35, axis === 'z' ? fixed : center);
+          barrierGroup.add(gateSign);
+          const inward = -Math.sign(fixed || 1);
+          const headerInset = new THREE.Mesh(
+            axis === 'z'
+              ? new THREE.BoxGeometry(gateWidth * .68, .24, .08)
+              : new THREE.BoxGeometry(.08, .24, gateWidth * .68),
+            barrierGateDetailMat
+          );
+          headerInset.position.set(axis === 'z' ? center : fixed + inward * (.66 + .04), 7.9, axis === 'z' ? fixed + inward * (.66 + .04) : center);
+          barrierGroup.add(headerInset);
+          for (const side of [-1, 1]) {
+            for (const y of [2.1, 4.25, 6.4]) {
+              const hinge = new THREE.Mesh(new THREE.CylinderGeometry(.16, .16, .42, 12), barrierGateDetailMat);
+              hinge.position.set(axis === 'z' ? center + side * pillarOffset : fixed + inward * (.66 + .04), y, axis === 'z' ? fixed + inward * (.66 + .04) : center + side * pillarOffset);
+              barrierGroup.add(hinge);
+            }
+          }
+          for (const side of [-1, 1]) {
+            const beacon = new THREE.Mesh(new THREE.BoxGeometry(.24, .24, .08), barrierGateWarningMat);
+            beacon.position.set(axis === 'z' ? center + side * (gateWidth * .5 - .72) : fixed + inward * (.7 + .04), 8.82, axis === 'z' ? fixed + inward * (.7 + .04) : center + side * (gateWidth * .5 - .72));
+            barrierGroup.add(beacon);
+          }
+        }
+      };
+      addBarrierRun('z', -dangerZoneHalfSize);
+      addBarrierRun('z', dangerZoneHalfSize);
+      addBarrierRun('x', -dangerZoneHalfSize);
+      addBarrierRun('x', dangerZoneHalfSize);
+
+      // Close the four 90-degree joins with dedicated concrete buttresses.
+      // The run panels stop at each axis, so relying on their small end posts
+      // leaves a thin corner void with no surface to cast a shadow.
+      const cornerButtressGeo = new THREE.BoxGeometry(1.72, barrierHeight + .34, 1.72);
+      const cornerCapGeo = new THREE.BoxGeometry(2.04, .24, 2.04);
+      for (const cornerX of [-dangerZoneHalfSize, dangerZoneHalfSize]) {
+        for (const cornerZ of [-dangerZoneHalfSize, dangerZoneHalfSize]) {
+          const buttress = new THREE.Mesh(cornerButtressGeo, barrierConcreteDarkMat);
+          buttress.name = 'DangerBarrierCornerButtress';
+          buttress.position.set(cornerX, (barrierHeight + .34) * .5, cornerZ);
+          buttress.castShadow = true;
+          buttress.receiveShadow = true;
+          barrierGroup.add(buttress);
+          const cap = new THREE.Mesh(cornerCapGeo, barrierTopMat);
+          cap.name = 'DangerBarrierCornerCap';
+          cap.position.set(cornerX, barrierHeight + .34 + .12, cornerZ);
+          cap.castShadow = true;
+          cap.receiveShadow = true;
+          barrierGroup.add(cap);
+        }
+      }
+
+      // Transparent danger-zone planes sit behind the ten-meter concrete wall.
       const backWall = new THREE.Mesh(wallGeo, matX);
-      backWall.position.set(0, 20, -arenaHalfSize);
+      backWall.position.set(0, 20, -dangerZoneHalfSize);
       barrierGroup.add(backWall);
 
       // Front (z = 82)
       const frontWall = new THREE.Mesh(wallGeo, matX);
-      frontWall.position.set(0, 20, arenaHalfSize);
+      frontWall.position.set(0, 20, dangerZoneHalfSize);
       frontWall.rotation.y = Math.PI;
       barrierGroup.add(frontWall);
 
       // Left (x = -82)
       const leftWall = new THREE.Mesh(wallGeo, matZ);
-      leftWall.position.set(-arenaHalfSize, 20, 0);
+      leftWall.position.set(-dangerZoneHalfSize, 20, 0);
       leftWall.rotation.y = Math.PI / 2;
       barrierGroup.add(leftWall);
 
       // Right (x = 82)
       const rightWall = new THREE.Mesh(wallGeo, matZ);
-      rightWall.position.set(arenaHalfSize, 20, 0);
+      rightWall.position.set(dangerZoneHalfSize, 20, 0);
       rightWall.rotation.y = -Math.PI / 2;
       barrierGroup.add(rightWall);
+
+      barrierGroup.traverse(object => {
+        if (!object.isMesh || object.material === matX || object.material === matZ) return;
+        object.castShadow = true;
+        object.receiveShadow = true;
+      });
 
       envGroup.add(barrierGroup);
       dangerBarrierGroup = barrierGroup;
@@ -1855,7 +2144,9 @@
 
       for (let i = 0; i < 46; i++) {
         const angle = i / 46 * Math.PI * 2 + THREE.MathUtils.randFloat(-.045, .045);
-        const radius = THREE.MathUtils.randFloat(108, 158);
+        // Keep skyline towers clearly outside the gameplay square. The
+        // destructible main buildings use their authored positions separately.
+        const radius = THREE.MathUtils.randFloat(122, 158);
         const width = THREE.MathUtils.randFloat(5.5, 13.5);
         const depth = THREE.MathUtils.randFloat(5.5, 13.5);
         const height = THREE.MathUtils.randFloat(24, 92) * (i % 8 === 0 ? 1.35 : 1);
@@ -2588,34 +2879,56 @@
       body.add(hatchInset);
     }
 
-    // Armored command cockpit: only the front is reworked, leaving the
-    // existing torso, weapon hardpoints and walker silhouette intact.
+    // Armored command cockpit: a faceted canopy gives the walker a deliberate
+    // armored-glass silhouette without changing the torso or any hardpoints.
     const cockpitFrame = mechBox(2.72, 1.42, .18, gunmetalMat, .2);
     cockpitFrame.position.set(0, .34, 2.24);
     cockpitFrame.rotation.x = -.13;
     body.add(cockpitFrame);
     const cockpitGlassMat = new THREE.MeshPhysicalMaterial({
-      color: 0x4d8499, emissive: 0x000000, emissiveIntensity: 0,
-      roughness: .035, metalness: .08, transmission: .42, thickness: .16,
+      color: 0xb65b12, emissive: 0x6b2505, emissiveIntensity: .28,
+      roughness: .08, metalness: .12, transmission: .22, thickness: .16,
       transparent: true, opacity: .42, depthWrite: false, clearcoat: .9, clearcoatRoughness: .04,
       side: THREE.DoubleSide, envMapIntensity: 2.4
     });
+    const cockpitOutline = [
+      [-1.28, -.42], [-1.02, .38], [-.48, .64], [.48, .64],
+      [1.02, .38], [1.28, -.42], [.82, -.62], [-.82, -.62]
+    ];
+    const makeCockpitPolygon = (outline, depth, material, bevel = .03) => {
+      const shape = new THREE.Shape();
+      outline.forEach(([x, y], index) => {
+        if (index === 0) shape.moveTo(x, y);
+        else shape.lineTo(x, y);
+      });
+      shape.closePath();
+      const geometry = new THREE.ExtrudeGeometry(shape, {
+        depth, bevelEnabled: bevel > 0, bevelSegments: 1,
+        bevelSize: bevel, bevelThickness: bevel * .7, curveSegments: 1
+      });
+      geometry.translate(0, 0, -depth * .5);
+      return new THREE.Mesh(geometry, material);
+    };
+    const canopyArmor = makeCockpitPolygon(cockpitOutline, .2, gunmetalMat, .035);
+    canopyArmor.position.set(0, .39, 2.67);
+    canopyArmor.rotation.x = -.13;
+    body.add(canopyArmor);
+    const canopyGlassOutline = cockpitOutline.map(([x, y]) => [x * .84, y * .78 + .01]);
+    const canopyGlass = makeCockpitPolygon(canopyGlassOutline, .06, cockpitGlassMat, .012);
+    canopyGlass.position.set(0, .39, 2.81);
+    canopyGlass.rotation.x = -.13;
+    canopyGlass.castShadow = false;
+    canopyGlass.renderOrder = 30;
+    body.add(canopyGlass);
     for (const side of [-1, 1]) {
-      const cockpitPane = mechBox(1.12, .82, .09, cockpitGlassMat, .1);
-      cockpitPane.position.set(side * .62, .39, 2.76);
-      cockpitPane.rotation.y = side * .28;
-      cockpitPane.rotation.x = -.13;
-      cockpitPane.castShadow = false;
-      cockpitPane.renderOrder = 30;
-      body.add(cockpitPane);
-      const cockpitStrut = mechBox(.11, 1.03, .14, armorLightMat, .03);
-      cockpitStrut.position.set(side * 1.22, .35, 2.74);
-      cockpitStrut.rotation.y = side * .28;
+      const cockpitStrut = mechBox(.12, .98, .14, armorLightMat, .03);
+      cockpitStrut.position.set(side * .96, .38, 2.84);
+      cockpitStrut.rotation.z = side * -.34;
       cockpitStrut.rotation.x = -.13;
       body.add(cockpitStrut);
     }
-    const cockpitDivider = mechBox(.13, 1.04, .14, armorLightMat, .03);
-    cockpitDivider.position.set(0, .36, 2.78);
+    const cockpitDivider = mechBox(.12, 1.02, .14, armorLightMat, .03);
+    cockpitDivider.position.set(0, .39, 2.86);
     cockpitDivider.rotation.x = -.13;
     body.add(cockpitDivider);
     const cockpitLowerSill = mechBox(2.45, .18, .3, armorLightMat, .06);
@@ -3568,9 +3881,48 @@
     jetpack.userData.customSnapPart = 'backpack';
     jetpack.position.fromArray(mechaAttachments.backpack);
     const jetpackMat = new THREE.MeshStandardMaterial({ color: 0x1685a6, emissive: 0x063f55, emissiveIntensity: .9, metalness: .78, roughness: .22 });
-    const jetFlameMat = new THREE.MeshBasicMaterial({ color: 0x6ff7ff, transparent: true, opacity: .96, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-    const jetFlameCoreMat = new THREE.MeshBasicMaterial({ color: 0xf7fdff, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
-    const jetFlameHaloMat = new THREE.MeshBasicMaterial({ color: 0x238dff, transparent: true, opacity: .34, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const jetFlameNoiseCanvas = document.createElement('canvas');
+    jetFlameNoiseCanvas.width = 128;
+    jetFlameNoiseCanvas.height = 256;
+    const jetFlameNoiseContext = jetFlameNoiseCanvas.getContext('2d');
+    const jetFlameNoiseImage = jetFlameNoiseContext.createImageData(128, 256);
+    for (let index = 0; index < jetFlameNoiseImage.data.length; index += 4) {
+      const value = Math.random() > .16 ? 255 : Math.floor(Math.random() * 80);
+      jetFlameNoiseImage.data[index] = value;
+      jetFlameNoiseImage.data[index + 1] = value;
+      jetFlameNoiseImage.data[index + 2] = value;
+      jetFlameNoiseImage.data[index + 3] = 255;
+    }
+    jetFlameNoiseContext.putImageData(jetFlameNoiseImage, 0, 0);
+    const jetFlameNoiseTexture = new THREE.CanvasTexture(jetFlameNoiseCanvas);
+    jetFlameNoiseTexture.wrapS = THREE.RepeatWrapping;
+    jetFlameNoiseTexture.wrapT = THREE.RepeatWrapping;
+    jetFlameNoiseTexture.repeat.set(1.2, 2.2);
+    const jetFlameMat = new THREE.MeshBasicMaterial({ color: 0x6ff7ff, transparent: true, opacity: .96, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const jetFlameCoreMat = new THREE.MeshBasicMaterial({ color: 0xf7fdff, transparent: true, opacity: 1, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const jetFlameHaloMat = new THREE.MeshBasicMaterial({ color: 0x238dff, transparent: true, opacity: .34, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const jetFlameMiddleMat = new THREE.MeshBasicMaterial({ color: 0x42d9ff, transparent: true, opacity: .62, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const jetFlameOuterMat = new THREE.MeshBasicMaterial({ color: 0x1c9dff, transparent: true, opacity: .42, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const applyJetFlameVertexNoise = (geometry, amount, seed) => {
+      const position = geometry.attributes.position;
+      for (let index = 0; index < position.count; index++) {
+        const x = position.getX(index);
+        const y = position.getY(index);
+        const z = position.getZ(index);
+        const angle = Math.atan2(z, x);
+        const radial = Math.hypot(x, z);
+        const wave = Math.sin(angle * 3.7 + seed) * .55
+          + Math.sin(angle * 8.1 - seed * 1.7) * .3
+          + Math.sin(y * 4.6 + seed * 2.3) * .15;
+        const offset = wave * amount * (.3 + Math.min(1, radial * 1.7));
+        position.setX(index, x + Math.cos(angle) * offset);
+        position.setZ(index, z + Math.sin(angle) * offset);
+        position.setY(index, y + Math.sin(angle * 2.4 + seed) * amount * .16);
+      }
+      position.needsUpdate = true;
+      geometry.computeVertexNormals();
+      return geometry;
+    };
     const boosterAccentMat = new THREE.MeshStandardMaterial({ color: 0xff8a24, emissive: 0xb72d04, emissiveIntensity: 1.4, metalness: .62, roughness: .2 });
     const JET_FLAME_BASE_LENGTH = 3.3;
     const jetFlames = [];
@@ -3578,9 +3930,14 @@
     const boosterExhaustParticles = [];
     const dashTrailWorld = new THREE.Vector3();
     const dashTrailLocal = new THREE.Vector3();
+    const dashTrailLocalTarget = new THREE.Vector3(0, -1, 0);
     const dashFlameUp = new THREE.Vector3(0, 1, 0);
     const dashExhaustDown = new THREE.Vector3(0, -1, 0);
     const jetpackWorldQuaternion = new THREE.Quaternion();
+    const dashFlameTargetQuaternion = new THREE.Quaternion();
+    const normalFlameTargetPosition = new THREE.Vector3();
+    const dashFlameTargetPosition = new THREE.Vector3();
+    const normalFlameTargetQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI));
     const dashBoostLight = new THREE.PointLight(0xff2b18, 0, 20, 2);
     dashBoostLight.position.set(0, 2.8, -2.45);
     jetpack.add(dashBoostLight);
@@ -3656,9 +4013,25 @@
       flame.add(flameCore);
       const flameHalo = new THREE.Mesh(new THREE.ConeGeometry(.88, JET_FLAME_BASE_LENGTH * 1.12, 12, 1, true), jetFlameHaloMat);
       flameHalo.position.y = -.06;
+      const flameMiddleGeometry = applyJetFlameVertexNoise(
+        // The parent flame points down after its 180-degree rotation. Keep
+        // the wide end at the nozzle and taper toward the exhaust tip.
+        new THREE.CylinderGeometry(.34, .74, JET_FLAME_BASE_LENGTH * .82, 16, 6, true),
+        .16,
+        side * 1.9
+      );
+      const flameMiddle = new THREE.Mesh(flameMiddleGeometry, jetFlameMiddleMat);
+      flameMiddle.position.y = .04;
+      flameMiddle.scale.set(1, 1.05, 1);
       flame.add(flameHalo);
+      flame.add(flameMiddle);
+      const flameOuter = new THREE.Mesh(new THREE.ConeGeometry(1.02, JET_FLAME_BASE_LENGTH * 1.28, 16, 5, true), jetFlameOuterMat);
+      flameOuter.position.y = -.1;
+      flame.add(flameOuter);
       flame.userData.core = flameCore;
       flame.userData.halo = flameHalo;
+      flame.userData.middle = flameMiddle;
+      flame.userData.outer = flameOuter;
       jetpack.add(flame);
       jetFlames.push(flame);
       for (let particleIndex = 0; particleIndex < 7; particleIndex++) {
@@ -3717,6 +4090,11 @@
     }
     jetpack.visible = true;
     player.add(jetpack);
+    for (const flame of [...jetFlames, ...footBoostFlames]) {
+      flame.traverse(object => {
+        if (object.isMesh) object.frustumCulled = true;
+      });
+    }
 
     // The legs and pelvis follow movement direction. Everything above the
     // armored waist tracks the camera aim as a single tank-like turret.
@@ -3835,7 +4213,7 @@
     shieldBubble = window.createConformalEnergyShield(THREE, player, {
       color: 0x21cfff,
       rimColor: 0xe8fdff,
-      shellScale: 1.035,
+      shellScale: 1.08,
       thickness: .052,
       waveAmplitude: .034
     });
@@ -3911,8 +4289,17 @@
     hangarSparkLight.renderOrder = 21;
     hangarGroup.add(hangarSparkLight);
     const maintenanceMechanics = [];
+    const MAX_ACTIVE_MECHANIC_REPAIRS = 1;
     const robotArmSparks = [];
     const wanderingPatrolCrew = [];
+    const hangarGroundObstacles = [
+      { x: -6.35, z: 3.15, radius: 1.12 },
+      { x: 6.35, z: 3.15, radius: 1.12 },
+      { x: -4.55, z: 2.35, radius: 1.28 },
+      { x: 4.55, z: 2.35, radius: 1.28 },
+      { x: 4.55, z: .82, radius: .82 },
+      { x: 5.2, z: -7.8, radius: .72 }
+    ];
     let heroPilot = null;
     const hangarDustParticles = [];
     const hangarSteamParticles = [];
@@ -3938,6 +4325,7 @@
     // The reverse-joint preview has a shorter visual reach than the original
     // walker rig. Keep its sole pressed onto the maintenance deck only.
     const HANGAR_STAND_GROUND_OFFSET = -.32;
+    const HANGAR_LAUNCH_EVAC_DURATION = 1.35;
     scene.add(hangarGroup);
 
     // --- ARTICULATED HUMAN JOINT MODELING & NATURAL GAIT PHYSICS HELPERS ---
@@ -4028,9 +4416,6 @@
         ankleGroup.position.y = -.44;
         const boot = new THREE.Mesh(new THREE.BoxGeometry(.24, .16, .38), config.toolMat || config.suitMat);
         boot.position.set(0, -.08, .08);
-        const bootSole = new THREE.Mesh(new THREE.BoxGeometry(.26, .05, .4), config.toolMat || config.suitMat);
-        bootSole.position.set(0, -.15, .08);
-        boot.add(bootSole);
 
         ankleGroup.add(boot);
         kneeGroup.add(shin, kneeCap, ankleGroup);
@@ -4282,6 +4667,9 @@
       // Keep the industrial texture pipeline available for later reuse while
       // leaving it disabled for the current hangar visual pass.
       const HANGAR_SURFACE_TEXTURE_ENABLED = false;
+      // Human boot soles extend slightly below the articulated root origin.
+      // This offset keeps hangar personnel planted on the deck after scaling.
+      const HANGAR_HUMAN_FOOT_OFFSET = .09;
       const industrialSurfaceLoader = new THREE.TextureLoader();
       const floorPanelTexture = industrialSurfaceLoader.load('assets/hangar-industrial-surface.jpg');
       floorPanelTexture.wrapS = THREE.RepeatWrapping;
@@ -4349,10 +4737,6 @@
       platformDeck.position.y = .012;
       platformDeck.receiveShadow = true;
       hangarGroup.add(platformDeck);
-      const ring = createFlatCircularSquareRing(6.47, 6.23, .12, hazardMat);
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.y = .132;
-      hangarGroup.add(ring);
       for (const side of [-1, 1]) {
         for (const z of [-5.8, 5.8]) {
           const column = new THREE.Mesh(new THREE.BoxGeometry(.65, 11.5, .65), steelMat);
@@ -4459,14 +4843,6 @@
         const serviceRail = new THREE.Mesh(new THREE.BoxGeometry(.14, .16, 13.6), hazardMat);
         serviceRail.position.set(side * 6.8, 8.65, 0);
         hangarGroup.add(serviceRail);
-        for (const z of [-4.5, 0, 4.5]) {
-          const serviceBay = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.15, 1.3), steelMat);
-          serviceBay.position.set(side * 6.45, .6, z);
-          hangarGroup.add(serviceBay);
-          const bayLight = new THREE.Mesh(new THREE.BoxGeometry(1.05, .08, .12), workLightMat);
-          bayLight.position.set(side * 6.45, 1.22, z + .68);
-          hangarGroup.add(bayLight);
-        }
       }
 
       const gateMat = new THREE.MeshStandardMaterial({ color: 0x31434d, roughness: .28, metalness: .9 });
@@ -4594,6 +4970,160 @@
       walkwayFrontBrace.castShadow = true;
       hangarGroup.add(walkwayFrontBrace);
 
+      // Rail-mounted computer control panel: kept at the catwalk's right end
+      // and on the outside of the front rail, so the patrol route stays clear.
+      const railControlPanel = new THREE.Group();
+      railControlPanel.name = 'RailMountedControlPanel';
+      railControlPanel.position.set(3.05, 4.02, 5.24);
+      const controlPanelBodyMat = new THREE.MeshStandardMaterial({
+        color: 0x31414a, roughness: .38, metalness: .76
+      });
+      const controlPanelBody = new THREE.Mesh(
+        new RoundedBoxGeometry(.92, .72, .2, 2, .045), controlPanelBodyMat
+      );
+      controlPanelBody.castShadow = true;
+      const controlPanelTop = new THREE.Mesh(
+        new THREE.BoxGeometry(.74, .06, .28), emblemWalkwayEdgeMat
+      );
+      controlPanelTop.position.set(0, .37, .01);
+      controlPanelTop.rotation.x = -.16;
+
+      const controlScreenMat = new THREE.MeshBasicMaterial({
+        color: 0x1688b4, toneMapped: false, side: THREE.DoubleSide
+      });
+      const controlScreenGlowMat = new THREE.MeshBasicMaterial({
+        color: 0x64eaff, toneMapped: false, side: THREE.DoubleSide
+      });
+      const controlScreenFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(.7, .46, .035), gunmetalMat
+      );
+      controlScreenFrame.position.set(0, .04, -.12);
+      controlScreenFrame.rotation.x = -.12;
+      const controlScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(.6, .34), controlScreenMat
+      );
+      controlScreen.position.set(0, .04, -.145);
+      controlScreen.rotation.x = -.12;
+      controlScreen.renderOrder = 8;
+      const controlScreenReticle = new THREE.Mesh(
+        new THREE.RingGeometry(.07, .09, 16), controlScreenGlowMat
+      );
+      controlScreenReticle.position.set(0, .04, -.15);
+      controlScreenReticle.rotation.x = -.12;
+      controlScreenReticle.renderOrder = 9;
+
+      const controlLowerScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(.56, .16), controlScreenGlowMat
+      );
+      controlLowerScreen.position.set(0, -.22, -.126);
+      controlLowerScreen.rotation.x = -.12;
+      controlLowerScreen.renderOrder = 8;
+      const controlKeyMat = new THREE.MeshBasicMaterial({ color: 0xffb23e, toneMapped: false });
+      for (const keyX of [-.28, -.14, 0, .14, .28]) {
+        const key = new THREE.Mesh(new THREE.BoxGeometry(.07, .055, .025), controlKeyMat);
+        key.position.set(keyX, -.39, -.12);
+        railControlPanel.add(key);
+      }
+
+      // Two short clamps visibly lock the console to the existing top rail.
+      for (const clampX of [-.27, .27]) {
+        const railClamp = new THREE.Mesh(new THREE.BoxGeometry(.13, .28, .16), emblemWalkwayEdgeMat);
+        railClamp.position.set(clampX, .32, .12);
+        railControlPanel.add(railClamp);
+      }
+      railControlPanel.add(
+        controlPanelBody, controlPanelTop, controlScreenFrame,
+        controlScreen, controlScreenReticle, controlLowerScreen
+      );
+      hangarGroup.add(railControlPanel);
+
+      // Elevator-side control station: outside the lift's circular footprint,
+      // with a dedicated operator standing behind it instead of on the deck.
+      const elevatorControlStation = new THREE.Group();
+      elevatorControlStation.name = 'MechElevatorControlStation';
+      elevatorControlStation.position.set(4.55, 0, .82);
+      const elevatorConsoleMat = new THREE.MeshStandardMaterial({ color: 0x263943, roughness: .34, metalness: .82 });
+      const elevatorConsoleScreenMat = new THREE.MeshBasicMaterial({ color: 0x087fa9, toneMapped: false, side: THREE.DoubleSide });
+      const elevatorConsoleGlowMat = new THREE.MeshBasicMaterial({ color: 0x6cefff, toneMapped: false, side: THREE.DoubleSide });
+      const elevatorConsole = new THREE.Mesh(
+        new RoundedBoxGeometry(.72, 1.02, .38, 2, .06), elevatorConsoleMat
+      );
+      elevatorConsole.position.y = .58;
+      elevatorConsole.rotation.x = -.12;
+      const elevatorConsoleScreenFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(.54, .32, .04), gunmetalMat
+      );
+      elevatorConsoleScreenFrame.position.set(0, .76, -.21);
+      elevatorConsoleScreenFrame.rotation.x = -.12;
+      const elevatorConsoleScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(.46, .24), elevatorConsoleScreenMat
+      );
+      elevatorConsoleScreen.position.set(0, .76, -.235);
+      elevatorConsoleScreen.rotation.x = -.12;
+      elevatorConsoleScreen.renderOrder = 8;
+      const elevatorConsoleReticle = new THREE.Mesh(
+        new THREE.RingGeometry(.045, .06, 14), elevatorConsoleGlowMat
+      );
+      elevatorConsoleReticle.position.set(0, .76, -.24);
+      elevatorConsoleReticle.rotation.x = -.12;
+      elevatorConsoleReticle.renderOrder = 9;
+      const elevatorConsoleKeyMat = new THREE.MeshBasicMaterial({ color: 0xffb23e, toneMapped: false });
+      for (const keyX of [-.2, 0, .2]) {
+        const key = new THREE.Mesh(new THREE.BoxGeometry(.1, .055, .025), elevatorConsoleKeyMat);
+        key.position.set(keyX, .39, -.22);
+        elevatorControlStation.add(key);
+      }
+      const elevatorConsoleBase = new THREE.Mesh(
+        new THREE.BoxGeometry(.86, .12, .58), elevatorConsoleMat
+      );
+      elevatorConsoleBase.position.y = .06;
+      elevatorControlStation.add(
+        elevatorConsole, elevatorConsoleScreenFrame, elevatorConsoleScreen,
+        elevatorConsoleReticle, elevatorConsoleBase
+      );
+      hangarGroup.add(elevatorControlStation);
+
+      // Secondary foreground control panel placed near the hangar camera.
+      // It sits to the side of the viewing lane so the mech remains readable.
+      const frontControlPanel = new THREE.Group();
+      frontControlPanel.name = 'ForegroundControlPanel';
+      frontControlPanel.position.set(5.2, 0, -7.8);
+      const frontPanelBody = new THREE.Mesh(
+        new RoundedBoxGeometry(.78, 1.08, .34, 2, .055), elevatorConsoleMat
+      );
+      frontPanelBody.position.y = .58;
+      frontPanelBody.rotation.x = -.1;
+      const frontPanelScreenFrame = new THREE.Mesh(
+        new THREE.BoxGeometry(.58, .38, .04), gunmetalMat
+      );
+      frontPanelScreenFrame.position.set(0, .78, -.2);
+      frontPanelScreenFrame.rotation.x = -.1;
+      const frontPanelScreen = new THREE.Mesh(
+        new THREE.PlaneGeometry(.5, .29), elevatorConsoleScreenMat
+      );
+      frontPanelScreen.position.set(0, .78, -.225);
+      frontPanelScreen.rotation.x = -.1;
+      frontPanelScreen.renderOrder = 8;
+      const frontPanelReticle = new THREE.Mesh(
+        new THREE.RingGeometry(.05, .067, 14), elevatorConsoleGlowMat
+      );
+      frontPanelReticle.position.set(0, .78, -.23);
+      frontPanelReticle.rotation.x = -.1;
+      frontPanelReticle.renderOrder = 9;
+      const frontPanelBase = new THREE.Mesh(
+        new THREE.BoxGeometry(.92, .12, .52), elevatorConsoleMat
+      );
+      frontPanelBase.position.y = .06;
+      const frontPanelBeacon = new THREE.Mesh(
+        new THREE.SphereGeometry(.07, 10, 8), elevatorConsoleGlowMat
+      );
+      frontPanelBeacon.position.set(.25, .34, -.2);
+      frontControlPanel.add(
+        frontPanelBody, frontPanelScreenFrame, frontPanelScreen,
+        frontPanelReticle, frontPanelBase, frontPanelBeacon
+      );
+      hangarGroup.add(frontControlPanel);
+
       // Shaft and elevator hatch
       const shaftMat = new THREE.MeshStandardMaterial({ color: 0x071015, roughness: .72, metalness: .52, side: THREE.BackSide });
       const shaftTrimMat = new THREE.MeshStandardMaterial({ color: 0x263841, roughness: .28, metalness: .9 });
@@ -4690,10 +5220,8 @@
       hangarLiftPlatform.add(liftDeck);
 
       // Inner concentric brushed deck ring & chamfered bevel outer rim
-      const liftOuterBevel = createFlatCircularSquareRing(4.22, 4.10, .08, shaftTrimMat);
-      liftOuterBevel.rotation.x = -Math.PI / 2;
-      liftOuterBevel.position.y = .012;
-      hangarLiftPlatform.add(liftOuterBevel);
+      // The platform deck remains visible, but the heavy outermost border is
+      // intentionally omitted to keep the elevator silhouette open.
 
       const liftInnerDeck = new THREE.Mesh(new THREE.CylinderGeometry(3.92, 3.92, .03, 48), floorMat);
       liftInnerDeck.position.y = .005;
@@ -5068,33 +5596,132 @@
       const fuelMat = new THREE.MeshStandardMaterial({ color: 0x8f2d27, roughness: .38, metalness: .64 });
       const crateGeo = new RoundedBoxGeometry(1.25, 1.05, 1.25, 2, .08);
       const crateMat = new THREE.MeshStandardMaterial({ color: 0x5b503c, roughness: .78, metalness: .22 });
+      const crateInsetMat = new THREE.MeshStandardMaterial({ color: 0x25333a, roughness: .42, metalness: .72 });
+      const crateMarkingMat = new THREE.MeshBasicMaterial({ color: 0xf0b82c, toneMapped: false });
+      const fuelWarningMat = new THREE.MeshStandardMaterial({ color: 0xb98520, roughness: .5, metalness: .62, side: THREE.DoubleSide });
+      const fuelWarningSymbolMat = new THREE.MeshStandardMaterial({ color: 0x171b1d, roughness: .72, metalness: .18, side: THREE.DoubleSide });
       for (const [index, [x, z]] of [[-7.35, -4.6], [-7.35, -3.65], [-7.35, 3.55], [-7.35, 4.5], [7.35, 4.5], [7.35, 3.55], [7.35, -3.65], [7.35, -4.55]].entries()) {
-        const barrel = new THREE.Mesh(barrelGeo, index % 3 === 0 ? fuelMat : barrelMat);
+        const isFuelBarrel = index % 3 === 0;
+        const barrel = new THREE.Mesh(barrelGeo, isFuelBarrel ? fuelMat : barrelMat);
+        barrel.name = isFuelBarrel ? 'RedFuelBarrel' : 'IndustrialBarrel';
         barrel.position.set(x, .22, z);
         barrel.scale.setScalar(.5);
         barrel.rotation.y = index * .7;
-        const bandTop = new THREE.Mesh(new THREE.TorusGeometry(.47, .035, 6, 18), craneRailMat);
+        // The hangar is scaled 2x and the barrel is scaled .5x, so these
+        // details stay at the real-world 0.58m diameter / 0.88m height.
+        const barrelBandMat = isFuelBarrel ? fuelWarningMat : craneRailMat;
+        const bandTop = new THREE.Mesh(new THREE.TorusGeometry(.29, .025, 8, 20), barrelBandMat);
         const bandBottom = bandTop.clone();
         bandTop.rotation.x = bandBottom.rotation.x = Math.PI / 2;
-        bandTop.position.y = .28;
-        bandBottom.position.y = -.28;
+        bandTop.position.y = .32;
+        bandBottom.position.y = -.32;
         barrel.add(bandTop, bandBottom);
+        if (isFuelBarrel) {
+          // Raised lid, filler valve, and vertical reinforcement ribs give the
+          // large red drums a readable industrial silhouette at hangar scale.
+          const fuelLid = new THREE.Mesh(new THREE.CylinderGeometry(.22, .22, .035, 18), barrelMat);
+          fuelLid.position.y = .445;
+          const fuelLidRing = new THREE.Mesh(new THREE.TorusGeometry(.22, .018, 8, 20), fuelWarningMat);
+          fuelLidRing.rotation.x = Math.PI / 2;
+          fuelLidRing.position.y = .468;
+          const fuelValve = new THREE.Mesh(new THREE.CylinderGeometry(.045, .055, .1, 8), fuelWarningSymbolMat);
+          fuelValve.position.y = .515;
+          const ribLeft = new THREE.Mesh(new THREE.BoxGeometry(.026, .7, .055), barrelMat);
+          const ribRight = ribLeft.clone();
+          ribLeft.position.set(-.285, 0, 0);
+          ribRight.position.set(.285, 0, 0);
+          barrel.add(fuelLid, fuelLidRing, fuelValve, ribLeft, ribRight);
+
+          // A front warning plate and inset hazard symbol make every red fuel
+          // barrel readable from the hangar camera.
+          const warningPlate = new THREE.Mesh(new THREE.PlaneGeometry(.32, .26), fuelWarningMat);
+          warningPlate.position.set(0, .04, -.34);
+          warningPlate.rotation.y = -barrel.rotation.y;
+          warningPlate.renderOrder = 25;
+          const warningSymbol = new THREE.Mesh(new THREE.CircleGeometry(.08, 3), fuelWarningSymbolMat);
+          warningSymbol.position.set(0, .04, -.345);
+          warningSymbol.rotation.y = -barrel.rotation.y;
+          warningSymbol.rotation.z = Math.PI;
+          warningSymbol.renderOrder = 26;
+          barrel.add(warningPlate, warningSymbol);
+        }
         hangarGroup.add(barrel);
       }
       for (const [index, [x, z]] of [[-7.25, -2.2], [-7.25, -.95], [-7.25, .3], [-7.25, 1.55], [7.25, -1.55], [7.25, -.3], [7.25, .95], [7.25, 2.2]].entries()) {
         const crate = new THREE.Mesh(crateGeo, crateMat);
-        crate.position.set(x, .2625 + (index % 3) * .525, z);
+        const storageX = x < 0 ? -6.78 : x;
+        crate.position.set(storageX, .2625 + (index % 3) * .525, z);
         crate.scale.setScalar(.5);
         crate.rotation.y = (index % 3) * .18;
+        if (x < 0) {
+          // Recessed face panel and yellow corner rails break up the old plain
+          // cube while keeping the storage stack compact and readable.
+          const inset = new THREE.Mesh(new THREE.BoxGeometry(.88, .06, .045), crateInsetMat);
+          inset.position.set(0, .05, .63);
+          const leftMark = new THREE.Mesh(new THREE.BoxGeometry(.055, .72, .05), crateMarkingMat);
+          leftMark.position.set(-.43, 0, .66);
+          const rightMark = leftMark.clone();
+          rightMark.position.x = .43;
+          crate.add(inset, leftMark, rightMark);
+        }
         hangarGroup.add(crate);
       }
+      // Oversized rounded-square safety boundary, hovering just above the
+      // floor around the redesigned left storage zone.
+      const storageFrameMat = new THREE.MeshBasicMaterial({ color: 0xffc928, toneMapped: false });
+      const storageFrame = new THREE.Group();
+      storageFrame.name = 'LeftStorageSafetyFrame';
+      storageFrame.position.set(-6.78, .075, -.3);
+      const storageFrameWidth = 1.95;
+      const storageFrameDepth = 4.65;
+      const storageFrameThickness = .08;
+      const storageFrameFront = new THREE.Mesh(new RoundedBoxGeometry(storageFrameWidth, storageFrameThickness, storageFrameThickness, 2, .018), storageFrameMat);
+      storageFrameFront.position.z = -storageFrameDepth * .5;
+      const storageFrameBack = storageFrameFront.clone();
+      storageFrameBack.position.z = storageFrameDepth * .5;
+      const storageFrameSide = new THREE.Mesh(new RoundedBoxGeometry(storageFrameThickness, storageFrameThickness, storageFrameDepth, 2, .018), storageFrameMat);
+      storageFrameSide.position.x = -storageFrameWidth * .5;
+      const storageFrameSideRight = storageFrameSide.clone();
+      storageFrameSideRight.position.x = storageFrameWidth * .5;
+      storageFrame.add(storageFrameFront, storageFrameBack, storageFrameSide, storageFrameSideRight);
+      hangarGroup.add(storageFrame);
       const fuelTankGeo = new THREE.CylinderGeometry(.68, .68, 2.5, 16);
+      const fuelTankBandMat = new THREE.MeshStandardMaterial({ color: 0x9d7622, roughness: .48, metalness: .72 });
+      const fuelTankDarkMat = new THREE.MeshStandardMaterial({ color: 0x20292d, roughness: .42, metalness: .84 });
+      const fuelTankWarningSymbolMat = new THREE.MeshStandardMaterial({ color: 0x171b1d, roughness: .7, metalness: .15, side: THREE.DoubleSide });
       for (const side of [-1, 1]) {
         const fuelTank = new THREE.Mesh(fuelTankGeo, fuelMat);
+        fuelTank.name = side < 0 ? 'LeftLargeRedFuelTank' : 'RightLargeRedFuelTank';
         fuelTank.position.set(side * 6.35, 1.28, 3.15);
-        const cap = new THREE.Mesh(new THREE.CylinderGeometry(.16, .16, .2, 10), craneRailMat);
+        const cap = new THREE.Mesh(new THREE.CylinderGeometry(.25, .25, .16, 14), fuelTankDarkMat);
         cap.position.y = 1.34;
-        fuelTank.add(cap);
+        const capRing = new THREE.Mesh(new THREE.TorusGeometry(.25, .035, 8, 18), fuelTankBandMat);
+        capRing.rotation.x = Math.PI / 2;
+        capRing.position.y = 1.43;
+        const valve = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, .16, 10), fuelTankDarkMat);
+        valve.position.y = 1.55;
+
+        // Heavy rolled bands and vertical rails make the large tank read as a
+        // reinforced pressure vessel instead of a plain red cylinder.
+        for (const bandY of [-.82, 0, .82]) {
+          const band = new THREE.Mesh(new THREE.TorusGeometry(.69, .045, 8, 20), fuelTankBandMat);
+          band.rotation.x = Math.PI / 2;
+          band.position.y = bandY;
+          fuelTank.add(band);
+        }
+        for (const railX of [-.64, .64]) {
+          const rail = new THREE.Mesh(new THREE.BoxGeometry(.07, 2.18, .1), fuelTankDarkMat);
+          rail.position.set(railX, 0, -.22);
+          fuelTank.add(rail);
+        }
+
+        // Keep only the dark triangular hazard symbol; remove the large
+        // yellow rectangular warning box from the tank face.
+        const warningSymbol = new THREE.Mesh(new THREE.CircleGeometry(.2, 3), fuelTankWarningSymbolMat);
+        warningSymbol.position.set(0, .12, -.701);
+        warningSymbol.rotation.z = Math.PI;
+        warningSymbol.renderOrder = 26;
+        fuelTank.add(cap, capRing, valve, warningSymbol);
         hangarGroup.add(fuelTank);
       }
       // High-Detail Recessed Industrial Floor Ventilation Ducts with Shaft Depth & Louver Slats
@@ -5193,6 +5820,26 @@
       const sciFiRailMat = new THREE.MeshStandardMaterial({ color: 0x2bb5d0, roughness: 0.3, metalness: 0.9 });
       const sciFiGlowRailMat = new THREE.MeshStandardMaterial({ color: 0x28585f, roughness: .58, metalness: .3 });
       const amberGlowRailMat = new THREE.MeshStandardMaterial({ color: 0x6b4a1f, roughness: .58, metalness: .3 });
+      const createSideRailControlPanel = (side, innerX) => {
+        const railPanel = new THREE.Group();
+        railPanel.name = side < 0 ? 'LeftRailControlPanel' : 'RightRailControlPanel';
+        railPanel.position.set(innerX - side * .12, .46, -1.65);
+        railPanel.rotation.y = -side * Math.PI / 2;
+        const body = new THREE.Mesh(new RoundedBoxGeometry(.72, .86, .28, 2, .05), elevatorConsoleMat);
+        body.position.y = .02;
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(.52, .3, .04), gunmetalMat);
+        frame.position.set(0, .25, -.17);
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(.44, .23), elevatorConsoleScreenMat);
+        screen.position.set(0, .25, -.195);
+        screen.renderOrder = 8;
+        const reticle = new THREE.Mesh(new THREE.RingGeometry(.04, .055, 14), elevatorConsoleGlowMat);
+        reticle.position.set(0, .25, -.2);
+        reticle.renderOrder = 9;
+        const base = new THREE.Mesh(new THREE.BoxGeometry(.82, .1, .42), elevatorConsoleMat);
+        base.position.y = -.42;
+        railPanel.add(body, frame, screen, reticle, base);
+        return railPanel;
+      };
 
       for (const side of [-1, 1]) {
         for (const yHeight of [3.5, 7.8]) {
@@ -5226,6 +5873,7 @@
           toeBoardGlow.position.set(innerX, 0.08, 0);
 
           walkwayGroup.add(topRailGlow, midRail, toeBoardGlow);
+          if (yHeight === 3.5) walkwayGroup.add(createSideRailControlPanel(side, innerX));
           hangarGroup.add(walkwayGroup);
         }
       }
@@ -5344,10 +5992,14 @@
         hangarSearchlights.push(searchlight);
         hangarGroup.add(searchlight, searchlight.target, volume);
       }
+      const hangarMechaUplightTarget = new THREE.Object3D();
+      hangarMechaUplightTarget.name = 'HangarMechaUplightTarget';
+      hangarMechaUplightTarget.position.set(0, 2.35, 0);
+      player.add(hangarMechaUplightTarget);
       for (const [x, z, color] of [[-4.8, 2.8, 0x75eaff], [4.8, 2.8, 0x75eaff], [-4.8, -2.8, 0xffb34e], [4.8, -2.8, 0xffb34e]]) {
         const uplight = new THREE.SpotLight(color, 34, 20, Math.PI / 6, .72, 1.25);
         uplight.position.set(x, .18, z);
-        uplight.target = player;
+        uplight.target = hangarMechaUplightTarget;
         hangarGroup.add(uplight);
         const fixture = new THREE.Mesh(new THREE.CylinderGeometry(.3, .38, .15, 12), steelMat);
         fixture.position.set(x, .08, z);
@@ -5493,12 +6145,28 @@
         return { suitMat: suit, vestMat: vest, visorMat: visor, toolMat: tool, skinMat: skin, pantsMat: pants };
       }
 
+      const elevatorOperatorMats = createHangarHumanMaterials(8);
+      const elevatorOperatorHuman = createArticulatedHumanModel(elevatorOperatorMats);
+      const elevatorOperator = elevatorOperatorHuman.root;
+      elevatorOperator.name = 'MechElevatorConsoleOperator';
+      elevatorOperator.position.set(4.55, HANGAR_HUMAN_FOOT_OFFSET, 1.6);
+      elevatorOperator.rotation.y = Math.PI;
+      elevatorOperator.scale.setScalar(.5);
+      const operatorTablet = new THREE.Mesh(
+        new THREE.BoxGeometry(.32, .035, .22), elevatorOperatorMats.visorMat
+      );
+      operatorTablet.position.set(0, -.22, .16);
+      elevatorOperatorHuman.arms.right.wristGroup.add(operatorTablet);
+      elevatorOperator.userData = { humanRef: elevatorOperatorHuman, controlStation: elevatorControlStation };
+      hangarGroup.add(elevatorOperator);
+
 
 
       const mechanicPositions = [
-        [-3.6, 1.4], [3.6, 1.4],
-        [-3.2, -3.8], [3.2, -3.8],
-        [-5.8, -0.2], [5.8, -0.2],
+        // Work points stay clear of the robot-arm bases and elevator console.
+        [-2.8, 1.0], [2.8, 1.0],
+        [-3.6, -2.8], [3.6, -2.8],
+        [-5.2, -1.8], [5.2, -1.8],
         [-1.4, 4.2], [1.4, 4.2]
       ];
       mechanicPositions.forEach(([x, z], index) => {
@@ -5506,10 +6174,11 @@
         const mechanic = humanRef.root;
         mechanic.scale.setScalar(.5);
 
-        const workPosition = new THREE.Vector3(x, 0, z);
-        const idleX = index % 2 === 0 ? -7.2 : 7.2;
+        const workPosition = new THREE.Vector3(x, HANGAR_HUMAN_FOOT_OFFSET, z);
+        // Keep the mechanic staging lane inside the large fuel-tank line.
+        const idleX = index % 2 === 0 ? -5.05 : 5.05;
         const idleZ = index < 4 ? (index < 2 ? -5.5 : 5.5) : (index < 6 ? -3.5 : 3.5);
-        const idlePosition = new THREE.Vector3(idleX, 0, idleZ);
+        const idlePosition = new THREE.Vector3(idleX, HANGAR_HUMAN_FOOT_OFFSET, idleZ);
 
         mechanic.position.copy(idlePosition);
         mechanic.rotation.y = Math.atan2(workPosition.x - idlePosition.x, workPosition.z - idlePosition.z);
@@ -5519,6 +6188,14 @@
         const toolLight = new THREE.Mesh(new THREE.SphereGeometry(.095, 8, 6), visorMat);
         toolLight.position.set(0, -.42, .18);
         humanRef.arms.right.wristGroup.add(toolLight);
+        const workMode = index % 2 === 0 ? 'WELDING' : 'INSPECTION';
+        let inspectionProbe = null;
+        if (workMode === 'INSPECTION') {
+          const inspectionProbeMat = new THREE.MeshBasicMaterial({ color: 0xffb23e, toneMapped: false });
+          inspectionProbe = new THREE.Mesh(new THREE.BoxGeometry(.08, .22, .08), inspectionProbeMat);
+          inspectionProbe.position.set(0, -.15, .16);
+          humanRef.arms.left.wristGroup.add(inspectionProbe);
+        }
 
         mechanic.userData = {
           state: 'IDLE',
@@ -5529,8 +6206,13 @@
           humanRef,
           toolArm,
           toolLight,
+          workMode,
+          inspectionProbe,
           phase: index * 1.47,
-          basePosition: workPosition.clone()
+          avoidSide: index % 2 === 0 ? -1 : 1,
+          basePosition: workPosition.clone(),
+          repairTimer: 0,
+          repairDuration: 2.8 + (index % 3) * .55
         };
 
         maintenanceMechanics.push(mechanic);
@@ -5541,7 +6223,6 @@
       const robotArmHousingMat = new THREE.MeshStandardMaterial({ color: 0x2b3b46, roughness: .28, metalness: .9 });
       const robotHydraulicMat = new THREE.MeshStandardMaterial({ color: 0x9eb1bb, roughness: .18, metalness: .96 });
       const robotJointDiscMat = new THREE.MeshStandardMaterial({ color: 0x111920, roughness: .25, metalness: .92 });
-      const robotCableMat = new THREE.MeshStandardMaterial({ color: 0x0b1116, roughness: .65, metalness: .4 });
       const robotGlowMat = new THREE.MeshStandardMaterial({ color: 0x31545a, roughness: .58, metalness: .28 });
       const robotToolMat = new THREE.MeshStandardMaterial({ color: 0x587277, roughness: .52, metalness: .32 });
       const robotWarningAmberMat = new THREE.MeshBasicMaterial({ color: 0xffa01a, toneMapped: false });
@@ -5553,9 +6234,6 @@
         robot.rotation.y = Math.atan2(-x, -z);
 
         // 1. Multi-Tiered Heavy Industrial Base Pedestal (다단 원형 기단부)
-        const anchorPlate = new THREE.Mesh(new RoundedBoxGeometry(2.1, .22, 2.1, 2, .08), robotDarkMat);
-        anchorPlate.position.y = .11;
-
         // Tier 1 Base Flange Ring with Bolt Cutouts
         const basePedestal = new THREE.Mesh(new THREE.CylinderGeometry(.92, 1.15, .45, 18), robotArmHousingMat);
         basePedestal.position.y = .34;
@@ -5580,7 +6258,7 @@
         shoulderCapCap.rotation.z = Math.PI / 2;
         shoulderCapCap.position.y = 1.25;
 
-        robot.add(anchorPlate, basePedestal, rotaryHousing, BaseGuardRing, shoulderJointDiscLeft, shoulderJointDiscRight, shoulderCapCap);
+        robot.add(basePedestal, rotaryHousing, BaseGuardRing, shoulderJointDiscLeft, shoulderJointDiscRight, shoulderCapCap);
 
         // 2. Lower Main Arm (하부 메인 암 - 중장업 유압 피스톤 & 케이블 배선)
         const lowerPivot = new THREE.Group();
@@ -5605,16 +6283,6 @@
           pistonShaft.position.set(side * .28, 1.45, -.24);
           lowerPivot.add(pistonCylinder, pistonShaft);
         }
-
-        // Corrugated Power & Oil Cable Bundle along Lower Arm
-        const lowerCableCurve = new THREE.QuadraticBezierCurve3(
-          new THREE.Vector3(0, 0.2, 0.32),
-          new THREE.Vector3(0, 1.35, 0.58),
-          new THREE.Vector3(0, 2.6, 0.32)
-        );
-        const lowerCableGeo = new THREE.TubeGeometry(lowerCableCurve, 12, .065, 8, false);
-        const lowerCableMesh = new THREE.Mesh(lowerCableGeo, robotCableMat);
-        lowerPivot.add(lowerCableMesh);
 
         // 3. Elbow Rotary Joint (팔꿈치 대형 로터리 감속 관절 디스크)
         const elbowJointDiscLeft = new THREE.Mesh(new THREE.CylinderGeometry(.45, .45, .16, 16), robotJointDiscMat);
@@ -5702,59 +6370,6 @@
         };
         maintenanceMechanics.push(robot);
         hangarGroup.add(robot);
-      }
-
-      // --- INDUSTRIAL FLOOR CABLE BUNDLES & JUNCTION CONDUITS ---
-      // Adds organic 3D serpentine power/oil cables running along the hangar floor outside the elevator radius (R > 3.2m),
-      // connecting power junction boxes, scaffolding posts, and robot arm pedestals.
-      const floorCableMat1 = new THREE.MeshStandardMaterial({ color: 0x11171d, roughness: .65, metalness: .35 });
-      const floorCableMat2 = new THREE.MeshStandardMaterial({ color: 0x22323d, roughness: .55, metalness: .45 });
-      const junctionBoxMat = new THREE.MeshStandardMaterial({ color: 0x1c2832, roughness: .35, metalness: .85 });
-      const yellowStrapMat = new THREE.MeshBasicMaterial({ color: 0xecb736 });
-
-      const cableCurvesData = [
-        // Cable 1: From Left Power Terminal (-7.2, -6.0) around outer elevator perimeter to Robot Arm 1 (-4.55, 2.35)
-        [ new THREE.Vector3(-7.2, 0.04, -6.0), new THREE.Vector3(-6.5, 0.05, -2.5), new THREE.Vector3(-5.2, 0.05, 0.5), new THREE.Vector3(-4.55, 0.08, 2.35) ],
-        // Cable 2: Parallel Oil Hose along Left Wall Base to Rear Scaffolding Base (-6.5, 6.2)
-        [ new THREE.Vector3(-7.5, 0.03, -7.0), new THREE.Vector3(-7.2, 0.04, 0.0), new THREE.Vector3(-6.8, 0.05, 4.5), new THREE.Vector3(-6.5, 0.06, 6.2) ],
-        // Cable 3: From Right Power Terminal (7.2, -6.0) curving outside elevator to Robot Arm 2 (4.55, 2.35)
-        [ new THREE.Vector3(7.2, 0.04, -6.0), new THREE.Vector3(6.5, 0.05, -2.5), new THREE.Vector3(5.2, 0.05, 0.5), new THREE.Vector3(4.55, 0.08, 2.35) ],
-        // Cable 4: Heavy Trunk Line behind Rear Platform (-4.0, 7.2) to Right Power Hub (6.0, 5.5)
-        [ new THREE.Vector3(-4.0, 0.05, 7.2), new THREE.Vector3(-1.2, 0.06, 7.5), new THREE.Vector3(2.5, 0.05, 7.0), new THREE.Vector3(6.0, 0.06, 5.5) ],
-        // Cable 5: Front Left Apron Feeder Cable (-6.8, -4.5) to Front Scaffolding Gantry Post (-3.2, -0.85)
-        [ new THREE.Vector3(-6.8, 0.03, -4.5), new THREE.Vector3(-5.2, 0.04, -3.2), new THREE.Vector3(-4.2, 0.05, -2.0), new THREE.Vector3(-3.2, 0.05, -0.85) ],
-        // Cable 6: Front Right Apron Feeder Cable (6.8, -4.5) to Front Scaffolding Gantry Post (3.2, -0.85)
-        [ new THREE.Vector3(6.8, 0.03, -4.5), new THREE.Vector3(5.2, 0.04, -3.2), new THREE.Vector3(4.2, 0.05, -2.0), new THREE.Vector3(3.2, 0.05, -0.85) ]
-      ];
-
-      for (let c = 0; c < cableCurvesData.length; c++) {
-        const points = cableCurvesData[c];
-        const curve = new THREE.CatmullRomCurve3(points);
-        const radius = (c % 2 === 0 ? 0.075 : 0.055);
-        const cableGeo = new THREE.TubeGeometry(curve, 28, radius, 8, false);
-        const cableMesh = new THREE.Mesh(cableGeo, c % 2 === 0 ? floorCableMat1 : floorCableMat2);
-        cableMesh.receiveShadow = true;
-        hangarGroup.add(cableMesh);
-
-        // Heavy Floor Junction Distribution Boxes & Yellow Cable Straps
-        for (let s = 1; s <= 3; s++) {
-          const t = s / 4;
-          const pos = curve.getPoint(t);
-          
-          // Yellow Safety Tie Strap
-          const strap = new THREE.Mesh(new THREE.TorusGeometry(radius * 1.35, 0.016, 6, 12), yellowStrapMat);
-          strap.position.copy(pos);
-          strap.rotation.x = Math.PI / 2;
-          hangarGroup.add(strap);
-
-          // Junction Box at mid-points
-          if (s === 2 && c < 4) {
-            const jBox = new THREE.Mesh(new RoundedBoxGeometry(0.42, 0.22, 0.36, 2, 0.06), junctionBoxMat);
-            jBox.position.set(pos.x, 0.11, pos.z);
-            jBox.castShadow = true;
-            hangarGroup.add(jBox);
-          }
-        }
       }
 
       // --- HIGH-QUALITY PROCEDURAL PARTICLE TEXTURES GENERATOR ---
@@ -6129,12 +6744,13 @@
           scanEmitter,
           sensorLens,
           route,
-          state: 'ENTERING', // 'ENTERING', 'REPAIRING', 'EXITING', 'WAITING'
+          state: 'WAITING', // 'ENTERING', 'REPAIRING', 'EXITING', 'WAITING'
           progress: 0,
           flightDuration: 6.2 + idIndex * 0.8, // Smooth 6+ seconds curved flight
           workTimer: 0,
           maxWorkDuration: 5.5 + idIndex * 2.2,
-          waitTimer: idIndex * 3.8, // Staggered initial entrance
+          waitTimer: 5.2 + idIndex * 2.6, // Wait until the elevator has fully arrived, then stagger entrance
+          arrivalDelay: 5.2 + idIndex * 2.6,
           velocity: new THREE.Vector3(),
           tiltRoll: 0,
           tiltPitch: 0,
@@ -6262,7 +6878,7 @@
       const heroHuman = createArticulatedHumanModel({ suitMat: pilotSuitMat, vestMat: pilotGoldMat, visorMat: pilotVisorMat, toolMat: pilotArmorMat });
       heroPilot = heroHuman.root;
       // Place the pilot behind the mech, facing forward toward its back.
-      heroPilot.position.set(0, 0, -4.5);
+      heroPilot.position.set(0, HANGAR_HUMAN_FOOT_OFFSET, -4.5);
       heroPilot.rotation.y = 0;
       heroPilot.scale.setScalar(.55);
 
@@ -6279,11 +6895,13 @@
 
       // --- WANDERING PATROL CREW (`wanderingPatrolCrew`) ---
       const patrolRoutes = [
-        { start: new THREE.Vector3(-6.2, 0, -4.5), end: new THREE.Vector3(-6.2, 0, 4.5) },
-        { start: new THREE.Vector3(6.2, 0, -4.5), end: new THREE.Vector3(6.2, 0, 4.5) },
+        // Inner lanes bypass the large fuel tanks, robot arms, and control
+        // stations on the outer/right maintenance lanes.
+        { start: new THREE.Vector3(-3.15, HANGAR_HUMAN_FOOT_OFFSET, -4.5), end: new THREE.Vector3(-3.15, HANGAR_HUMAN_FOOT_OFFSET, 4.5) },
+        { start: new THREE.Vector3(3.15, HANGAR_HUMAN_FOOT_OFFSET, -4.5), end: new THREE.Vector3(3.15, HANGAR_HUMAN_FOOT_OFFSET, 4.5) },
         { start: new THREE.Vector3(-7.55, 3.56, -3.2), end: new THREE.Vector3(-7.55, 3.56, 3.2) },
         { start: new THREE.Vector3(7.55, 3.56, -3.2), end: new THREE.Vector3(7.55, 3.56, 3.2) },
-        { start: new THREE.Vector3(-4.5, 0, -5.2), end: new THREE.Vector3(4.5, 0, -5.2) },
+        { start: new THREE.Vector3(-4.5, HANGAR_HUMAN_FOOT_OFFSET, -5.2), end: new THREE.Vector3(4.5, HANGAR_HUMAN_FOOT_OFFSET, -5.2) },
         { start: new THREE.Vector3(-2.8, 3.52, 6.25), end: new THREE.Vector3(2.8, 3.52, 6.25) }
       ];
 
@@ -6304,7 +6922,8 @@
           movingToEnd: true,
           speed: 0.52 + (index % 3) * 0.08,
           gaitPhase: index * 1.3,
-          pauseTimer: 0
+          avoidSide: index % 2 === 0 ? -1 : 1,
+          pauseTimer: index * .65
         };
 
         wanderingPatrolCrew.push(officer);
@@ -6624,6 +7243,53 @@
       if (object.isLight && /logo|backlight/i.test(object.name || '')) object.intensity = 0;
     });
 
+    function turnHangarCrew(worker, targetRotation, dt) {
+      const maxTurn = 1.55 * dt;
+      const delta = THREE.MathUtils.clamp(angleDelta(worker.rotation.y, targetRotation), -maxTurn, maxTurn);
+      worker.rotation.y += delta;
+    }
+
+    function getHangarCrewSafeStep(worker, target, step) {
+      const desiredX = target.x - worker.position.x;
+      const desiredZ = target.z - worker.position.z;
+      const desiredDistance = Math.hypot(desiredX, desiredZ);
+      if (desiredDistance <= .001) return worker.position.clone();
+
+      const desired = new THREE.Vector3(desiredX / desiredDistance, 0, desiredZ / desiredDistance);
+      const avoid = new THREE.Vector3();
+      const crew = [
+        ...maintenanceMechanics.filter(other => other !== worker && !other.userData.isRobotArm && other.position.y < 1),
+        ...wanderingPatrolCrew.filter(other => other !== worker && other.position.y < 1)
+      ];
+      for (const other of crew) {
+        const dx = worker.position.x - other.position.x;
+        const dz = worker.position.z - other.position.z;
+        const distance = Math.hypot(dx, dz);
+        if (distance > 1.15) continue;
+        if (distance > .001) avoid.add(new THREE.Vector3(dx / distance, 0, dz / distance).multiplyScalar((1.15 - distance) / 1.15));
+      }
+
+      const avoidSide = worker.userData.avoidSide || 1;
+      for (const obstacle of hangarGroundObstacles) {
+        const dx = worker.position.x - obstacle.x;
+        const dz = worker.position.z - obstacle.z;
+        const distance = Math.hypot(dx, dz);
+        const clearance = obstacle.radius + .52;
+        if (distance >= clearance) continue;
+        const away = distance > .001
+          ? new THREE.Vector3(dx / distance, 0, dz / distance)
+          : new THREE.Vector3(avoidSide, 0, 0);
+        const tangent = new THREE.Vector3(-away.z, 0, away.x).multiplyScalar(avoidSide);
+        const strength = (clearance - distance) / clearance;
+        avoid.addScaledVector(away, strength * 1.35);
+        avoid.addScaledVector(tangent, strength * .9);
+      }
+
+      const steer = desired.clone().addScaledVector(avoid, 1.8);
+      if (steer.lengthSq() > .001) steer.normalize();
+      return worker.position.clone().addScaledVector(steer, step);
+    }
+
     function updateHangar(dt) {
       if (!hangarActive && !hangarLaunching) return;
       const now = performance.now() * .001;
@@ -6646,6 +7312,7 @@
         player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET;
         player.rotation.y = Math.PI + (reveal < .995 ? Math.sin(now * .65) * .08 * (1 - reveal) : 0);
       }
+      const hangarElevatorArrived = !titleActive || !hangarLiftPlatform || hangarLiftPlatform.position.y > -.05;
       for (const mechanic of maintenanceMechanics) {
         const phase = reducedMotion ? mechanic.userData.phase : now * 2.8 + mechanic.userData.phase;
         if (mechanic.userData.isRobotArm) {
@@ -6659,9 +7326,9 @@
           const data = mechanic.userData;
           const revealProgress = titleActive ? THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.35) : 1;
 
-          // State Machine: IDLE -> WALKING -> REPAIRING
+          // State Machine: IDLE -> WALKING -> REPAIRING -> RETURNING -> IDLE
           if (data.state === 'IDLE') {
-            const triggerWalk = (!titleActive && hangarActive) || (titleActive && revealProgress >= 0.70);
+            const triggerWalk = hangarElevatorArrived && ((!titleActive && hangarActive) || (titleActive && revealProgress >= 0.70));
             if (triggerWalk) {
               data.startDelay -= dt;
               if (data.startDelay <= 0) {
@@ -6678,33 +7345,108 @@
             if (dist > 0.15) {
               const walkSpeed = 0.58;
               const moveStep = Math.min(dist, dt * walkSpeed);
-              mechanic.position.x += (dx / dist) * moveStep;
-              mechanic.position.z += (dz / dist) * moveStep;
+              const nextPosition = getHangarCrewSafeStep(mechanic, data.workPosition, moveStep);
+              const movedX = nextPosition.x - mechanic.position.x;
+              const movedZ = nextPosition.z - mechanic.position.z;
+              mechanic.position.copy(nextPosition);
               
-              const targetRot = Math.atan2(dx, dz);
-              mechanic.rotation.y = THREE.MathUtils.lerp(mechanic.rotation.y, targetRot, 0.15);
+              const targetRot = Math.atan2(movedX || dx, movedZ || dz);
+              turnHangarCrew(mechanic, targetRot, dt);
 
               data.gaitPhase = (data.gaitPhase || (data.phase || 0)) + (moveStep / 0.62) * Math.PI * 2;
               updateHumanGaitPhysics(data.humanRef, data.gaitPhase, 0.85);
             } else {
               mechanic.position.copy(data.workPosition);
               updateHumanGaitPhysics(data.humanRef, 0, 0);
-              mechanic.rotation.y = Math.atan2(-data.workPosition.x, -data.workPosition.z);
-              data.state = 'REPAIRING';
+              turnHangarCrew(mechanic, Math.atan2(-data.workPosition.x, -data.workPosition.z), dt);
+              const activeRepairs = maintenanceMechanics.reduce((count, other) => (
+                count + (!other.userData.isRobotArm && other.userData.state === 'REPAIRING' ? 1 : 0)
+              ), 0);
+              if (activeRepairs < MAX_ACTIVE_MECHANIC_REPAIRS) {
+                data.repairTimer = 0;
+                data.state = 'REPAIRING';
+              } else {
+                // Do not queue a crowd at the work point; return to staging.
+                data.state = 'RETURNING';
+              }
             }
           }
 
-          if (data.state === 'REPAIRING' || !data.state) {
-            data.toolArm.rotation.x = -.65 + Math.sin(phase) * .38;
-            data.toolArm.rotation.z = Math.cos(phase * .7) * .2;
-            data.toolLight.scale.setScalar(.75 + Math.sin(phase * 4) * .22);
+          if (data.state === 'REPAIRING') {
+            data.repairTimer += dt;
+            if (data.workMode === 'INSPECTION') {
+              // Inspectors lean into the lower chassis and alternate between
+              // a handheld probe and a close visual check instead of welding.
+              const inspectWave = Math.sin(phase * .72);
+              const probeWave = Math.sin(phase * 1.35 + 1.1);
+              const human = data.humanRef;
+              human.pelvis.position.y = .92 + Math.abs(inspectWave) * .018;
+              human.spineGroup.rotation.x = -.14 + inspectWave * .045;
+              human.spineGroup.rotation.z = inspectWave * .035;
+              human.neckGroup.rotation.x = .12 - inspectWave * .08;
+              human.arms.right.shoulderGroup.rotation.x = -.82 + probeWave * .18;
+              human.arms.right.shoulderGroup.rotation.z = .18;
+              human.arms.right.elbowGroup.rotation.x = -.72 + Math.max(0, probeWave) * .28;
+              human.arms.left.shoulderGroup.rotation.x = -.48 - probeWave * .16;
+              human.arms.left.shoulderGroup.rotation.z = -.2;
+              human.arms.left.elbowGroup.rotation.x = -.92 + Math.max(0, -probeWave) * .24;
+              for (const side of ['left', 'right']) {
+                human.legs[side].kneeGroup.rotation.x = .08 + Math.abs(inspectWave) * .06;
+              }
+              if (data.inspectionProbe) data.inspectionProbe.rotation.z = probeWave * .32;
+              data.toolLight.scale.setScalar(.55 + Math.max(0, probeWave) * .24);
+            } else {
+              data.toolArm.rotation.x = -.65 + Math.sin(phase) * .38;
+              data.toolArm.rotation.z = Math.cos(phase * .7) * .2;
+              data.toolLight.scale.setScalar(.75 + Math.sin(phase * 4) * .22);
+            }
+            if (data.repairTimer >= data.repairDuration) {
+              data.state = 'RETURNING';
+            }
           }
 
-          if (hangarLaunching) {
-            const retreat = Math.min(1, hangarLaunchTime / 1.1);
-            const targetPos = data.workPosition || data.basePosition;
-            mechanic.position.x = targetPos.x * (1 + retreat * .62);
-            mechanic.position.z = targetPos.z * (1 + retreat * .38);
+          if (data.state === 'RETURNING' && !hangarLaunching) {
+            const dx = data.idlePosition.x - mechanic.position.x;
+            const dz = data.idlePosition.z - mechanic.position.z;
+            const dist = Math.hypot(dx, dz);
+            if (dist > .15) {
+              const walkSpeed = .58;
+              const moveStep = Math.min(dist, dt * walkSpeed);
+              const nextPosition = getHangarCrewSafeStep(mechanic, data.idlePosition, moveStep);
+              const movedX = nextPosition.x - mechanic.position.x;
+              const movedZ = nextPosition.z - mechanic.position.z;
+              mechanic.position.copy(nextPosition);
+              turnHangarCrew(mechanic, Math.atan2(movedX || dx, movedZ || dz), dt);
+              data.gaitPhase = (data.gaitPhase || (data.phase || 0)) + (moveStep / .62) * Math.PI * 2;
+              updateHumanGaitPhysics(data.humanRef, data.gaitPhase, .85);
+            } else {
+              mechanic.position.copy(data.idlePosition);
+              updateHumanGaitPhysics(data.humanRef, 0, 0);
+              data.state = 'IDLE';
+              data.startDelay = 1.0 + (mechanic.userData.phase % 1.4);
+            }
+          }
+
+          if (hangarLaunching && data.launchStartPosition && data.launchEvacPosition) {
+            const evacProgress = THREE.MathUtils.smoothstep(
+              hangarLaunchTime, 0, HANGAR_LAUNCH_EVAC_DURATION
+            );
+            const evacPos = data.launchStartPosition.clone().lerp(data.launchEvacPosition, evacProgress);
+            const dx = data.launchEvacPosition.x - mechanic.position.x;
+            const dz = data.launchEvacPosition.z - mechanic.position.z;
+            const dist = Math.hypot(dx, dz);
+            mechanic.position.copy(evacPos);
+            if (dist > .12) {
+              turnHangarCrew(mechanic, Math.atan2(dx, dz), dt);
+              data.gaitPhase = (data.gaitPhase || data.phase) + dt * 6.2;
+              updateHumanGaitPhysics(data.humanRef, data.gaitPhase, .85);
+            } else {
+              updateHumanGaitPhysics(data.humanRef, 0, 0);
+            }
+            if (evacProgress >= 1) {
+              mechanic.position.copy(data.launchEvacPosition);
+              data.state = 'IDLE';
+            }
           }
         }
       }
@@ -6810,6 +7552,18 @@
             // Fast Emergency Evacuation flight retreat during Mech Launch sequence
             drone.position.lerp(new THREE.Vector3(data.route.start.x * 1.5, data.route.start.y + 6.0, data.route.start.z * 1.5), dt * 3.5);
             drone.rotation.z = THREE.MathUtils.lerp(drone.rotation.z, (data.route.start.x > 0 ? 0.45 : -0.45), dt * 4.0);
+            data.scanBeams.forEach(beam => beam.visible = false);
+            data.scanEmitter.visible = false;
+            continue;
+          }
+
+          // Do not count down the entrance delay while the elevator is still
+          // moving. Drones begin their stagger only after the platform lands.
+          if (!hangarElevatorArrived) {
+            data.state = 'WAITING';
+            data.waitTimer = Math.max(data.waitTimer, data.arrivalDelay);
+            data.progress = 0;
+            drone.position.copy(data.route.start);
             data.scanBeams.forEach(beam => beam.visible = false);
             data.scanEmitter.visible = false;
             continue;
@@ -6986,6 +7740,27 @@
       // Update Wandering Patrol Crew (`wanderingPatrolCrew`)
       for (const officer of wanderingPatrolCrew) {
         const data = officer.userData;
+        if (hangarLaunching && data.launchStartPosition && data.launchEvacPosition) {
+          const evacProgress = THREE.MathUtils.smoothstep(
+            hangarLaunchTime, 0, HANGAR_LAUNCH_EVAC_DURATION
+          );
+          const evacPos = data.launchStartPosition.clone().lerp(data.launchEvacPosition, evacProgress);
+          const dx = data.launchEvacPosition.x - officer.position.x;
+          const dz = data.launchEvacPosition.z - officer.position.z;
+          officer.position.copy(evacPos);
+          if (Math.hypot(dx, dz) > .12) {
+            turnHangarCrew(officer, Math.atan2(dx, dz), dt);
+            data.gaitPhase = (data.gaitPhase || 0) + dt * 6.2;
+            updateHumanGaitPhysics(data.humanRef, data.gaitPhase, .85);
+          } else {
+            updateHumanGaitPhysics(data.humanRef, 0, 0);
+          }
+          continue;
+        }
+        if (titleActive && officer.position.y < 1 && !hangarElevatorArrived) {
+          updateHumanGaitPhysics(data.humanRef, 0, 0);
+          continue;
+        }
         if (data.pauseTimer > 0) {
           data.pauseTimer -= dt;
           updateHumanGaitPhysics(data.humanRef, 0, 0); // Idle standing stance while checking tablet
@@ -6999,17 +7774,45 @@
 
         if (dist > 0.15) {
           const moveStep = Math.min(dist, dt * data.speed);
-          officer.position.x += (dx / dist) * moveStep;
-          officer.position.z += (dz / dist) * moveStep;
+          const nextPosition = getHangarCrewSafeStep(officer, target, moveStep);
+          const movedX = nextPosition.x - officer.position.x;
+          const movedZ = nextPosition.z - officer.position.z;
+          officer.position.copy(nextPosition);
 
-          const targetRot = Math.atan2(dx, dz);
-          officer.rotation.y = THREE.MathUtils.lerp(officer.rotation.y, targetRot, 0.15);
+          const targetRot = Math.atan2(movedX || dx, movedZ || dz);
+          turnHangarCrew(officer, targetRot, dt);
 
           data.gaitPhase = (data.gaitPhase || 0) + (moveStep / 0.65) * Math.PI * 2;
           updateHumanGaitPhysics(data.humanRef, data.gaitPhase, 0.85);
         } else {
           data.movingToEnd = !data.movingToEnd;
           data.pauseTimer = 1.2 + Math.random() * 1.5; // Brief 1-2s pause at route ends
+        }
+      }
+
+      // Keep ground-level hangar personnel from visually occupying the same
+      // lane at crossings and work points. Elevated catwalk patrols and robot
+      // arms are intentionally excluded from this crowd pass.
+      const groundCrew = [
+        ...maintenanceMechanics.filter(worker => !worker.userData.isRobotArm && worker.position.y < 1),
+        ...wanderingPatrolCrew.filter(worker => worker.position.y < 1)
+      ];
+      for (let a = 0; a < groundCrew.length; a++) {
+        for (let b = a + 1; b < groundCrew.length; b++) {
+          const first = groundCrew[a];
+          const second = groundCrew[b];
+          const dx = second.position.x - first.position.x;
+          const dz = second.position.z - first.position.z;
+          const distance = Math.hypot(dx, dz);
+          const minDistance = .72;
+          if (distance <= .001 || distance >= minDistance) continue;
+          const push = (minDistance - distance) * .5;
+          const nx = dx / distance;
+          const nz = dz / distance;
+          first.position.x -= nx * push;
+          first.position.z -= nz * push;
+          second.position.x += nx * push;
+          second.position.z += nz * push;
         }
       }
 
@@ -7113,19 +7916,24 @@
         }
       }
       if (hangarLaunching && elevatorSafetyFenceGroup) {
-        const fenceRaiseProgress = THREE.MathUtils.smoothstep(hangarLaunchTime, 0, .45);
+        const fenceRaiseProgress = THREE.MathUtils.smoothstep(
+          hangarLaunchTime, HANGAR_LAUNCH_EVAC_DURATION, HANGAR_LAUNCH_EVAC_DURATION + .45
+        );
         elevatorSafetyFenceGroup.position.y = THREE.MathUtils.lerp(-0.96, 0, fenceRaiseProgress);
       }
       if (!hangarLaunching) return;
       hangarLaunchTime += dt;
       const gateDuration = reducedMotion ? .18 : .85;
       const tunnelDuration = reducedMotion ? .45 : 3;
-      const launchDuration = gateDuration + tunnelDuration;
+      const gateStart = HANGAR_LAUNCH_EVAC_DURATION;
+      const launchDuration = gateStart + gateDuration + tunnelDuration;
       const launchRatio = THREE.MathUtils.clamp(hangarLaunchTime / launchDuration, 0, 1);
-      const gateRatio = THREE.MathUtils.smoothstep(hangarLaunchTime, 0, gateDuration);
+      const gateRatio = THREE.MathUtils.smoothstep(hangarLaunchTime, gateStart, gateStart + gateDuration);
       if (hangarGateLeft) hangarGateLeft.position.x = -3.9 - gateRatio * 8.2;
       if (hangarGateRight) hangarGateRight.position.x = 3.9 + gateRatio * 8.2;
-      const flightRatio = THREE.MathUtils.smoothstep(hangarLaunchTime, gateDuration, launchDuration);
+      const flightRatio = THREE.MathUtils.smoothstep(
+        hangarLaunchTime, gateStart + gateDuration, launchDuration
+      );
       const elevatorHeight = 21.5;
       const elevatorY = flightRatio * elevatorHeight;
       if (hangarLiftPlatform) hangarLiftPlatform.position.y = elevatorY;
@@ -7245,6 +8053,45 @@ let landingRecoveryTimer = 0;
     let playerShield = 0;
     let enemyAI = null;
     let enemyAI2 = null;
+    const enemyGroundShadowRecords = [];
+
+    function createEnemyGroundShadow(ai) {
+      if (!ai?.group) return;
+      ai.group.traverse(object => {
+        if (!object.isMesh) return;
+        object.castShadow = true;
+        object.receiveShadow = true;
+      });
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = 64;
+      const context = canvas.getContext('2d');
+      const gradient = context.createRadialGradient(32, 32, 2, 32, 32, 32);
+      gradient.addColorStop(0, 'rgba(0,0,0,.62)');
+      gradient.addColorStop(.5, 'rgba(0,0,0,.34)');
+      gradient.addColorStop(1, 'rgba(0,0,0,0)');
+      context.fillStyle = gradient;
+      context.fillRect(0, 0, 64, 64);
+      const texture = new THREE.CanvasTexture(canvas);
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(1, 32),
+        new THREE.MeshBasicMaterial({ map: texture, transparent: true, depthWrite: false, toneMapped: false })
+      );
+      shadow.name = 'EnemyGroundContactShadow';
+      shadow.rotation.x = -Math.PI / 2;
+      shadow.scale.set(3.8, 2.55, 1);
+      shadow.renderOrder = 1;
+      scene.add(shadow);
+      enemyGroundShadowRecords.push({ ai, shadow });
+    }
+
+    function updateEnemyGroundShadows() {
+      for (const record of enemyGroundShadowRecords) {
+        const { ai, shadow } = record;
+        const grounded = battleStarted && ai.alive && ai.group.visible && ai.group.position.y < .45;
+        shadow.visible = grounded;
+        if (grounded) shadow.position.set(ai.group.position.x, .035, ai.group.position.z);
+      }
+    }
     let paused = false;
     let freeCamActive = false;
     let cockpitCameraActive = false;
@@ -7274,6 +8121,7 @@ let landingRecoveryTimer = 0;
     let customCameraPointerStartY = 0;
     let hangarCameraYaw = 0;
     let hangarCameraPitch = 0;
+    const HANGAR_CAMERA_MIN_Y = .48;
     let hangarCameraDragging = false;
     let hangarCameraPointerX = 0;
     let hangarCameraPointerY = 0;
@@ -7283,6 +8131,7 @@ let landingRecoveryTimer = 0;
     let titleCameraPointerX = 0;
     let titleCameraPointerY = 0;
     let titleActive = true;
+    let titleIntroPlayed = false;
     let titleRevealTime = 0;
     let hangarLaunching = false;
     let hangarLaunchTime = 0;
@@ -7349,13 +8198,96 @@ let landingRecoveryTimer = 0;
     const footstepRingGeometry = new THREE.RingGeometry(.38, .7, 24);
     const footstepDustGeometry = new THREE.CircleGeometry(.5, 18);
     const explosionSphereGeo = new THREE.SphereGeometry(1, 18, 12);
-    const explosionRingGeo = new THREE.RingGeometry(.72, 1, 40);
     const explosionHotCoreGeo = new THREE.SphereGeometry(.38, 12, 9);
     const explosionSmokeGeo = new THREE.IcosahedronGeometry(.24, 1);
     const explosionSparkGeo = new THREE.BoxGeometry(.025, .025, .42);
     const burningFlameGeo = new THREE.ConeGeometry(.24, 1.15, 10, 2);
-    const explosionSphereMatBase = new THREE.MeshBasicMaterial({ color: 0xff7b19, transparent: true, opacity: .38, wireframe: true, depthWrite: false, blending: THREE.AdditiveBlending });
-    const explosionRingMatBase = new THREE.MeshBasicMaterial({ color: 0xffd15c, transparent: true, opacity: .8, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending });
+    const explosionSphereLayerConfig = [
+      { color: 0xffd05a, scale: .68, opacity: .42, noise: 3.2, displacement: .15 },
+      { color: 0xff7b19, scale: .88, opacity: .28, noise: 4.8, displacement: .22 },
+      { color: 0xd94316, scale: 1.08, opacity: .18, noise: 6.6, displacement: .3 }
+    ];
+    const createExplosionSphereMaterial = (config) => new THREE.ShaderMaterial({
+      uniforms: {
+        uColor: { value: new THREE.Color(config.color) },
+        uTime: { value: 0 },
+        uOpacity: { value: config.opacity },
+        uNoiseScale: { value: config.noise },
+        uDisplacement: { value: config.displacement }
+      },
+      vertexShader: `
+        uniform float uTime;
+        uniform float uNoiseScale;
+        uniform float uDisplacement;
+        varying vec3 vLocalPosition;
+        varying vec3 vWorldPosition;
+        varying vec3 vWorldNormal;
+        float hash(vec3 p) {
+          p = fract(p * .3183099 + vec3(.1, .2, .3));
+          p *= 17.0;
+          return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+        }
+        float noise(vec3 p) {
+          vec3 i = floor(p);
+          vec3 f = smoothstep(0.0, 1.0, fract(p));
+          return mix(
+            mix(mix(hash(i), hash(i + vec3(1, 0, 0)), f.x), mix(hash(i + vec3(0, 1, 0)), hash(i + vec3(1, 1, 0)), f.x), f.y),
+            mix(mix(hash(i + vec3(0, 0, 1)), hash(i + vec3(1, 0, 1)), f.x), mix(hash(i + vec3(0, 1, 1)), hash(i + vec3(1, 1, 1)), f.x), f.y),
+            f.z
+          );
+        }
+        void main() {
+          vLocalPosition = position;
+          vec3 noisePosition = position * uNoiseScale * .72 + vec3(uTime * .7, -uTime * .42, uTime * .31);
+          float shapeNoise = noise(noisePosition) * .72 + noise(noisePosition * 2.0 + 3.7) * .28;
+          float pulse = sin(uTime * 5.0 + position.y * 8.0) * .025;
+          vec3 displacedPosition = position + normal * ((shapeNoise - .5) * uDisplacement + pulse);
+          vLocalPosition = displacedPosition;
+          vec4 worldPosition = modelMatrix * vec4(displacedPosition, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          vWorldNormal = normalize(mat3(modelMatrix) * normalize(displacedPosition));
+          gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 uColor;
+        uniform float uTime;
+        uniform float uOpacity;
+        uniform float uNoiseScale;
+        varying vec3 vLocalPosition;
+        varying vec3 vWorldPosition;
+        varying vec3 vWorldNormal;
+        float hash(vec3 p) {
+          p = fract(p * .3183099 + vec3(.1, .2, .3));
+          p *= 17.0;
+          return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+        }
+        float noise(vec3 p) {
+          vec3 i = floor(p);
+          vec3 f = smoothstep(0.0, 1.0, fract(p));
+          return mix(
+            mix(mix(hash(i), hash(i + vec3(1, 0, 0)), f.x), mix(hash(i + vec3(0, 1, 0)), hash(i + vec3(1, 1, 0)), f.x), f.y),
+            mix(mix(hash(i + vec3(0, 0, 1)), hash(i + vec3(1, 0, 1)), f.x), mix(hash(i + vec3(0, 1, 1)), hash(i + vec3(1, 1, 1)), f.x), f.y),
+            f.z
+          );
+        }
+        void main() {
+          vec3 samplePosition = vLocalPosition * uNoiseScale + vec3(uTime * .9, -uTime * .55, uTime * .35);
+          float turbulentNoise = noise(samplePosition) * .72 + noise(samplePosition * 2.1 + 4.0) * .28;
+          float breakup = smoothstep(.34, .68, turbulentNoise);
+          vec3 viewDirection = normalize(cameraPosition - vWorldPosition);
+          float rim = pow(1.0 - abs(dot(normalize(vWorldNormal), viewDirection)), .72);
+          float alpha = uOpacity * breakup * (.38 + rim * .82);
+          if (alpha < .025) discard;
+          gl_FragColor = vec4(uColor, alpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false
+    });
     const explosionCoreMatBase = new THREE.MeshBasicMaterial({ color: 0xfff4c2, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
     const explosionSmokeMatBase = new THREE.MeshBasicMaterial({ color: 0x37383a, transparent: true, opacity: .42, depthWrite: false });
     const explosionSparkMatBase = new THREE.MeshBasicMaterial({ color: 0xffa13b, transparent: true, opacity: 1, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false });
@@ -7376,7 +8308,7 @@ let landingRecoveryTimer = 0;
     );
     for (const batch of [explosionSmokeInstances, explosionSparkInstances]) {
       batch.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      batch.frustumCulled = false;
+      batch.frustumCulled = true;
       batch.castShadow = false;
       batch.receiveShadow = false;
       scene.add(batch);
@@ -7391,6 +8323,8 @@ let landingRecoveryTimer = 0;
     }
     explosionSmokeInstances.instanceMatrix.needsUpdate = true;
     explosionSparkInstances.instanceMatrix.needsUpdate = true;
+    explosionSmokeInstances.computeBoundingSphere();
+    explosionSparkInstances.computeBoundingSphere();
     // Fracture effects never participate in gameplay collision.  Keep them in
     // a small, reusable GPU instance pool rather than allocating meshes,
     // materials, geometries and Cannon bodies for every impact.
@@ -7400,7 +8334,7 @@ let landingRecoveryTimer = 0;
     function createFractureBatch(geometry, material, capacity) {
       const mesh = new THREE.InstancedMesh(geometry, material, capacity);
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      mesh.frustumCulled = false; // instances travel outside their source bounds
+      mesh.frustumCulled = true;
       mesh.castShadow = false;
       mesh.receiveShadow = false;
       const batch = { mesh, capacity, active: Array(capacity).fill(null), cursor: 0, dirty: true };
@@ -7417,11 +8351,14 @@ let landingRecoveryTimer = 0;
       new THREE.MeshStandardMaterial({ color: 0x9b9b9b, roughness: .9, metalness: .05, vertexColors: true }),
       96
     );
+    fractureRubbleBatch.mesh.castShadow = true;
+    fractureRubbleBatch.mesh.receiveShadow = true;
     const fractureGlassBatch = createFractureBatch(
       new THREE.TetrahedronGeometry(1, 0),
-      new THREE.MeshPhysicalMaterial({ color: 0x9aefff, emissive: 0x1c8da8, emissiveIntensity: .42, transparent: true, opacity: .72, roughness: .04, metalness: .15, transmission: .12, side: THREE.DoubleSide, vertexColors: true, depthWrite: false }),
+      new THREE.MeshStandardMaterial({ color: 0x9aefff, transparent: true, opacity: .62, roughness: .16, metalness: .08, side: THREE.DoubleSide, vertexColors: true, depthWrite: false }),
       96
     );
+    const fractureGlassColor = new THREE.Color(0x9aefff);
     const fractureDustBatch = createFractureBatch(
       new THREE.IcosahedronGeometry(1, 1),
       new THREE.MeshBasicMaterial({ color: 0xb9aaa0, transparent: true, opacity: .35, depthWrite: false, vertexColors: true }),
@@ -7479,6 +8416,7 @@ let landingRecoveryTimer = 0;
         if (batch.dirty) {
           batch.mesh.instanceMatrix.needsUpdate = true;
           if (batch.mesh.instanceColor) batch.mesh.instanceColor.needsUpdate = true;
+          batch.mesh.computeBoundingSphere();
           batch.dirty = false;
         }
       }
@@ -7650,6 +8588,7 @@ let landingRecoveryTimer = 0;
     const trafficGroup = new THREE.Group();
     envGroup.add(trafficGroup);
     const trafficVehicles = [];
+    const trafficThreats = [];
     let trafficRoutes = [];
     const cityFireSources = [];
     const cityPatrolDrones = [];
@@ -7665,6 +8604,26 @@ let landingRecoveryTimer = 0;
     let evacueeLeftShins = null;
     let evacueeRightShins = null;
     let evacueeBackpacks = null;
+    let evacueeMeshSet = null;
+    const evacueeThreats = [];
+    const evacueeMatrix = new THREE.Matrix4();
+    const evacueePartPosition = new THREE.Vector3();
+    const evacueeLocalOffset = new THREE.Vector3();
+    const evacueeEscape = new THREE.Vector3();
+    const evacueeAway = new THREE.Vector3();
+    const evacueeX = new THREE.Vector3(1, 0, 0);
+    const evacueeScale = new THREE.Vector3(1, 1, 1);
+    const evacueeY = new THREE.Vector3(0, 1, 0);
+    const evacueeRootQuat = new THREE.Quaternion();
+    const evacueeBodyRot = new THREE.Quaternion();
+    const evacueePersonQuat = new THREE.Quaternion();
+    const evacueeThighRot = new THREE.Quaternion();
+    const evacueeKneeRot = new THREE.Quaternion();
+    const evacueeShoulderRot = new THREE.Quaternion();
+    const evacueeElbowRot = new THREE.Quaternion();
+    const evacueePartRot = new THREE.Quaternion();
+    const evacueeSwingRot = new THREE.Quaternion();
+    const evacueePartEuler = new THREE.Euler();
     const blocks = [];
     const columns = [];
     const debris = [];
@@ -7676,6 +8635,8 @@ let landingRecoveryTimer = 0;
     let treeTrunks = [];
     let treeCrowns = [];
     let treeBranches = [];
+    let cityLeafNoiseTexture = null;
+    let treeLeafDebrisMaterial = null;
     let streetlightMeshes = [];
     const missileTrails = [];
     const cameraFadedObjects = new Set();
@@ -7844,12 +8805,6 @@ let landingRecoveryTimer = 0;
     windowReflectionProbe.position.set(0, 14, 0);
     scene.add(windowReflectionProbe);
     transparentWindowMat.envMap = windowReflectionTarget.texture;
-    const brokenGlassGeometry = new THREE.TetrahedronGeometry(.14, 0);
-    const brokenGlassMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x9aefff, emissive: 0x000000, emissiveIntensity: 0,
-      transparent: true, opacity: .74, roughness: .04, metalness: .1,
-      transmission: .2, thickness: .12, side: THREE.DoubleSide
-    });
     const facadeFrameMat = new THREE.MeshStandardMaterial({ color: 0x252b2f, roughness: .42, metalness: .72 });
     const weatheringMat = new THREE.MeshStandardMaterial({
       color: 0x202326, roughness: .98, metalness: 0,
@@ -7933,6 +8888,15 @@ let landingRecoveryTimer = 0;
     }
 
     const visualSettings = JSON.parse(localStorage.getItem('mechaVisualSettings') || '{}');
+    if (visualSettings.visualTuningRevision !== 1) {
+      Object.assign(visualSettings, {
+        bloomStrength: .4,
+        chromaticAberration: .008,
+        filmGrain: .3,
+        rainIntensity: .05,
+        visualTuningRevision: 1
+      });
+    }
     battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(visualSettings.battlefieldTimeOfDay ?? 12), 0, 24);
     battlefieldAtmosphere.environmentColor = visualSettings.battlefieldEnvironmentColor || '#dceaf5';
     const visualControls = {
@@ -7941,9 +8905,9 @@ let landingRecoveryTimer = 0;
       windowColor: ['color', '#004d5c'],
       windowOpacity: ['opacity', .55],
       windowRoughness: ['roughness', 0],
-      bloomStrength: ['bloom', .05],
-      chromaticAberration: ['chromaticAberration', .0015],
-      filmGrain: ['filmGrain', .075],
+      bloomStrength: ['bloom', .4],
+      chromaticAberration: ['chromaticAberration', .008],
+      filmGrain: ['filmGrain', .3],
       toneExposure: ['exposure', .85],
       rainIntensity: ['rain', .05]
     };
@@ -8638,6 +9602,11 @@ let landingRecoveryTimer = 0;
       proxy.position.set(offsetX, 0, offsetZ);
       proxy.castShadow = true;
       proxy.receiveShadow = false;
+      // Shadow-only proxies must never occlude the visible building pass.
+      // They remain shadow casters, but do not write/test the main depth buffer.
+      proxy.material.depthWrite = false;
+      proxy.material.depthTest = false;
+      proxy.renderOrder = -100;
       proxy.frustumCulled = true;
       proxy.userData.isBuildingShadowProxy = true;
       building.add(proxy);
@@ -8689,7 +9658,12 @@ let landingRecoveryTimer = 0;
         for (const z of buildingZ) {
           const clearsMainRoad = Math.abs(x) > 17;
           const clearsCrossRoads = [-34, -66].every(roadZ => Math.abs(z - roadZ) > 12);
-          if (clearsMainRoad && clearsCrossRoads) buildingPositions.push([x, z]);
+          if (clearsMainRoad && clearsCrossRoads) {
+            // These are the destructible main buildings. Keep their original
+            // gameplay positions; only non-destructible background dressing
+            // should be pushed outside the playable area.
+            buildingPositions.push([x, z]);
+          }
         }
       }
       const frontCols = 5;
@@ -10062,7 +11036,9 @@ let landingRecoveryTimer = 0;
       hangarCameraPointerX = event.clientX;
       hangarCameraPointerY = event.clientY;
       hangarCameraYaw = THREE.MathUtils.clamp(hangarCameraYaw - deltaX * .004, -.68, .68);
-      hangarCameraPitch = THREE.MathUtils.clamp(hangarCameraPitch + deltaY * .004, -.95, 1.15);
+      // Keep the orbit above the hangar deck; the old lower bound placed the
+      // camera several meters below the floor when dragging upward.
+      hangarCameraPitch = THREE.MathUtils.clamp(hangarCameraPitch + deltaY * .004, -.04, 1.15);
     });
     addEventListener('pointerup', () => {
       titleCameraDragging = false;
@@ -10075,6 +11051,7 @@ let landingRecoveryTimer = 0;
       playGameSound('ui');
       startTitleHangarBgm();
       titleActive = false;
+      titleIntroPlayed = true;
       titleCameraDragging = false;
       hangarCameraYaw = 0;
       hangarCameraPitch = 0;
@@ -10095,16 +11072,15 @@ let landingRecoveryTimer = 0;
       if (hangarLaunching) return;
       playGameSound('ui');
       startTitleHangarBgm();
+      // Returning from loadout should keep the hangar in its current landed
+      // state. Only the initial title entry is allowed to run the lift reveal.
+      const returnCameraYaw = hangarCameraYaw;
+      const returnCameraPitch = hangarCameraPitch;
       titleActive = true;
-      titleCameraYaw = 0;
-      hangarCameraYaw = 0;
-      titleRevealTime = 0;
-      player.position.y = TITLE_LIFT_START_Y * hangarGroup.scale.y;
-      if (hangarGateLeft) hangarGateLeft.position.x = -3.9;
-      if (hangarGateRight) hangarGateRight.position.x = 3.9;
-      if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = HANGAR_LIFT_GATE_CLOSED_X;
-      if (hangarLiftGateRight) hangarLiftGateRight.position.x = HANGAR_LIFT_GATE_CLOSED_X;
-      if (hangarLiftPlatform) hangarLiftPlatform.position.y = TITLE_LIFT_START_Y;
+      titleIntroPlayed = true;
+      titleCameraYaw = THREE.MathUtils.clamp(returnCameraYaw, -.85, .85);
+      titleCameraPitch = THREE.MathUtils.clamp(returnCameraPitch, -.85, .95);
+      titleRevealTime = 4.8;
       document.getElementById('titleScreen').classList.remove('hidden');
       document.getElementById('hangarOverlay').classList.add('hidden');
       document.getElementById('modeSelectModal').classList.add('hidden');
@@ -10153,6 +11129,23 @@ let landingRecoveryTimer = 0;
 
       hangarLaunching = true;
       hangarLaunchTime = 0;
+      for (const mechanic of maintenanceMechanics) {
+        const data = mechanic.userData;
+        if (data.isRobotArm) continue;
+        data.launchStartPosition = mechanic.position.clone();
+        data.launchEvacPosition = data.idlePosition.clone();
+        data.state = 'EVACUATING';
+      }
+      for (const officer of wanderingPatrolCrew) {
+        if (officer.position.y >= 1) continue;
+        const data = officer.userData;
+        data.launchStartPosition = officer.position.clone();
+        data.launchEvacPosition = new THREE.Vector3(
+          officer.position.x >= 0 ? 5.05 : -5.05,
+          officer.position.y,
+          officer.position.z >= 0 ? 5.5 : -5.5
+        );
+      }
       fadeOutTitleHangarBgm();
       if (mechaGaitController) mechaGaitController.reset();
       primaryFireHeld = false;
@@ -10476,28 +11469,34 @@ let landingRecoveryTimer = 0;
     }
 
     function spawnGlassParticles(position, impulseDir) {
-      for (let index = 0; index < 14; index++) {
-        const piece = new THREE.Mesh(brokenGlassGeometry, brokenGlassMaterial);
-        const shardScale = .65 + Math.random() * 1.15;
-        piece.scale.set(shardScale, shardScale * THREE.MathUtils.randFloat(.45, 1.15), shardScale);
-        piece.position.copy(position).add(new THREE.Vector3(
+      // Window impacts use the shared fracture pool; avoid allocating 14
+      // transparent Mesh objects per pane during a building explosion.
+      for (let index = 0; index < 6; index++) {
+        const shardScale = .18 + Math.random() * .24;
+        const shardPosition = position.clone().add(new THREE.Vector3(
           (Math.random() - .5) * .7,
           (Math.random() - .5) * .7,
           (Math.random() - .5) * .7
         ));
-        piece.userData.velocity = impulseDir.clone().multiplyScalar(3.5 + Math.random() * 4.5).add(new THREE.Vector3(
+        const velocity = impulseDir.clone().multiplyScalar(3.5 + Math.random() * 4.5).add(new THREE.Vector3(
           (Math.random() - .5) * 4,
           2 + Math.random() * 4.5,
           (Math.random() - .5) * 4
         ));
-        piece.userData.angularVelocity = new THREE.Vector3(
+        const angularVelocity = new THREE.Vector3(
           (Math.random() - .5) * 18,
           (Math.random() - .5) * 18,
           (Math.random() - .5) * 18
         );
-        piece.userData.life = 1.8 + Math.random() * .8;
-        scene.add(piece);
-        debris.push(piece);
+        spawnFractureInstance(
+          fractureGlassBatch,
+          shardPosition,
+          velocity,
+          angularVelocity,
+          shardScale,
+          1.35 + Math.random() * .55,
+          fractureGlassColor
+        );
       }
     }
 
@@ -10660,7 +11659,7 @@ let landingRecoveryTimer = 0;
       jumpItems.length = 0;
       healthItems.length = 0;
       shieldItems.length = 0;
-      const itemMat = new THREE.MeshStandardMaterial({ color: 0x37d8ff, emissive: 0x087bff, emissiveIntensity: 1.2, metalness: .55 });
+      const itemMat = new THREE.MeshStandardMaterial({ color: 0xffad4d, emissive: 0xff4a08, emissiveIntensity: 1.55, metalness: .55, roughness: .22 });
       for (let index = 0; index < 7; index++) {
         const spawn = getRandomItemPoint();
         const y = 1.1;
@@ -10684,7 +11683,8 @@ let landingRecoveryTimer = 0;
           new THREE.MeshStandardMaterial({ color: 0xb05cff, emissive: 0x6120c7, emissiveIntensity: 1.5, metalness: .55 })
         );
         jetpackPickup.position.set(spawn.x, 1.35, spawn.z);
-        jetpackPickup.rotation.x = Math.PI / 2;
+        // TorusGeometry is already vertical in its default XY plane.  Keep
+        // the booster ring upright instead of laying it flat on the ground.
         jetpackPickup.userData.baseY = 1.35;
         jetpackPickup.userData.phase = Math.random() * Math.PI * 2;
         scene.add(jetpackPickup);
@@ -10735,7 +11735,7 @@ let landingRecoveryTimer = 0;
       for (let index = 0; index < 5; index++) {
         const spawn = getRandomItemPoint();
         const healthPickup = new THREE.Group();
-        const healthMat = new THREE.MeshStandardMaterial({ color: 0x66ff83, emissive: 0x15943a, emissiveIntensity: 1.5, metalness: .25 });
+        const healthMat = new THREE.MeshStandardMaterial({ color: 0x4dffcf, emissive: 0x089f78, emissiveIntensity: 1.5, metalness: .25 });
         healthPickup.add(
           new THREE.Mesh(new THREE.BoxGeometry(.3, 1.15, .3), healthMat),
           new THREE.Mesh(new THREE.BoxGeometry(1.15, .3, .3), healthMat)
@@ -10758,7 +11758,46 @@ let landingRecoveryTimer = 0;
         scene.add(shieldPickup);
         shieldItems.push(shieldPickup);
       }
-      for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems]) item.scale.setScalar(1.5);
+      const itemGroups = [
+        [powerItems, 0xffad4d], [jetpackItems, 0xb05cff], [homingItems, 0x6cff68],
+        [laserItems, 0x21dfff], [jumpItems, 0xffd34f], [healthItems, 0x4dffcf], [shieldItems, 0x56c9ff]
+      ];
+      for (const [items, color] of itemGroups) {
+        for (const item of items) {
+          item.scale.setScalar(1.5);
+          item.userData.uprightRotation = { x: item.rotation.x, z: item.rotation.z };
+          addPickupDetailMeshes(item, color);
+          addPickupBeacon(item, color);
+          item.traverse(object => {
+            if (object.isMesh) object.frustumCulled = true;
+          });
+        }
+      }
+    }
+
+    function addPickupDetailMeshes(item, color) {
+      const detailMat = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: 1.25,
+        roughness: .22,
+        metalness: .78
+      });
+      const detailGlowMat = new THREE.MeshBasicMaterial({ color, toneMapped: false });
+      const detailRing = new THREE.Mesh(new THREE.TorusGeometry(.56, .045, 8, 24), detailGlowMat);
+      detailRing.rotation.x = Math.PI / 2;
+      detailRing.position.y = -.18;
+      item.add(detailRing);
+      const detailCore = new THREE.Mesh(new THREE.SphereGeometry(.13, 10, 8), detailMat);
+      detailCore.position.y = .48;
+      item.add(detailCore);
+      for (let index = 0; index < 4; index++) {
+        const angle = index / 4 * Math.PI * 2;
+        const bolt = new THREE.Mesh(new THREE.CylinderGeometry(.045, .06, .16, 8), detailMat);
+        bolt.position.set(Math.cos(angle) * .42, .08, Math.sin(angle) * .42);
+        bolt.rotation.z = Math.PI / 2;
+        item.add(bolt);
+      }
     }
 
     function addPickupBeacon(item, color) {
@@ -10811,7 +11850,8 @@ let landingRecoveryTimer = 0;
           new THREE.TorusGeometry(.78, .24, 10, 24),
           new THREE.MeshStandardMaterial({ color, emissive: 0x5d20c7, emissiveIntensity: 1.75, metalness: .62, roughness: .24 })
         );
-        item.rotation.x = Math.PI / 2;
+        // Keep dropped booster rings upright as well; the default torus plane
+        // is the intended standing orientation.
         baseY = 1.4;
         collection = jetpackItems;
       } else {
@@ -10822,6 +11862,7 @@ let landingRecoveryTimer = 0;
         );
         collection = powerItems;
       }
+      item.userData.uprightRotation = { x: item.rotation.x, z: item.rotation.z };
       item.position.set(position.x, baseY, position.z);
       item.castShadow = true;
       item.userData.baseY = baseY;
@@ -10829,6 +11870,7 @@ let landingRecoveryTimer = 0;
       item.userData.salvageType = type;
       item.scale.setScalar(1.5);
       addPickupBeacon(item, color);
+      addPickupDetailMeshes(item, color);
       scene.add(item);
       collection.push(item);
       spawnExplosionEffect(item.position.clone().add(new THREE.Vector3(0, .4, 0)), 1.15);
@@ -10925,17 +11967,17 @@ let landingRecoveryTimer = 0;
         });
         return !nearBuilding && !nearIntersection && !tooClose;
       };
-      const addTreeSpot = (x, z) => {
+      const addTreeSpot = (x, z, roadside = false) => {
         if (x < -arenaHalfSize || x > arenaHalfSize || z < -arenaHalfSize || z > arenaHalfSize || !isClear(x, z)) return;
-        treeSpots.push({ x, z });
+        treeSpots.push({ x, z, roadside });
       };
 
       for (let z = -arenaHalfSize; z <= arenaHalfSize; z += 10.5) {
-        addTreeSpot(-13.7 + Math.sin(z) * .25, z);
-        addTreeSpot(13.7 + Math.cos(z) * .25, z + 2.4);
+        addTreeSpot(-13.7 + Math.sin(z) * .25, z, true);
+        addTreeSpot(13.7 + Math.cos(z) * .25, z + 2.4, true);
       }
       for (let x = -arenaHalfSize + 6; x <= arenaHalfSize - 6; x += 12.5) {
-        for (const z of [-41.2, -26.8, -73.2, -58.8]) addTreeSpot(x, z);
+        for (const z of [-41.2, -26.8, -73.2, -58.8]) addTreeSpot(x, z, true);
       }
       const treeTarget = currentLevel === 1 ? 42 : 84;
       for (let attempt = 0; attempt < 420 && treeSpots.length < treeTarget; attempt++) {
@@ -10946,23 +11988,53 @@ let landingRecoveryTimer = 0;
       }
 
       const count = treeSpots.length;
-      const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x765039, roughness: .92, metalness: 0 });
-      const branchMaterial = new THREE.MeshStandardMaterial({ color: 0x8b5a3e, roughness: .9, metalness: 0 });
+      const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b6045, emissive: 0x1b0e08, emissiveIntensity: .12, roughness: .88, metalness: 0 });
+      const branchMaterial = new THREE.MeshStandardMaterial({ color: 0xa16d4b, emissive: 0x1d1009, emissiveIntensity: .1, roughness: .86, metalness: 0 });
+      const leafNoiseCanvas = document.createElement('canvas');
+      leafNoiseCanvas.width = leafNoiseCanvas.height = 128;
+      const leafNoiseCtx = leafNoiseCanvas.getContext('2d');
+      leafNoiseCtx.fillStyle = '#050805';
+      leafNoiseCtx.fillRect(0, 0, 128, 128);
+      for (let index = 0; index < 280; index++) {
+        const size = THREE.MathUtils.randFloat(.8, 3.4);
+        const value = Math.floor(120 + Math.random() * 135);
+        leafNoiseCtx.fillStyle = `rgb(${value},${value},${value})`;
+        leafNoiseCtx.beginPath();
+        leafNoiseCtx.ellipse(Math.random() * 128, Math.random() * 128, size, size * THREE.MathUtils.randFloat(.55, 1.35), Math.random() * Math.PI, 0, Math.PI * 2);
+        leafNoiseCtx.fill();
+      }
+      cityLeafNoiseTexture?.dispose();
+      const leafNoiseTexture = new THREE.CanvasTexture(leafNoiseCanvas);
+      leafNoiseTexture.wrapS = leafNoiseTexture.wrapT = THREE.RepeatWrapping;
+      leafNoiseTexture.repeat.set(1.35, 1.35);
+      cityLeafNoiseTexture = leafNoiseTexture;
+      treeLeafDebrisMaterial = new THREE.MeshStandardMaterial({
+        color: 0x9bdc72,
+        emissive: 0x2c581c,
+        emissiveIntensity: .2,
+        roughness: .8,
+        transparent: true,
+        alphaMap: leafNoiseTexture,
+        alphaTest: .2,
+        side: THREE.DoubleSide
+      });
       const leafMaterials = [
-        new THREE.MeshStandardMaterial({ color: 0x6fbd68, emissive: 0x163516, emissiveIntensity: .18, roughness: .8, vertexColors: true, flatShading: true }),
-        new THREE.MeshStandardMaterial({ color: 0x86c96f, emissive: 0x1a3b14, emissiveIntensity: .18, roughness: .82, vertexColors: true, flatShading: true }),
-        new THREE.MeshStandardMaterial({ color: 0x9bd866, emissive: 0x20430f, emissiveIntensity: .17, roughness: .82, vertexColors: true, flatShading: true }),
-        new THREE.MeshStandardMaterial({ color: 0x61ad64, emissive: 0x123215, emissiveIntensity: .18, roughness: .8, vertexColors: true, flatShading: true }),
-        new THREE.MeshStandardMaterial({ color: 0x7bc65c, emissive: 0x1a3a11, emissiveIntensity: .17, roughness: .82, vertexColors: true, flatShading: true }),
-        new THREE.MeshStandardMaterial({ color: 0xa8df76, emissive: 0x244913, emissiveIntensity: .16, roughness: .82, vertexColors: true, flatShading: true }),
-        new THREE.MeshStandardMaterial({ color: 0x69b875, emissive: 0x143519, emissiveIntensity: .18, roughness: .8, vertexColors: true, flatShading: true })
+        new THREE.MeshStandardMaterial({ color: 0x86cf78, emissive: 0x244d1d, emissiveIntensity: .24, roughness: .78, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide }),
+        new THREE.MeshStandardMaterial({ color: 0x9bdc83, emissive: 0x2e5c20, emissiveIntensity: .24, roughness: .8, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide }),
+        new THREE.MeshStandardMaterial({ color: 0xb2e77a, emissive: 0x3b671a, emissiveIntensity: .22, roughness: .8, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide }),
+        new THREE.MeshStandardMaterial({ color: 0x79c879, emissive: 0x1f4a23, emissiveIntensity: .24, roughness: .78, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide }),
+        new THREE.MeshStandardMaterial({ color: 0x98d96b, emissive: 0x2e5718, emissiveIntensity: .22, roughness: .8, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide }),
+        new THREE.MeshStandardMaterial({ color: 0xc1eb8a, emissive: 0x47731e, emissiveIntensity: .2, roughness: .8, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide }),
+        new THREE.MeshStandardMaterial({ color: 0x82cf87, emissive: 0x245126, emissiveIntensity: .24, roughness: .78, vertexColors: true, flatShading: true, transparent: true, alphaMap: leafNoiseTexture, alphaTest: .2, side: THREE.DoubleSide })
       ];
-      const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(.24, .43, 3.8, 10), trunkMaterial, count);
-      const branchA = new THREE.InstancedMesh(new THREE.CylinderGeometry(.08, .15, 1.7, 8), branchMaterial, count);
-      const branchB = new THREE.InstancedMesh(new THREE.CylinderGeometry(.07, .13, 1.55, 8), branchMaterial, count);
-      const branchC = new THREE.InstancedMesh(new THREE.CylinderGeometry(.06, .12, 1.45, 8), branchMaterial, count);
-      const branchD = new THREE.InstancedMesh(new THREE.CylinderGeometry(.045, .1, 1.12, 7), branchMaterial, count);
-      const crownGeometry = new THREE.IcosahedronGeometry(1.32, 2);
+      const trunks = new THREE.InstancedMesh(new THREE.CylinderGeometry(.24, .43, 3.8, 12), trunkMaterial, count);
+      const treeGuardMat = new THREE.MeshStandardMaterial({ color: 0x596368, roughness: .48, metalness: .82 });
+      const treeGuardPlates = new THREE.InstancedMesh(new THREE.CylinderGeometry(.92, 1.04, .12, 8), treeGuardMat, count);
+      const branchA = new THREE.InstancedMesh(new THREE.CylinderGeometry(.08, .15, 1.7, 10), branchMaterial, count);
+      const branchB = new THREE.InstancedMesh(new THREE.CylinderGeometry(.07, .13, 1.55, 10), branchMaterial, count);
+      const branchC = new THREE.InstancedMesh(new THREE.CylinderGeometry(.06, .12, 1.45, 10), branchMaterial, count);
+      const branchD = new THREE.InstancedMesh(new THREE.CylinderGeometry(.045, .1, 1.12, 8), branchMaterial, count);
+      const crownGeometry = new THREE.IcosahedronGeometry(1.32, 3);
       const crowns = leafMaterials.map(material => new THREE.InstancedMesh(crownGeometry, material, count));
       const matrix = new THREE.Matrix4();
       const quaternion = new THREE.Quaternion();
@@ -10982,7 +12054,11 @@ let landingRecoveryTimer = 0;
       }
 
       treeSpots.forEach((point, index) => {
-        const scale = THREE.MathUtils.randFloat(.82, 1.28);
+        // Roadside trees are kept in the requested 7-8m class;
+        // off-road decoration keeps the smaller established scale.
+        const scale = point.roadside
+          ? THREE.MathUtils.randFloat(1, 1.13)
+          : THREE.MathUtils.randFloat(.82, 1.28);
         const yawRotation = THREE.MathUtils.randFloat(0, Math.PI * 2);
         quaternion.setFromAxisAngle(up, yawRotation);
         matrix.compose(
@@ -11020,20 +12096,26 @@ let landingRecoveryTimer = 0;
           const localYaw = yawRotation + crownIndex * 1.37;
           const rotatedX = ox * Math.cos(localYaw) - oz * Math.sin(localYaw);
           const rotatedZ = ox * Math.sin(localYaw) + oz * Math.cos(localYaw);
+          const foliageHeightScale = point.roadside ? 1.25 : 1;
           quaternion.setFromAxisAngle(up, localYaw * .32);
           matrix.compose(
-            new THREE.Vector3(point.x + rotatedX * scale, oy * scale, point.z + rotatedZ * scale),
+            new THREE.Vector3(point.x + rotatedX * scale, oy * scale + (point.roadside ? .12 : 0), point.z + rotatedZ * scale),
             quaternion,
-            new THREE.Vector3(size * scale, size * scale * THREE.MathUtils.randFloat(.82, 1.16), size * scale)
+            new THREE.Vector3(size * scale, size * scale * THREE.MathUtils.randFloat(.82, 1.16) * foliageHeightScale, size * scale)
           );
-          crowns[crownIndex].setMatrixAt(index, matrix);
-          crowns[crownIndex].setColorAt(index, new THREE.Color().setHSL(.27 + Math.random() * .05, .38 + Math.random() * .1, .56 + Math.random() * .12));
+        crowns[crownIndex].setMatrixAt(index, matrix);
+          crowns[crownIndex].setColorAt(index, new THREE.Color().setHSL(.27 + Math.random() * .05, .42 + Math.random() * .1, .63 + Math.random() * .12));
         });
+        // Low octagonal metal guards protect each trunk without becoming a
+        // new obstacle in the pedestrian/mech lanes.
+        matrix.compose(new THREE.Vector3(point.x, .08, point.z), quaternion.setFromAxisAngle(up, yawRotation), new THREE.Vector3(scale, 1, scale));
+        treeGuardPlates.setMatrixAt(index, matrix);
         destructibleTrees.push({ position: new THREE.Vector3(point.x, 0, point.z), scale, alive: true });
       });
 
       trunks.castShadow = true;
       trunks.receiveShadow = true;
+      treeGuardPlates.castShadow = treeGuardPlates.receiveShadow = true;
       branchA.castShadow = branchB.castShadow = branchC.castShadow = branchD.castShadow = true;
       crowns.forEach(crown => {
         crown.castShadow = true;
@@ -11041,7 +12123,7 @@ let landingRecoveryTimer = 0;
         if (crown.instanceColor) crown.instanceColor.needsUpdate = true;
       });
       if (trunks.instanceColor) trunks.instanceColor.needsUpdate = true;
-      cityDecor.add(trunks, branchA, branchB, branchC, branchD, ...crowns);
+      cityDecor.add(treeGuardPlates, trunks, branchA, branchB, branchC, branchD, ...crowns);
       treeTrunks = [trunks];
       treeBranches = [branchA, branchB, branchC, branchD];
       treeCrowns = crowns;
@@ -11238,8 +12320,9 @@ let landingRecoveryTimer = 0;
         evacueeBodies, evacueeHeads, evacueeLeftArms, evacueeRightArms, evacueeLeftForearms, evacueeRightForearms,
         evacueeLeftThighs, evacueeRightThighs, evacueeLeftShins, evacueeRightShins, evacueeBackpacks
       ];
+      evacueeMeshSet = evacueeMeshes;
       for (const mesh of evacueeMeshes) {
-        mesh.frustumCulled = false;
+        mesh.frustumCulled = true;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
       }
@@ -11478,31 +12561,26 @@ let landingRecoveryTimer = 0;
 
     function updateEvacuees(dt) {
       if (!evacueeBodies || !evacueeHeads || !evacueeLeftArms || !evacueeRightArms || !evacueeLeftThighs || !evacueeRightThighs) return;
-      const matrix = new THREE.Matrix4();
-      const rotation = new THREE.Quaternion();
-      const partRotation = new THREE.Quaternion();
-      const swingRotation = new THREE.Quaternion();
-      const partPosition = new THREE.Vector3();
-      const localOffset = new THREE.Vector3();
-      const xAxis = new THREE.Vector3(1, 0, 0);
-      const scale = new THREE.Vector3(1, 1, 1);
-      const evacueeMeshes = [
-        evacueeBodies, evacueeHeads, evacueeLeftArms, evacueeRightArms, evacueeLeftForearms, evacueeRightForearms,
-        evacueeLeftThighs, evacueeRightThighs, evacueeLeftShins, evacueeRightShins, evacueeBackpacks
-      ];
-      const threats = [];
+      const matrix = evacueeMatrix;
+      const partPosition = evacueePartPosition;
+      const localOffset = evacueeLocalOffset;
+      const xAxis = evacueeX;
+      const scale = evacueeScale;
+      const evacueeMeshes = evacueeMeshSet;
+      const threats = evacueeThreats;
+      threats.length = 0;
       if (!playerDestroyed && player.visible) threats.push(player.position);
       if (enemyAI?.alive && enemyAI.group.visible) threats.push(enemyAI.group.position);
       if (enemyAI2?.alive && enemyAI2.group.visible) threats.push(enemyAI2.group.position);
       const now = performance.now() * .001;
-      const yAxis = new THREE.Vector3(0, 1, 0);
-      const rootQuat = new THREE.Quaternion();
-      const bodyRot = new THREE.Quaternion();
-      const personQuat = new THREE.Quaternion();
-      const thighRot = new THREE.Quaternion();
-      const kneeRot = new THREE.Quaternion();
-      const shoulderRot = new THREE.Quaternion();
-      const elbowRot = new THREE.Quaternion();
+      const yAxis = evacueeY;
+      const rootQuat = evacueeRootQuat;
+      const bodyRot = evacueeBodyRot;
+      const personQuat = evacueePersonQuat;
+      const thighRot = evacueeThighRot;
+      const kneeRot = evacueeKneeRot;
+      const shoulderRot = evacueeShoulderRot;
+      const elbowRot = evacueeElbowRot;
 
       evacuees.forEach((person, index) => {
         if (!person.active || person.exitDelay > 0 || !battleStarted) {
@@ -11511,10 +12589,10 @@ let landingRecoveryTimer = 0;
           for (const mesh of evacueeMeshes) mesh.setMatrixAt(index, matrix);
           return;
         }
-        const escape = new THREE.Vector3(person.side, 0, 0);
+        const escape = evacueeEscape.set(person.side, 0, 0);
         let danger = 0;
         for (const threat of threats) {
-          const away = person.position.clone().sub(threat).setY(0);
+          const away = evacueeAway.copy(person.position).sub(threat).setY(0);
           const distance = away.length();
           if (distance < 28 && distance > .01) {
             const weight = 1 - distance / 28;
@@ -11544,7 +12622,7 @@ let landingRecoveryTimer = 0;
         rootQuat.setFromAxisAngle(yAxis, yaw);
 
         // Torso / Core Matrix
-        bodyRot.setFromEuler(new THREE.Euler(forwardLean, pelvisYaw, pelvisRoll));
+        bodyRot.setFromEuler(evacueePartEuler.set(forwardLean, pelvisYaw, pelvisRoll));
         personQuat.copy(rootQuat).multiply(bodyRot);
         localOffset.set(0, .96, 0).applyQuaternion(rootQuat);
         partPosition.copy(person.position).add(localOffset);
@@ -11577,19 +12655,19 @@ let landingRecoveryTimer = 0;
 
           // Thigh Pivot at Hip
           thighRot.setFromAxisAngle(xAxis, hipAngle);
-          const thighQuat = personQuat.clone().multiply(thighRot);
+          const thighQuat = evacueePartRot.copy(personQuat).multiply(thighRot);
           localOffset.set(side * .14, .62, 0).applyQuaternion(personQuat);
-          const hipPos = person.position.clone().add(localOffset);
-          hipPos.y += bob;
-          matrix.compose(hipPos, thighQuat, scale);
+          partPosition.copy(person.position).add(localOffset);
+          partPosition.y += bob;
+          matrix.compose(partPosition, thighQuat, scale);
           (isLeft ? evacueeLeftThighs : evacueeRightThighs).setMatrixAt(index, matrix);
 
           // Shin Pivot at Knee
           kneeRot.setFromAxisAngle(xAxis, kneeFlex);
-          const shinQuat = thighQuat.clone().multiply(kneeRot);
-          const kneeOffset = new THREE.Vector3(0, -.28, 0).applyQuaternion(thighQuat);
-          const kneePos = hipPos.clone().add(kneeOffset);
-          matrix.compose(kneePos, shinQuat, scale);
+          const shinQuat = evacueeSwingRot.copy(thighQuat).multiply(kneeRot);
+          localOffset.set(0, -.28, 0).applyQuaternion(thighQuat);
+          partPosition.add(localOffset);
+          matrix.compose(partPosition, shinQuat, scale);
           (isLeft ? evacueeLeftShins : evacueeRightShins).setMatrixAt(index, matrix);
         }
 
@@ -11603,20 +12681,20 @@ let landingRecoveryTimer = 0;
           const elbowFlex = -.48 - Math.max(0, -armSin) * .52;
 
           // Upper Arm Pivot at Shoulder
-          shoulderRot.setFromEuler(new THREE.Euler(shoulderAngle, 0, side * -.12));
-          const armQuat = personQuat.clone().multiply(shoulderRot);
+          shoulderRot.setFromEuler(evacueePartEuler.set(shoulderAngle, 0, side * -.12));
+          const armQuat = evacueePartRot.copy(personQuat).multiply(shoulderRot);
           localOffset.set(side * .27, 1.16, 0).applyQuaternion(personQuat);
-          const shoulderPos = person.position.clone().add(localOffset);
-          shoulderPos.y += bob;
-          matrix.compose(shoulderPos, armQuat, scale);
+          partPosition.copy(person.position).add(localOffset);
+          partPosition.y += bob;
+          matrix.compose(partPosition, armQuat, scale);
           (isLeft ? evacueeLeftArms : evacueeRightArms).setMatrixAt(index, matrix);
 
           // Forearm Pivot at Elbow
           elbowRot.setFromAxisAngle(xAxis, elbowFlex);
-          const forearmQuat = armQuat.clone().multiply(elbowRot);
-          const elbowOffset = new THREE.Vector3(0, -.26, 0).applyQuaternion(armQuat);
-          const elbowPos = shoulderPos.clone().add(elbowOffset);
-          matrix.compose(elbowPos, forearmQuat, scale);
+          const forearmQuat = evacueeSwingRot.copy(armQuat).multiply(elbowRot);
+          localOffset.set(0, -.26, 0).applyQuaternion(armQuat);
+          partPosition.add(localOffset);
+          matrix.compose(partPosition, forearmQuat, scale);
           (isLeft ? evacueeLeftForearms : evacueeRightForearms).setMatrixAt(index, matrix);
         }
       });
@@ -11829,7 +12907,8 @@ let landingRecoveryTimer = 0;
         let speedFactor = 1;
         let targetOffset = 0;
         let evacuationThreat = null;
-        const threats = [];
+        const threats = trafficThreats;
+        threats.length = 0;
         // Look ahead on the same lane and preserve a rolling safety gap.
         for (const other of trafficVehicles) {
           if (other === vehicle || !other.userData.alive || other.userData.route !== route) continue;
@@ -12123,7 +13202,7 @@ let landingRecoveryTimer = 0;
       }
 
       const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x765039, roughness: .92 });
-      const leafMaterial = new THREE.MeshStandardMaterial({ color: 0x82c968, emissive: 0x173515, emissiveIntensity: .17, roughness: .84 });
+      const leafMaterial = treeLeafDebrisMaterial || new THREE.MeshStandardMaterial({ color: 0x82c968, roughness: .84 });
       const barkChipMaterial = new THREE.MeshStandardMaterial({ color: 0x6f432e, roughness: .92 });
       for (let i = 0; i < 5; i++) {
         const piece = new THREE.Mesh(
@@ -12156,6 +13235,23 @@ let landingRecoveryTimer = 0;
         piece.userData.life = 4.2;
         scene.add(piece);
         debris.push(piece);
+      }
+      // Flat leaf shards use the same noisy alpha as the living crown so the
+      // breakup reads as leaves, not as solid geometric confetti.
+      for (let i = 0; i < 18; i++) {
+        const leafParticle = new THREE.Mesh(new THREE.PlaneGeometry(.42 * tree.scale, .28 * tree.scale), leafMaterial);
+        leafParticle.position.set(
+          tree.position.x + (Math.random() - .5) * 2.1 * tree.scale,
+          4.3 * tree.scale + Math.random() * 1.8 * tree.scale,
+          tree.position.z + (Math.random() - .5) * 2.1 * tree.scale
+        );
+        leafParticle.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+        leafParticle.userData.velocity = impulseDirection.clone().multiplyScalar(3 + Math.random() * 5).add(new THREE.Vector3((Math.random() - .5) * 6, 4 + Math.random() * 7, (Math.random() - .5) * 6));
+        leafParticle.userData.angularVelocity = new THREE.Vector3(Math.random() * 12, Math.random() * 12, Math.random() * 12);
+        leafParticle.userData.life = 3.2 + Math.random() * 1.7;
+        leafParticle.userData.isLeafParticle = true;
+        scene.add(leafParticle);
+        debris.push(leafParticle);
       }
       for (let i = 0; i < 7; i++) {
         const chip = new THREE.Mesh(new THREE.TetrahedronGeometry(.16 * tree.scale, 0), barkChipMaterial);
@@ -12349,6 +13445,14 @@ let landingRecoveryTimer = 0;
         blockCollider.setFromObject(block);
         if (playerCollider.intersectsBox(blockCollider)) return true;
       }
+      // Concrete barrier panels are solid until their own destructible state
+      // removes them, so mechs cannot walk through the perimeter by default.
+      for (const panel of destructibleBarrierPanels) {
+        if (panel.destroyed || !panel.mesh.visible) continue;
+        panel.mesh.updateWorldMatrix(true, false);
+        blockCollider.setFromObject(panel.mesh);
+        if (playerCollider.intersectsBox(blockCollider)) return true;
+      }
       return false;
     }
 
@@ -12362,7 +13466,7 @@ let landingRecoveryTimer = 0;
     }
 
     function cpuCollidesWithBuilding(x, z, y = 0, radius = 1.85) {
-      const boundary = arenaHalfSize - radius - 0.5;
+      const boundary = arenaHalfSize - DANGER_ZONE_INSET - radius - 0.5;
       if (Math.abs(x) > boundary || Math.abs(z) > boundary) return true;
 
       if (collidesAtPosition(x, z, y, radius)) return true;
@@ -12388,11 +13492,12 @@ let landingRecoveryTimer = 0;
     }
 
     function getRandomSpawnPoint(excludePosition = null, minimumDistance = 0) {
+      const safeArenaHalfSize = Math.max(1, arenaHalfSize - DANGER_ZONE_INSET);
       for (let attempt = 0; attempt < 120; attempt++) {
         const point = new THREE.Vector3(
-          THREE.MathUtils.randFloat(-arenaHalfSize, arenaHalfSize),
+          THREE.MathUtils.randFloat(-safeArenaHalfSize, safeArenaHalfSize),
           0,
-          THREE.MathUtils.randFloat(-arenaHalfSize, arenaHalfSize)
+          THREE.MathUtils.randFloat(-safeArenaHalfSize, safeArenaHalfSize)
         );
         const insideBuildingArea = buildingBounds.some(bounds =>
           Math.abs(point.x - bounds.x) < bounds.halfX + 3.2 &&
@@ -12407,7 +13512,9 @@ let landingRecoveryTimer = 0;
 
     function getFormationSpawn(team, index = 0) {
       const formationDepth = Math.min(58, arenaHalfSize * .64);
-      const coveredDepth = Math.min(66, formationDepth + 14);
+      // Shift both deployment areas a little toward their perimeter barriers
+      // while keeping them inside the protected playable area.
+      const coveredDepth = Math.min(72, formationDepth + 20);
       if (team === 'player') return new THREE.Vector3(30, 0, coveredDepth);
       const enemyOffsets = currentLevel >= 2 ? [-34.8, -25.2] : [-30];
       return new THREE.Vector3(enemyOffsets[index] ?? -30, 0, -coveredDepth);
@@ -12662,7 +13769,7 @@ let landingRecoveryTimer = 0;
         spawnFractureInstance(
           isGlass ? fractureGlassBatch : fractureRubbleBatch,
           position, velocity, angularVelocity, size, isGlass ? 2.1 : 1.75,
-          isGlass ? new THREE.Color(0x9aefff) : baseColor
+          isGlass ? fractureGlassColor : baseColor
         );
       }
     }
@@ -12945,7 +14052,7 @@ let landingRecoveryTimer = 0;
       const turnRate = Math.abs(angleDelta(rotationBeforeMove, player.rotation.y)) / Math.max(dt, .001);
       const turnStability = THREE.MathUtils.clamp(1 - turnRate / 1.8, 0, 1);
       if (turnRate > .62) footPlantWorld[0] = footPlantWorld[1] = null;
-      const arenaColliderLimit = arenaHalfSize - playerRadius - .35;
+      const arenaColliderLimit = arenaHalfSize - DANGER_ZONE_INSET - playerRadius - .35;
       player.position.x = THREE.MathUtils.clamp(player.position.x, -arenaColliderLimit, arenaColliderLimit);
       player.position.z = THREE.MathUtils.clamp(player.position.z, -arenaColliderLimit, arenaColliderLimit);
       const actualGroundSpeed = Math.hypot(player.position.x - moveStartX, player.position.z - moveStartZ) / Math.max(dt, .001);
@@ -13044,12 +14151,35 @@ if (!wasGrounded && grounded) {
       jetFlameMat.opacity = dashJetsActive ? 1 : .9;
       jetFlameCoreMat.color.setHex(dashJetsActive ? 0xffffc4 : 0xf7fdff);
       jetFlameHaloMat.color.setHex(dashJetsActive ? 0xff541d : 0x238dff);
+      jetFlameMiddleMat.color.setHex(dashJetsActive ? 0xff7621 : 0x42d9ff);
+      jetFlameMiddleMat.opacity = dashJetsActive ? .78 : .62;
+      jetFlameOuterMat.color.setHex(dashJetsActive ? 0xff3217 : 0x1c9dff);
+      jetFlameOuterMat.opacity = dashJetsActive ? .58 : .42;
+      if (jetsActive) jetFlameNoiseTexture.offset.y = (jetFlameNoiseTexture.offset.y - dt * (dashJetsActive ? .9 : .55)) % 1;
       dashBoostLight.intensity = dashJetsActive ? 72 : 0;
-      if (dashJetsActive) {
+      if (jetsActive) {
         jetpack.updateWorldMatrix(true, false);
         jetpack.getWorldQuaternion(jetpackWorldQuaternion).invert();
-        dashTrailWorld.set(-dashDirection.x, .08, -dashDirection.z).normalize();
-        dashTrailLocal.copy(dashTrailWorld).applyQuaternion(jetpackWorldQuaternion).normalize();
+        if (dashJetsActive) {
+          dashTrailWorld.set(-dashDirection.x, .08, -dashDirection.z).normalize();
+        } else if (airBoosting && activeMove) {
+          // Jetpack thrust trails behind horizontal flight while retaining
+          // the downward exhaust direction for vertical lift.
+          dashTrailWorld.set(-activeMove.x * .62, -1, -activeMove.z * .62).normalize();
+        } else {
+          dashTrailWorld.copy(dashExhaustDown);
+        }
+        dashTrailLocalTarget.copy(dashTrailWorld).applyQuaternion(jetpackWorldQuaternion).normalize();
+        dashTrailLocal.lerp(dashTrailLocalTarget, 1 - Math.exp(-12 * dt)).normalize();
+        if (dashJetsActive || airBoosting) {
+          // In jetpack-local space +Z points into the mech body. When moving
+          // backward, prevent the exhaust vector from turning into the pack.
+          dashTrailLocal.z = Math.min(0, dashTrailLocal.z);
+          dashTrailLocal.normalize();
+        }
+      } else {
+        dashTrailLocal.set(0, -1, 0);
+        dashTrailLocalTarget.set(0, -1, 0);
       }
       for (const flame of jetFlames) {
         flame.visible = jetsActive;
@@ -13057,14 +14187,19 @@ if (!wasGrounded && grounded) {
           const jitter = reducedMotion ? .2 : Math.random();
           const width = dashJetsActive ? .84 : 1;
           const flameLengthScale = dashJetsActive ? 1.22 + jitter * .38 : .75 + jitter * .65;
-          flame.scale.set(width, flameLengthScale, width);
-          if (dashJetsActive) {
-            const halfFlameLength = JET_FLAME_BASE_LENGTH * flameLengthScale * .5;
-            flame.position.copy(flame.userData.nozzleOrigin).addScaledVector(dashTrailLocal, halfFlameLength);
-            flame.quaternion.setFromUnitVectors(dashFlameUp, dashTrailLocal);
+          const previousLengthScale = flame.userData.lengthScale ?? flameLengthScale;
+          flame.userData.lengthScale = THREE.MathUtils.lerp(previousLengthScale, flameLengthScale, 1 - Math.exp(-15 * dt));
+          flame.scale.set(width, flame.userData.lengthScale, width);
+          if (dashJetsActive || airBoosting) {
+            const halfFlameLength = JET_FLAME_BASE_LENGTH * flame.userData.lengthScale * .5;
+            dashFlameTargetPosition.copy(flame.userData.nozzleOrigin).addScaledVector(dashTrailLocal, halfFlameLength);
+            flame.position.lerp(dashFlameTargetPosition, 1 - Math.exp(-16 * dt));
+            dashFlameTargetQuaternion.setFromUnitVectors(dashFlameUp, dashTrailLocal);
+            flame.quaternion.slerp(dashFlameTargetQuaternion, 1 - Math.exp(-18 * dt));
           } else {
-            flame.position.set(flame.userData.side * .88, 1.4, -1.93);
-            flame.rotation.set(0, 0, Math.PI);
+            normalFlameTargetPosition.set(flame.userData.side * .88, 1.4, -1.93);
+            flame.position.lerp(normalFlameTargetPosition, 1 - Math.exp(-18 * dt));
+            flame.quaternion.slerp(normalFlameTargetQuaternion, 1 - Math.exp(-18 * dt));
           }
         }
       }
@@ -13076,7 +14211,7 @@ if (!wasGrounded && grounded) {
         flame.scale.set(width, dashJetsActive ? 1.18 + jitter * .36 : .9 + jitter * .52, width);
         flame.rotation.set(dashJetsActive ? .22 : 0, 0, Math.PI);
       }
-      const exhaustDirection = dashJetsActive ? dashTrailLocal : dashExhaustDown;
+      const exhaustDirection = (dashJetsActive || airBoosting) ? dashTrailLocal : dashExhaustDown;
       const exhaustTime = performance.now() * .001;
       for (const exhaust of boosterExhaustParticles) {
         exhaust.visible = jetsActive;
@@ -13450,19 +14585,68 @@ if (!wasGrounded && grounded) {
     const explosionPool = [];
 
     function createExplosionMeshGroup() {
-      const sphereMat = explosionSphereMatBase.clone();
-      const ringMat = explosionRingMatBase.clone();
+      const spheres = explosionSphereLayerConfig.map((config) => new THREE.Mesh(
+        explosionSphereGeo,
+        createExplosionSphereMaterial(config)
+      ));
       const coreMat = explosionCoreMatBase.clone();
-      const sphere = new THREE.Mesh(explosionSphereGeo, sphereMat);
-      const ring = new THREE.Mesh(explosionRingGeo, ringMat);
-      ring.rotation.x = -Math.PI / 2;
       const hotCore = new THREE.Mesh(explosionHotCoreGeo, coreMat);
       const group = new THREE.Group();
-      group.add(sphere, ring, hotCore);
-      group.userData = { sphere, ring, hotCore };
+      group.add(...spheres, hotCore);
+      group.userData = { spheres, hotCore };
       return group;
     }
     for (let index = 0; index < 10; index++) explosionPool.push(createExplosionMeshGroup());
+
+    const barrierImpactPoint = new THREE.Vector3();
+    const barrierPanelBox = new THREE.Box3();
+    const barrierPanelClosestPoint = new THREE.Vector3();
+    const barrierFractureColor = new THREE.Color(0x73797a);
+    function damageDangerBarrier(position, radius) {
+      if (radius < .8 || !destructibleBarrierPanels.length) return;
+      for (const panel of destructibleBarrierPanels) {
+        if (panel.destroyed) continue;
+        panel.mesh.updateWorldMatrix(true, false);
+        barrierPanelBox.setFromObject(panel.mesh);
+        barrierPanelBox.clampPoint(position, barrierPanelClosestPoint);
+        const distance = position.distanceTo(barrierPanelClosestPoint);
+        panel.mesh.getWorldPosition(barrierImpactPoint);
+        const horizontalDistance = Math.hypot(position.x - barrierImpactPoint.x, position.z - barrierImpactPoint.z);
+        // Use the actual panel surface, not its center, so hits on the top,
+        // bottom, or either edge still damage the correct concrete section.
+        const damageReach = radius + 1.2;
+        if (distance >= damageReach) continue;
+        panel.hp -= (damageReach - distance) * 12.5;
+        if (panel.hp > 0) continue;
+
+        panel.destroyed = true;
+        panel.mesh.visible = false;
+        panel.details.forEach(detail => detail.visible = false);
+        const debrisOrigin = panel.mesh.getWorldPosition(new THREE.Vector3());
+        for (let shard = 0; shard < 16; shard++) {
+          const velocity = new THREE.Vector3(
+            (Math.random() - .5) * 5.5,
+            2.5 + Math.random() * 5.5,
+            (Math.random() - .5) * 5.5
+          );
+          if (horizontalDistance > .01) {
+            velocity.x += (position.x - debrisOrigin.x) / horizontalDistance * 2.2;
+            velocity.z += (position.z - debrisOrigin.z) / horizontalDistance * 2.2;
+          }
+          spawnFractureInstance(
+            fractureRubbleBatch,
+            debrisOrigin,
+            velocity,
+            new THREE.Vector3((Math.random() - .5) * 14, (Math.random() - .5) * 14, (Math.random() - .5) * 14),
+            .62 + Math.random() * .78,
+            2.6 + Math.random() * 1.8,
+            barrierFractureColor
+          );
+        }
+        spawnCollapseDust(debrisOrigin, .28, 22);
+        spawnExplosionInstanceParticles(debrisOrigin, 1.25);
+      }
+    }
 
     function pushExplosionInstanceParticle(collection, capacity, particle) {
       if (collection.length >= capacity) collection.shift();
@@ -13509,6 +14693,7 @@ if (!wasGrounded && grounded) {
       const recent = explosionEffects[explosionEffects.length - 1];
       if (recent && recent.userData.elapsed < .09 && recent.position.distanceTo(position) < 3.2) {
         recent.userData.radius = Math.max(recent.userData.radius, radius * 1.18);
+        damageDangerBarrier(position, radius * 1.18);
         return;
       }
       if (explosionEffects.length >= 10) {
@@ -13524,9 +14709,16 @@ if (!wasGrounded && grounded) {
       group.userData.elapsed = 0;
       group.userData.duration = .68;
       group.userData.radius = radius;
+      group.userData.spheres.forEach((sphere, index) => {
+        const config = explosionSphereLayerConfig[index];
+        sphere.material.uniforms.uTime.value = 0;
+        sphere.material.uniforms.uOpacity.value = config.opacity;
+      });
+      group.userData.hotCore.material.opacity = explosionCoreMatBase.opacity;
 
       scene.add(group);
       explosionEffects.push(group);
+      damageDangerBarrier(position, radius);
       spawnExplosionInstanceParticles(position, radius);
       if (radius >= 2.5) spawnBurningEffect(position, radius);
     }
@@ -13574,22 +14766,15 @@ if (!wasGrounded && grounded) {
 
       const group = new THREE.Group();
       group.position.copy(center);
-      const core = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 24, 16),
-        new THREE.MeshBasicMaterial({ color: 0xff2638, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })
-      );
-      const hotCore = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 20, 14),
-        new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })
-      );
-      const shockwave = new THREE.Mesh(
-        new THREE.RingGeometry(.78, 1, 64),
-        new THREE.MeshBasicMaterial({ color: primaryColor, transparent: true, opacity: .95, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false })
-      );
-      shockwave.rotation.x = -Math.PI / 2;
-      const verticalRing = shockwave.clone();
-      verticalRing.rotation.x = 0;
-      verticalRing.rotation.y = Math.PI / 2;
+      // A destroyed heavy mech uses the same irregular three-layer sphere
+      // language as the other explosions, scaled to the mech's silhouette.
+      const sphereLayers = explosionSphereLayerConfig.map((config, index) => {
+        const layer = new THREE.Mesh(explosionSphereGeo, createExplosionSphereMaterial(config));
+        const tint = new THREE.Color(primaryColor);
+        layer.material.uniforms.uColor.value.lerp(tint, index === 0 ? .08 : .42);
+        layer.scale.setScalar(.08);
+        return layer;
+      });
       const damageRadiusRing = new THREE.Mesh(
         new THREE.RingGeometry(.91, 1, 96),
         new THREE.MeshBasicMaterial({
@@ -13606,7 +14791,7 @@ if (!wasGrounded && grounded) {
       damageRadiusRing.position.y = -4.02;
       damageRadiusRing.scale.setScalar(MECH_DEATH_SPLASH_RADIUS);
       const light = new THREE.PointLight(primaryColor, 28, 42, 2);
-      group.add(core, hotCore, shockwave, verticalRing, damageRadiusRing, light);
+      group.add(...sphereLayers, damageRadiusRing, light);
       group.userData = {
         elapsed: 0,
         delay: .42,
@@ -13615,10 +14800,7 @@ if (!wasGrounded && grounded) {
         primaryColor,
         splashSource,
         splashRadius: MECH_DEATH_SPLASH_RADIUS,
-        core,
-        hotCore,
-        shockwave,
-        verticalRing,
+        sphereLayers,
         damageRadiusRing,
         light
       };
@@ -13841,8 +15023,12 @@ if (!wasGrounded && grounded) {
         const t = Math.min(1, effect.userData.elapsed / effect.userData.duration);
         const expansion = 1 - Math.pow(1 - t, 3);
         effect.scale.setScalar(Math.max(.01, effect.userData.radius * expansion));
-        effect.userData.sphere.material.opacity = .38 * (1 - t);
-        effect.userData.ring.material.opacity = .8 * (1 - t);
+        effect.userData.spheres.forEach((sphere, index) => {
+          const config = explosionSphereLayerConfig[index];
+          sphere.material.uniforms.uTime.value += dt * (1.2 + index * .45);
+          sphere.material.uniforms.uOpacity.value = config.opacity * (1 - t);
+          sphere.scale.setScalar(config.scale * (.86 + expansion * .22));
+        });
         effect.userData.hotCore.material.opacity = Math.pow(1 - t, 3);
         effect.userData.hotCore.scale.setScalar(.7 + t * 1.8);
         if (effect.userData.flashLight) effect.userData.flashLight.intensity *= Math.exp(-13 * dt);
@@ -13892,25 +15078,25 @@ if (!wasGrounded && grounded) {
         const delay = effect.userData.delay || 0;
         if (!effect.userData.exploded && effect.userData.elapsed >= delay) {
           effect.userData.exploded = true;
-          spawnExplosionEffect(effect.position, 6.2);
-          spawnExplosionEffect(effect.position.clone().add(new THREE.Vector3(1.3, .6, -.7)), 3.0);
           spawnBurningEffect(effect.position, 8.2);
           applyMechDeathSplash(effect.position, effect.userData.splashSource, effect.userData.splashRadius);
-          effect.userData.core.material.color.setHex(effect.userData.primaryColor);
         }
         const t = effect.userData.elapsed < delay
           ? 0
           : Math.min(1, (effect.userData.elapsed - delay) / (effect.userData.duration - delay));
         const charge = delay > 0 ? THREE.MathUtils.clamp(effect.userData.elapsed / delay, 0, 1) : 1;
         const burst = 1 - Math.pow(1 - t, 4);
-        effect.userData.core.scale.setScalar(effect.userData.exploded ? .2 + burst * 5.8 : .45 + charge * .9);
-        effect.userData.hotCore.scale.setScalar(.1 + burst * 2.45);
-        effect.userData.shockwave.scale.setScalar(.2 + burst * effect.userData.splashRadius);
-        effect.userData.verticalRing.scale.setScalar(.2 + burst * effect.userData.splashRadius * .72);
-        effect.userData.core.material.opacity = effect.userData.exploded ? .92 * (1 - t) : .9;
-        effect.userData.hotCore.material.opacity = effect.userData.exploded ? .98 * Math.pow(1 - t, 1.8) : 0;
-        effect.userData.shockwave.material.opacity = effect.userData.exploded ? .9 * (1 - t) : 0;
-        effect.userData.verticalRing.material.opacity = effect.userData.exploded ? .72 * (1 - t) : 0;
+        // Match the visual sphere to the actual mech blast radius rather than
+        // leaving the destruction effect as a small local fireball.
+        const sphereBurst = effect.userData.exploded
+          ? .2 + burst * effect.userData.splashRadius * .92
+          : .08 + charge * .22;
+        effect.userData.sphereLayers.forEach((layer, layerIndex) => {
+          const config = explosionSphereLayerConfig[layerIndex];
+          layer.scale.setScalar(sphereBurst * config.scale);
+          layer.material.uniforms.uTime.value = effect.userData.elapsed + layerIndex * .17;
+          layer.material.uniforms.uOpacity.value = config.opacity * (effect.userData.exploded ? 1 - t : charge * .72);
+        });
         effect.userData.damageRadiusRing.material.opacity = effect.userData.exploded
           ? .42 * (1 - t)
           : .12 + charge * .24;
@@ -13928,6 +15114,7 @@ if (!wasGrounded && grounded) {
 
 
     const PICKUP_RADIUS = 3.8;
+    const pickupTargetPosition = new THREE.Vector3();
     // CPU navigation steers around the pickup collision radius, so use a
     // slightly wider horizontal collection area for the larger mech chassis.
     const CPU_PICKUP_RADIUS = 5.6;
@@ -13946,7 +15133,19 @@ if (!wasGrounded && grounded) {
       item.userData.respawnAt = performance.now() + delaySeconds * 1000;
     }
 
+    function setPickupUpright(item) {
+      const upright = item.userData.uprightRotation;
+      if (!upright) return;
+      // Keep yaw as the only animated axis.  Reassign the full Euler every
+      // frame so a stale quaternion/roll cannot leave a pickup on its side.
+      item.rotation.order = 'YXZ';
+      item.rotation.set(upright.x, item.rotation.y, upright.z);
+    }
+
     function refreshPickup(item) {
+      // Keep the pickup body upright after random respawns and after any
+      // inherited rotation from its previous collection cycle.
+      setPickupUpright(item);
       if (!item.userData.respawnAt) return item.visible;
       if (performance.now() < item.userData.respawnAt) return false;
       const spawn = getRandomItemPoint();
@@ -13961,14 +15160,16 @@ if (!wasGrounded && grounded) {
       // Every pickup rotates upright around the shared world-up axis, keeping
       // their silhouettes readable instead of tumbling on unrelated axes.
       const pickupSpin = dt * 1.7;
+      pickupTargetPosition.copy(player.position).y += 1.2;
       for (let i = laserItems.length - 1; i >= 0; i--) {
         const item = laserItems[i];
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .24;
-        if (!playerDestroyed && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           laserEnergy = PLAYER_MAX_ENERGY;
           laserRechargeDelay = 0;
+          playGameSound('pickup');
           showMessage('LASER ENERGY RECHARGED');
           queuePickupRespawn(item, 18);
           updateHUD();
@@ -13982,8 +15183,9 @@ if (!wasGrounded && grounded) {
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .004 + item.userData.phase) * .28;
-        if (!playerDestroyed && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           jumpBoostEquipped = true;
+          playGameSound('pickup');
           showMessage('TRIPLE JUMP MODULE EQUIPPED');
           queuePickupRespawn(item, 22);
           updateHUD();
@@ -13997,8 +15199,9 @@ if (!wasGrounded && grounded) {
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .18;
-        if (!playerDestroyed && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           powerLevel = Math.min(3, powerLevel + 1);
+          playGameSound('pickup');
           showMessage(`POWER UP! LEVEL ${powerLevel}`);
           queuePickupRespawn(item, 28);
         } else if (getCpuPickupOwner(item)) {
@@ -14011,11 +15214,12 @@ if (!wasGrounded && grounded) {
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .22;
-        if (!playerDestroyed && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           jetpackEquipped = true;
           jetpackTimeRemaining = 60;
           boostEnergy = PLAYER_MAX_ENERGY;
           jetpack.visible = true;
+          playGameSound('pickup');
           showMessage('JETPACK EQUIPPED!');
           queuePickupRespawn(item, 32);
           updateHUD();
@@ -14029,9 +15233,10 @@ if (!wasGrounded && grounded) {
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .2;
-        if (!playerDestroyed && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           homingMissileAmmo += 5;
           missileRack.visible = true;
+          playGameSound('pickup');
           showMessage('HOMING MISSILE +5');
           queuePickupRespawn(item, 26);
           updateHUD();
@@ -14045,8 +15250,9 @@ if (!wasGrounded && grounded) {
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .2;
-        if (!playerDestroyed && playerHealth < 100 && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && playerHealth < 100 && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           playerHealth = Math.min(100, playerHealth + 40);
+          playGameSound('pickup');
           showMessage('HEALTH +40');
           queuePickupRespawn(item, 16);
           updateHUD();
@@ -14060,10 +15266,11 @@ if (!wasGrounded && grounded) {
         if (!refreshPickup(item)) continue;
         item.rotation.y += pickupSpin;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .23;
-        if (!playerDestroyed && playerShield < PLAYER_MAX_SHIELD && item.position.distanceTo(player.position.clone().add(new THREE.Vector3(0, 1.2, 0))) < PICKUP_RADIUS) {
+        if (!playerDestroyed && playerShield < PLAYER_MAX_SHIELD && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           playerShield = Math.min(PLAYER_MAX_SHIELD, playerShield + 60);
           shieldBubble.setStrength(playerShield / PLAYER_MAX_SHIELD);
           shieldBubble.hit(player.position.clone().add(new THREE.Vector3(0, 4.2, 0)), .55);
+          playGameSound('pickup');
           showMessage('ENERGY SHIELD +60');
           queuePickupRespawn(item, 20);
           updateHUD();
@@ -14150,6 +15357,15 @@ if (!wasGrounded && grounded) {
     }
 
     const camTarget = new THREE.Vector3();
+    const cameraOcclusionRaycaster = new THREE.Raycaster();
+    const cameraOcclusionDirection = new THREE.Vector3();
+    const cameraOcclusionRight = new THREE.Vector3();
+    const cameraOcclusionCenter = new THREE.Vector3();
+    const cameraOcclusionClosest = new THREE.Vector3();
+    const cameraOcclusionScale = new THREE.Vector3();
+    const cameraOcclusionMeshes = [];
+    const CAMERA_OBSTRUCTION_MARGIN = 0;
+    const CAMERA_OBSTRUCTION_CYLINDER_RADIUS = 5;
     function updateCameraObstructions() {
       for (const object of cameraFadedObjects) {
         if (object.userData.cameraOriginalMaterial) object.material = object.userData.cameraOriginalMaterial;
@@ -14169,7 +15385,9 @@ if (!wasGrounded && grounded) {
         const fromCameraY = tempPos.y - camera.position.y;
         const fromCameraZ = tempPos.z - camera.position.z;
         const t = (fromCameraX * segmentX + fromCameraY * segmentY + fromCameraZ * segmentZ) / segmentLengthSq;
-        if (t < .04 || t > .92) continue;
+        // Only objects whose volume reaches the camera-to-mech segment can
+        // obstruct the view. Do not fade objects behind the mech.
+        if (t < .015 || t > .995) continue;
         const closestX = camera.position.x + segmentX * t;
         const closestY = camera.position.y + segmentY * t;
         const closestZ = camera.position.z + segmentZ * t;
@@ -14177,7 +15395,7 @@ if (!wasGrounded && grounded) {
         const dy = tempPos.y - closestY;
         const dz = tempPos.z - closestZ;
         const parameters = block.geometry.parameters || {};
-        const radius = Math.max(1.35, Math.min(7.5, Math.max(parameters.width || 1, (parameters.height || 1) * BUILDING_Y_SCALE, parameters.depth || 1) * .48));
+        const radius = Math.max(1.65, Math.min(9, Math.max(parameters.width || 1, (parameters.height || 1) * BUILDING_Y_SCALE, parameters.depth || 1) * .56));
         if (dx * dx + dy * dy + dz * dz > radius * radius) continue;
         if (!block.userData.cameraFadeMaterial) {
           block.userData.cameraFadeMaterial = block.userData.cameraOriginalMaterial.clone();
@@ -14187,6 +15405,84 @@ if (!wasGrounded && grounded) {
         }
         block.material = block.userData.cameraFadeMaterial;
         cameraFadedObjects.add(block);
+      }
+
+      // Fade any other opaque mesh directly between the camera and the mech,
+      // including barrier pieces and city dressing. Instanced meshes are
+      // skipped because fading one instance would fade the entire batch.
+      cameraOcclusionMeshes.length = 0;
+      envGroup.traverse(object => {
+        // Sprites can have no valid parent matrix during scene transitions;
+        // instanced batches also cannot fade per individual instance.
+        if (object.isMesh && !object.isInstancedMesh) cameraOcclusionMeshes.push(object);
+      });
+      // Sweep across roughly two mech widths instead of using one center ray.
+      // This catches side obstructions before they cover the mech silhouette.
+      cameraOcclusionRight.setFromMatrixColumn(camera.matrixWorld, 0).normalize();
+      const occluders = [];
+      for (const sideOffset of [-3.6, -1.8, 0, 1.8, 3.6]) {
+        cameraOcclusionDirection.set(segmentX, segmentY, segmentZ).addScaledVector(cameraOcclusionRight, sideOffset).normalize();
+        cameraOcclusionRaycaster.set(camera.position, cameraOcclusionDirection);
+        cameraOcclusionRaycaster.far = Math.sqrt(segmentLengthSq) + CAMERA_OBSTRUCTION_MARGIN;
+        occluders.push(...cameraOcclusionRaycaster.intersectObjects(cameraOcclusionMeshes, false));
+      }
+      const fadeCameraObject = object => {
+        if (!object.isMesh || object.isInstancedMesh) return;
+        if (object.userData.isBuildingShadowProxy || object.userData.cameraNoFade) return;
+        if (object === ground || object.userData.removed) return;
+        let parent = object;
+        while (parent) {
+          if (parent === player) return;
+          parent = parent.parent;
+        }
+        const sourceMaterial = object.userData.cameraOriginalMaterial || object.material;
+        if (!sourceMaterial) return;
+        const materials = Array.isArray(sourceMaterial) ? sourceMaterial : [sourceMaterial];
+        if (materials.some(material => material.transparent && material.opacity < .98)) return;
+        if (!object.userData.cameraOriginalMaterial) object.userData.cameraOriginalMaterial = object.material;
+        if (!object.userData.cameraFadeMaterial) {
+          const fadedMaterials = materials.map(material => {
+            const faded = material.clone();
+            faded.transparent = true;
+            faded.opacity = .22;
+            faded.depthWrite = false;
+            return faded;
+          });
+          object.userData.cameraFadeMaterial = Array.isArray(sourceMaterial) ? fadedMaterials : fadedMaterials[0];
+        }
+        object.material = object.userData.cameraFadeMaterial;
+        cameraFadedObjects.add(object);
+      };
+      // Treat the camera-to-mech volume as a 10m diameter cylinder. This
+      // catches meshes between the side rays, but only within the segment.
+      for (const object of cameraOcclusionMeshes) {
+        const geometry = object.geometry;
+        if (!geometry) continue;
+        if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+        if (!geometry.boundingSphere) continue;
+        object.getWorldPosition(cameraOcclusionCenter);
+        const fromX = cameraOcclusionCenter.x - camera.position.x;
+        const fromY = cameraOcclusionCenter.y - camera.position.y;
+        const fromZ = cameraOcclusionCenter.z - camera.position.z;
+        const projection = (fromX * segmentX + fromY * segmentY + fromZ * segmentZ) / segmentLengthSq;
+        if (projection < .015 || projection > .995) continue;
+        cameraOcclusionClosest.set(
+          camera.position.x + segmentX * projection,
+          camera.position.y + segmentY * projection,
+          camera.position.z + segmentZ * projection
+        );
+        object.getWorldScale(cameraOcclusionScale);
+        const objectRadius = geometry.boundingSphere.radius * Math.max(cameraOcclusionScale.x, cameraOcclusionScale.y, cameraOcclusionScale.z);
+        if (cameraOcclusionCenter.distanceToSquared(cameraOcclusionClosest) > (CAMERA_OBSTRUCTION_CYLINDER_RADIUS + objectRadius) ** 2) continue;
+        fadeCameraObject(object);
+      }
+      const processedOccluders = new Set();
+      for (const hit of occluders) {
+        const object = hit.object;
+        if (processedOccluders.has(object)) continue;
+        processedOccluders.add(object);
+        if (hit.distance < .18 || hit.distance >= Math.sqrt(segmentLengthSq)) continue;
+        fadeCameraObject(object);
       }
     }
 
@@ -14225,11 +15521,12 @@ if (!wasGrounded && grounded) {
       if (titleActive) {
         // Orbit around the rising walker while keeping it in the left third,
         // leaving the right side clear for the title panel.
+        const titleSway = reducedMotion ? 0 : Math.sin(performance.now() * .00018) * .1745;
         const drift = reducedMotion ? 0 : Math.sin(performance.now() * .00045) * .32;
         const revealFocus = THREE.MathUtils.smoothstep(titleRevealTime, .35, 3.25);
         const targetPos = new THREE.Vector3(-3.0, THREE.MathUtils.lerp(-1.45, 4.25, revealFocus), 0);
         const orbitOffset = new THREE.Vector3(6.4 + drift, 10.8 + titleCameraPitch * 8.5, -19.6)
-          .applyAxisAngle(new THREE.Vector3(0, 1, 0), titleCameraYaw);
+          .applyAxisAngle(new THREE.Vector3(0, 1, 0), titleCameraYaw + titleSway);
         const camPos = targetPos.clone().add(orbitOffset);
         camPos.y = 10.8 + titleCameraPitch * 10.5;
         const riseShake = reducedMotion ? 0 : THREE.MathUtils.clamp((3.35 - titleRevealTime) / 3.35, 0, 1) * .18;
@@ -14250,6 +15547,7 @@ if (!wasGrounded && grounded) {
         return;
       }
       if (hangarActive || hangarLaunching) {
+        const hangarSway = reducedMotion ? 0 : Math.sin(performance.now() * .0002 + 1.4) * .1745;
         const targetPos = player.position.clone().add(hangarLaunching
           ? new THREE.Vector3(0, 3.4, 0)
           : new THREE.Vector3(-.8, 5.25 - hangarCameraPitch * 4.5, 0));
@@ -14258,10 +15556,11 @@ if (!wasGrounded && grounded) {
         const camPos = player.position.clone().add(hangarLaunching
           ? new THREE.Vector3(9.2, 6.2, -13.8)
           : new THREE.Vector3(
-              -3.4 + Math.sin(hangarCameraYaw) * 10.8,
+              -3.4 + Math.sin(hangarCameraYaw + hangarSway) * 10.8,
               1.3 + hangarCameraPitch * 22.0,
-              -Math.cos(hangarCameraYaw) * 18.2
+              -Math.cos(hangarCameraYaw + hangarSway) * 18.2
             ));
+        if (!hangarLaunching) camPos.y = Math.max(camPos.y, HANGAR_CAMERA_MIN_Y);
         camera.position.lerp(camPos, 1 - Math.exp(-4.5 * dt));
         camera.lookAt(targetPos);
         return;
@@ -14348,7 +15647,9 @@ if (!wasGrounded && grounded) {
         camera.position.z += (Math.random() - .5) * shake;
         shake = Math.max(0, shake - dt * 2.4);
       }
-      updateCameraObstructions();
+      // Temporarily disabled for performance comparison. Camera obstruction
+      // fading can be re-enabled after profiling the per-frame scene sweep.
+      // updateCameraObstructions();
       updatePlayerCameraFade();
       camera.lookAt(camTarget);
     }
@@ -14659,6 +15960,16 @@ if (!wasGrounded && grounded) {
 
     function resetPlayerMechaPose() {
       if (mechaGaitController) mechaGaitController.reset();
+      // Keep persisted/customizer arm rotations inside the same limits used by
+      // the editor. Older saves can contain a full-quarter-turn value, which
+      // makes both shoulder assemblies point upward on the first frame.
+      const normalizeArmPose = (pose, side) => {
+        pose.x = THREE.MathUtils.clamp(Number.isFinite(pose.x) ? pose.x : -.06, -.75, .55);
+        pose.y = THREE.MathUtils.clamp(Number.isFinite(pose.y) ? pose.y : (side < 0 ? .08 : -.08), -.65, .65);
+        pose.z = THREE.MathUtils.clamp(Number.isFinite(pose.z) ? pose.z : (side < 0 ? -.08 : .08), -.55, .55);
+      };
+      normalizeArmPose(armPoseState.leftArm, -1);
+      normalizeArmPose(armPoseState.rightArm, 1);
       upperBodyPivot.rotation.set(0, 0, 0);
       headGroup.rotation.set(0, 0, 0);
       body.position.y = BODY_LOCAL_BASE_Y;
@@ -14673,6 +15984,20 @@ if (!wasGrounded && grounded) {
       waistCoreAssembly.position.set(0, 0, .9);
       waistCoreAssembly.rotation.set(0, 0, 0);
       waistCoreAssembly.scale.set(1, 1, 1);
+      for (let index = 0; index < weaponPods.length; index++) {
+        const pod = weaponPods[index];
+        // weaponPods are reparented to upperBodyPivot after creation. Their
+        // saved socket must therefore be restored through the attachment
+        // resolver below, not written as body-local coordinates here.
+        const armPose = index === 0 ? armPoseState.leftArm : armPoseState.rightArm;
+        pod.rotation.set(armPose.x, armPose.y, armPose.z);
+      }
+      for (const mount of shoulderWeaponMounts) mount.rotation.set(0, 0, 0);
+      for (const launcher of armMissileLaunchers) launcher.rotation.set(0, 0, 0);
+      missileRack.rotation.set(0, 0, 0);
+      missileRackLeft.rotation.set(0, 0, 0);
+      laserCannonMount.rotation.set(0, 0, 0);
+      laserCannonMountLeft.rotation.set(0, 0, 0);
       for (let index = 0; index < playerLegs.length; index++) {
         const leg = playerLegs[index];
         leg.position.fromArray(index === 0 ? mechaAttachments.leftLeg : mechaAttachments.rightLeg);
@@ -14687,6 +16012,7 @@ if (!wasGrounded && grounded) {
         joints.ankle.rotation.set(.12, 0, 0);
         joints.foot.rotation.set(REVERSE_FOOT_LEVEL_PITCH, 0, 0);
       }
+      restoreSavedAttachments();
       player.updateWorldMatrix(true, true);
     }
 
@@ -14897,6 +16223,12 @@ if (!wasGrounded && grounded) {
           THREE.MathUtils.clamp((1.8 - arrivalSequenceTimer) / .95, 0, 1), 0, 1
         );
         if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = THREE.MathUtils.lerp(0, -.96, fenceProgress);
+        if (arrivalSequenceTimer <= 0 && !elevatorLandingImpactPlayed) {
+          elevatorLandingImpactPlayed = true;
+          elevatorLandingImpactTimer = .58;
+          shake = Math.max(shake, .2);
+          playGameSound('footstep');
+        }
         intro.style.display = 'block';
         intro.textContent = arrivalSequenceTimer > 1.8 ? 'ELEVATOR ARRIVAL' : 'LANDING GATE OPEN';
         document.getElementById('matchStateText').textContent = arrivalSequenceTimer > 1.8
@@ -14904,6 +16236,26 @@ if (!wasGrounded && grounded) {
           : 'SAFETY FENCE LOWERING';
         if (arrivalSequenceTimer <= 0) arrivalGateGroup.visible = false;
         return;
+      }
+
+      if (elevatorLandingImpactTimer > 0) {
+        elevatorLandingImpactTimer = Math.max(0, elevatorLandingImpactTimer - dt);
+        const impactProgress = 1 - elevatorLandingImpactTimer / .58;
+        const dampedBounce = -Math.sin(impactProgress * Math.PI) * .16 * (1 - impactProgress * .18);
+        if (hangarLiftPlatform?.parent === scene) {
+          hangarLiftPlatform.position.y = dampedBounce;
+          hangarLiftPlatform.rotation.z = Math.sin(impactProgress * Math.PI * 2.4) * .012 * (1 - impactProgress);
+        }
+        player.position.y = dampedBounce;
+        if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.rotation.z = -Math.sin(impactProgress * Math.PI * 2.4) * .018 * (1 - impactProgress);
+        if (elevatorLandingImpactTimer <= 0) {
+          if (hangarLiftPlatform?.parent === scene) {
+            hangarLiftPlatform.position.y = 0;
+            hangarLiftPlatform.rotation.set(0, 0, 0);
+          }
+          player.position.y = 0;
+          if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.rotation.set(0, 0, 0);
+        }
       }
       
       // Update VS state if not already active
@@ -14936,7 +16288,7 @@ if (!wasGrounded && grounded) {
         document.getElementById('matchStateText').textContent = `LEVEL ${currentLevel} · BATTLE IN PROGRESS`;
         
         placeBattleFormation();
-        grantSpawnProtection();
+        grantInitialSpawnProtection();
       }
     }
 
@@ -15054,7 +16406,7 @@ function playPlayerHitSound(isShieldHit = false, isHeavyHit = false) {
 
 function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPosition = null) {
   if (playerDestroyed) return;
-  if (source !== 'fall' && (performance.now() < playerSpawnProtectionUntil || isInSafeZone(player.position, 'player'))) {
+  if (source !== 'fall' && performance.now() < playerSpawnProtectionUntil) {
     showMessage('SAFE ZONE // DAMAGE BLOCKED');
     return;
   }
@@ -15148,7 +16500,6 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         player.position.y = THREE.MathUtils.lerp(-7.5, 0, eased);
         if (hangarLiftPlatform?.parent === scene) hangarLiftPlatform.position.y = player.position.y;
         if (playerRespawnElevatorTimer <= 0) {
-          grantSpawnProtection();
           playerDestroyed = false;
           showMessage('PLAYER UNIT REDEPLOYED');
           updateHUD();
@@ -15504,7 +16855,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           : Math.ceil(health);
       },
       onMessage: showMessage,
-      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil || isInSafeZone(position, 'enemy'),
+      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil,
       weaponSlot1: 'gatling',
       weaponSlot2: 'cannon'
     });
@@ -15534,7 +16885,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         document.getElementById('cpuHealthText').textContent = `${firstHealth} / ${Math.ceil(health)}`;
       },
       onMessage: showMessage,
-      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil || isInSafeZone(position, 'enemy'),
+      isDamageImmune: position => performance.now() < enemySpawnProtectionUntil,
       weaponSlot1: 'laser',
       weaponSlot2: 'cannon'
     });
@@ -15554,6 +16905,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       object.material = object.material.clone();
       object.material.color.offsetHSL(-0.04, 0.05, -0.06);
     });
+    createEnemyGroundShadow(enemyAI);
+    createEnemyGroundShadow(enemyAI2);
     enemyAI2.group.position.copy(getFormationSpawn('enemy', 1));
     enemyAI2.alive = false;
     enemyAI2.respawnTimer = Number.POSITIVE_INFINITY;
@@ -15726,6 +17079,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           updatePowerItems(dt);
           enemyAI.update(dt);
           if (currentLevel >= 2) enemyAI2.update(dt);
+          updateEnemyGroundShadows();
           updateLaserBeams(dt);
           updateCamera(dt);
           updateAimTarget(dt);
