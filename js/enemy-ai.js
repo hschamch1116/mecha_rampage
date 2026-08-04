@@ -291,6 +291,10 @@ const _tempTargetPos = new THREE.Vector3();
 const _tempDir = new THREE.Vector3();
 const _tempPrevPos = new THREE.Vector3();
 const _tempSegment = new THREE.Vector3();
+const enemyProjectileGeometry = new THREE.SphereGeometry(1, 10, 8);
+const enemyMissileTrailGeometry = new THREE.SphereGeometry(.18, 6, 5);
+const enemyLaserBeamGeometry = new THREE.CylinderGeometry(1, 1, 1, 8);
+const enemyFallbackMissilePort = new THREE.Vector3(0, 0, 1.6);
 
 class EnemyAI {
   constructor({ scene, target, isBlocked, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null }) {
@@ -339,6 +343,14 @@ class EnemyAI {
     this.lastKnownTargetPosition = target.position.clone();
     this.lastMoveDirection = new THREE.Vector3(0, 0, -1);
     this.shells = [];
+    this.shellPool = [];
+    for (let index = 0; index < 96; index++) {
+      const shell = new THREE.Mesh(enemyProjectileGeometry, new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.7 }));
+      shell.visible = false;
+      shell.userData.origin = new THREE.Vector3();
+      shell.userData.velocity = new THREE.Vector3();
+      this.shellPool.push(shell);
+    }
     
     // AI Upgrade Variables
     this.state = 'PATROL';
@@ -354,6 +366,19 @@ class EnemyAI {
     this.isAirborne = false;
     this.patrolPoint = null;
     this.missileTrails = [];
+    this.laserBeams = [];
+    this.laserBeamPool = [];
+    for (let index = 0; index < 16; index++) {
+      const beam = new THREE.Mesh(enemyLaserBeamGeometry, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false }));
+      beam.visible = false;
+      this.laserBeamPool.push(beam);
+    }
+    this.missileTrailPool = [];
+    for (let index = 0; index < 64; index++) {
+      const trail = new THREE.Mesh(enemyMissileTrailGeometry, new THREE.MeshBasicMaterial({ color: 0xff3b5c, transparent: true, opacity: .8, depthWrite: false, blending: THREE.AdditiveBlending }));
+      trail.visible = false;
+      this.missileTrailPool.push(trail);
+    }
     this.missilePorts = [];
     this.thrusterFlames = [];
     this.thrusterLights = [];
@@ -369,6 +394,15 @@ class EnemyAI {
     this.navigationPath = [];
     this.navigationPathIndex = 0;
     this.pathDestination = new THREE.Vector3();
+    this.perceivedTarget = new THREE.Vector3();
+    this.predictedTarget = new THREE.Vector3();
+    this.forwardDirection = new THREE.Vector3();
+    this.orbitVector = new THREE.Vector3();
+    this.desiredMove = new THREE.Vector3();
+    this.moveCandidate = new THREE.Vector3();
+    this.bestMoveCandidate = new THREE.Vector3();
+    this.predictedPlayerAim = new THREE.Vector3();
+    this.fireTargetPoint = new THREE.Vector3();
     this.pathReplanTimer = 0;
 
     this.group = this.createModel();
@@ -796,9 +830,77 @@ class EnemyAI {
     this.onStatus?.(this.health);
   }
 
+  acquireShell(stats, radius) {
+    const shell = this.shellPool.pop();
+    if (!shell) return null;
+    shell.visible = true;
+    shell.scale.setScalar(radius);
+    shell.material.color.setHex(stats.color);
+    shell.material.emissive.setHex(stats.emissive);
+    shell.material.emissiveIntensity = 1.7;
+    shell.userData.homingMissed = false;
+    return shell;
+  }
+
+  releaseShell(shell) {
+    this.scene.remove(shell);
+    shell.visible = false;
+    shell.userData.life = 0;
+    this.shellPool.push(shell);
+  }
+
+  acquireMissileTrail(position) {
+    const trail = this.missileTrailPool.pop();
+    if (!trail) return null;
+    trail.visible = true;
+    trail.position.copy(position);
+    trail.scale.setScalar(1);
+    trail.material.opacity = .8;
+    trail.userData.life = .42;
+    return trail;
+  }
+
+  releaseMissileTrail(trail) {
+    this.scene.remove(trail);
+    trail.visible = false;
+    trail.userData.life = 0;
+    this.missileTrailPool.push(trail);
+  }
+
+  acquireLaserBeam(stats, distance) {
+    const beam = this.laserBeamPool.pop();
+    if (!beam) return null;
+    beam.visible = true;
+    beam.scale.set(stats.radius, distance, stats.radius);
+    beam.material.color.setHex(stats.color);
+    beam.material.opacity = .95;
+    beam.userData.life = .16;
+    return beam;
+  }
+
+  releaseLaserBeam(beam) {
+    this.scene.remove(beam);
+    beam.visible = false;
+    beam.userData.life = 0;
+    this.laserBeamPool.push(beam);
+  }
+
+  updateLaserBeams(dt) {
+    for (let index = this.laserBeams.length - 1; index >= 0; index--) {
+      const beam = this.laserBeams[index];
+      beam.userData.life -= dt;
+      beam.material.opacity = Math.max(0, beam.userData.life / .16);
+      if (beam.userData.life <= 0) {
+        this.releaseLaserBeam(beam);
+        this.laserBeams[index] = this.laserBeams[this.laserBeams.length - 1];
+        this.laserBeams.pop();
+      }
+    }
+  }
+
   reset() {
     this.spawnProtectedUntil = performance.now() + 10000;
-    for (const shell of this.shells) this.scene.remove(shell);
+    for (const shell of this.shells) this.releaseShell(shell);
     this.shells.length = 0;
     const spawn = this.getSpawnPosition?.() || new THREE.Vector3(-11, 0, 12);
     this.group.position.copy(spawn);
@@ -880,14 +982,14 @@ class EnemyAI {
 
     if (this.missileTrails) {
       for (const trail of this.missileTrails) {
-        this.scene.remove(trail);
-        trail.geometry?.dispose();
-        trail.material?.dispose();
+        this.releaseMissileTrail(trail);
       }
       this.missileTrails.length = 0;
     } else {
       this.missileTrails = [];
     }
+    for (const beam of this.laserBeams) this.releaseLaserBeam(beam);
+    this.laserBeams.length = 0;
 
     if (this.thrusterFlames) {
       for (const flame of this.thrusterFlames) flame.visible = false;
@@ -1030,20 +1132,17 @@ class EnemyAI {
     if (!this.alive || !this.missileRack) return;
     this.group.updateWorldMatrix(true, true);
     
-    const ports = (this.missilePorts && this.missilePorts.length > 0)
-      ? this.missilePorts
-      : [new THREE.Vector3(0, 0, 1.6)];
-    const portIndex = this.nextMissilePortIndex % ports.length;
-    const portLocal = ports[portIndex];
+    const ports = (this.missilePorts && this.missilePorts.length > 0) ? this.missilePorts : null;
+    const portCount = ports ? ports.length : 1;
+    const portIndex = this.nextMissilePortIndex % portCount;
+    const portLocal = ports ? ports[portIndex] : enemyFallbackMissilePort;
     this.nextMissilePortIndex = (this.nextMissilePortIndex + 1) % ports.length;
     const origin = this.missileRack.localToWorld(_v1.copy(portLocal));
     
     const stats = WEAPONS.get('homing', this.powerLevel);
     // CPU and player missiles deliberately share size, color and combat values.
-    const missile = new THREE.Mesh(
-      new THREE.SphereGeometry(stats.radius, 10, 8),
-      new THREE.MeshStandardMaterial({ color: stats.color, emissive: stats.emissive, emissiveIntensity: 2.2 })
-    );
+    const missile = this.acquireShell(stats, stats.radius);
+    if (!missile) return;
     missile.position.copy(origin);
     
     // Fan out from the rack first, then converge on the live player position.
@@ -1061,18 +1160,19 @@ class EnemyAI {
     launchDir.normalize();
     
     const launchSpeed = stats.speed * 0.42;
-    const velocity = launchDir.multiplyScalar(launchSpeed).clone();
-    
-    missile.userData.velocity = velocity;
+    missile.userData.velocity.copy(launchDir).multiplyScalar(launchSpeed);
     missile.userData.speed = stats.speed;
     missile.userData.gravity = stats.gravity;
-    missile.userData.origin = origin.clone();
+    missile.userData.origin.copy(origin);
     missile.userData.maxRange = stats.range;
     missile.userData.damage = stats.damage;
     missile.userData.splashRadius = stats.splashRadius;
     missile.userData.splashMultiplier = stats.splashMultiplier;
     missile.userData.life = stats.range / stats.speed + 1.35;
     missile.userData.homing = true;
+    missile.userData.homingMissed = false;
+    missile.userData.homingSightTimer = 0;
+    missile.userData.homingHasSight = true;
     missile.userData.homingLaunchDelay = 1.0;
     missile.userData.trailTimer = 0;
     
@@ -1081,18 +1181,8 @@ class EnemyAI {
   }
 
   spawnMissileTrail(position) {
-    const trail = new THREE.Mesh(
-      new THREE.SphereGeometry(0.18, 6, 5),
-      new THREE.MeshBasicMaterial({
-        color: 0xff3b5c,
-        transparent: true,
-        opacity: 0.8,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending
-      })
-    );
-    trail.position.copy(position);
-    trail.userData.life = 0.42;
+    const trail = this.acquireMissileTrail(position);
+    if (!trail) return;
     this.scene.add(trail);
     this.missileTrails.push(trail);
   }
@@ -1106,10 +1196,10 @@ class EnemyAI {
       trail.material.opacity = ratio * 0.8;
       trail.scale.setScalar(0.5 + (1 - ratio) * 1.6);
       if (trail.userData.life <= 0) {
-        this.scene.remove(trail);
-        trail.geometry?.dispose();
-        trail.material?.dispose();
-        this.missileTrails.splice(i, 1);
+        this.releaseMissileTrail(trail);
+        const lastIndex = this.missileTrails.length - 1;
+        if (i !== lastIndex) this.missileTrails[i] = this.missileTrails[lastIndex];
+        this.missileTrails.length = lastIndex;
       }
     }
   }
@@ -1133,8 +1223,8 @@ class EnemyAI {
     const requiredEnergy = gatlingShot ? AI_CONFIG.ENERGY.GATLING : AI_CONFIG.ENERGY.CANNON;
     if (this.energy < requiredEnergy) return;
     const resolvedTarget = targetPoint
-      ? targetPoint.clone()
-      : this.target.position.clone().add(new THREE.Vector3(0, 3.5, 0));
+      ? this.fireTargetPoint.copy(targetPoint)
+      : this.fireTargetPoint.copy(this.target.position).setY(this.target.position.y + 3.5);
     this.group.updateWorldMatrix(true, true);
     const muzzle = this.weaponMuzzles?.[this.nextMuzzleIndex];
     const origin = muzzle
@@ -1146,15 +1236,11 @@ class EnemyAI {
     const delta = _v3.copy(resolvedTarget).sub(origin);
     const speed = stats.speed;
     const direction = delta.normalize();
-    const velocity = direction.clone().multiplyScalar(speed);
-
-    const shell = new THREE.Mesh(
-      new THREE.SphereGeometry(stats.radius, 10, 8),
-      new THREE.MeshStandardMaterial({ color: stats.color, emissive: stats.emissive, emissiveIntensity: 1.7 })
-    );
+    const shell = this.acquireShell(stats, stats.radius);
+    if (!shell) return;
     shell.position.copy(origin).addScaledVector(direction, .35);
-    shell.userData.origin = origin.clone();
-    shell.userData.velocity = velocity;
+    shell.userData.origin.copy(origin);
+    shell.userData.velocity.copy(direction).multiplyScalar(speed);
     shell.userData.speed = stats.speed;
     shell.userData.gravity = stats.gravity;
     shell.userData.maxRange = stats.range;
@@ -1170,9 +1256,10 @@ class EnemyAI {
 
   fireLaser(targetPoint = null) {
     if (!this.alive || this.energy < 12) return;
+    if (!this.laserBeamPool.length) return;
     const resolvedTarget = targetPoint
-      ? targetPoint.clone()
-      : this.target.position.clone().add(new THREE.Vector3(0, 3.5, 0));
+      ? this.fireTargetPoint.copy(targetPoint)
+      : this.fireTargetPoint.copy(this.target.position).setY(this.target.position.y + 3.5);
     this.group.updateWorldMatrix(true, true);
     const muzzle = this.weaponMuzzles?.[this.nextMuzzleIndex];
     const origin = muzzle
@@ -1188,20 +1275,16 @@ class EnemyAI {
     dir.normalize();
 
     // Laser Beam visual mesh (cyan/blue glowing cylinder)
-    const beamGeo = new THREE.CylinderGeometry(stats.radius, stats.radius, dist, 8);
-    const beamMat = new THREE.MeshBasicMaterial({
-      color: stats.color,
-      transparent: true,
-      opacity: 0.95,
-      blending: THREE.AdditiveBlending
-    });
-    const beam = new THREE.Mesh(beamGeo, beamMat);
+    const beam = this.acquireLaserBeam(stats, dist);
+    if (!beam) return;
     
     // Position at midpoint and orient along ray direction
     const midpoint = _v2.copy(origin).addScaledVector(dir, dist * 0.5);
     beam.position.copy(midpoint);
-    beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    beam.quaternion.setFromUnitVectors(_v1.set(0, 1, 0), dir);
+    beam.userData.life = .16;
     this.scene.add(beam);
+    this.laserBeams.push(beam);
 
     // Laser hit registration against player torso
     const playerCenter = _v2.copy(this.target.position).add(_v3.set(0, 3.8, 0));
@@ -1216,20 +1299,6 @@ class EnemyAI {
 
     this.energy = Math.max(0, this.energy - 12);
 
-    // Fade out and remove beam
-    let opacityTimer = 0.16;
-    const fade = () => {
-      opacityTimer -= 0.016;
-      beamMat.opacity = Math.max(0, opacityTimer / 0.16);
-      if (opacityTimer <= 0) {
-        this.scene.remove(beam);
-        beamGeo.dispose();
-        beamMat.dispose();
-      } else {
-        requestAnimationFrame(fade);
-      }
-    };
-    requestAnimationFrame(fade);
   }
 
   updateShells(dt) {
@@ -1244,15 +1313,32 @@ class EnemyAI {
         if (shell.userData.homingLaunchDelay <= 0) {
           // Reacquire the player's live torso position after the visible fan-out.
           const targetPos = _v1.copy(this.target.position).add(_v2.set(0, 3.2, 0));
-          const desiredDir = _v3.copy(targetPos).sub(shell.position);
-          const distToTarget = desiredDir.length();
-          if (distToTarget > 0.1) {
-            desiredDir.normalize();
-            const currentDir = _v2.copy(shell.userData.velocity).normalize();
-            const turnRate = 1 - Math.pow(0.00018, dt);
-            currentDir.lerp(desiredDir, turnRate);
-            if (currentDir.lengthSq() > 0.001) currentDir.normalize();
-            shell.userData.velocity.copy(currentDir).multiplyScalar(shell.userData.speed);
+          shell.userData.homingSightTimer = (shell.userData.homingSightTimer || 0) - dt;
+          if (shell.userData.homingSightTimer <= 0) {
+            shell.userData.homingSightTimer = .05;
+            shell.userData.homingHasSight = this.canSeeTarget?.(this.group.position, this.target.position) ?? true;
+          }
+          if (!shell.userData.homingHasSight) {
+            shell.userData.homing = false;
+            shell.userData.homingLostInCover = true;
+          }
+          if (shell.userData.homing) {
+            const desiredDir = _v3.copy(targetPos).sub(shell.position);
+            const distToTarget = desiredDir.length();
+            if (distToTarget > 0.1) {
+              desiredDir.normalize();
+              const currentDir = _v2.copy(shell.userData.velocity).normalize();
+              if (currentDir.dot(desiredDir) < .5) {
+                shell.userData.homing = false;
+                shell.userData.homingMissed = true;
+                shell.userData.life = 0;
+              } else {
+                const turnRate = 1 - Math.pow(0.00018, dt);
+                currentDir.lerp(desiredDir, turnRate);
+                if (currentDir.lengthSq() > 0.001) currentDir.normalize();
+                shell.userData.velocity.copy(currentDir).multiplyScalar(shell.userData.speed);
+              }
+            }
           }
         }
         
@@ -1321,7 +1407,7 @@ class EnemyAI {
         shell.userData.life = 0;
       }
       if (shell.userData.life <= 0) {
-        this.scene.remove(shell);
+        this.releaseShell(shell);
         this.shells[i] = this.shells[this.shells.length - 1];
         this.shells.pop();
       }
@@ -1551,7 +1637,7 @@ class EnemyAI {
     let best = null;
     let bestScore = -Infinity;
     for (const angle of angles) {
-      const candidate = desired.clone().applyAxisAngle(_v3.set(0, 1, 0), angle);
+      const candidate = this.moveCandidate.copy(desired).applyAxisAngle(_v3.set(0, 1, 0), angle);
       let pathClear = true;
       for (const distance of [1.2, 2.5]) {
         const probe = _tempDir.copy(this.group.position).addScaledVector(candidate, distance);
@@ -1567,10 +1653,10 @@ class EnemyAI {
       const score = directionScore + continuityScore + sidePreference;
       if (score > bestScore) {
         bestScore = score;
-        best = candidate;
+        best = this.bestMoveCandidate.copy(candidate);
       }
     }
-    return best || desired.clone().applyAxisAngle(_v3.set(0, 1, 0), Math.sin(this.time) > 0 ? Math.PI / 2 : -Math.PI / 2);
+    return best || this.moveCandidate.copy(desired).applyAxisAngle(_v3.set(0, 1, 0), Math.sin(this.time) > 0 ? Math.PI / 2 : -Math.PI / 2);
   }
 
   update(dt) {
@@ -1585,6 +1671,7 @@ class EnemyAI {
     this.shieldBubble.update(dt, spawnProtected ? 1 : this.shield / AI_CONFIG.SHIELD.MAX);
     this.updateShells(dt);
     this.updateMissileTrails(dt);
+    this.updateLaserBeams(dt);
 
     if (this.healthBarTimer > 0) {
       this.healthBarTimer = Math.max(0, this.healthBarTimer - dt);
@@ -1676,12 +1763,12 @@ class EnemyAI {
       this.targetVelocity.multiplyScalar(Math.pow(.12, dt));
     }
     const uncertainty = targetVisible ? .45 : radarContact ? 8.5 : Math.min(18, (7.5 - this.targetMemory) * 3.2);
-    const perceivedTarget = this.lastKnownTargetPosition.clone().add(new THREE.Vector3(
+    const perceivedTarget = this.perceivedTarget.copy(this.lastKnownTargetPosition).add(_v3.set(
       Math.sin(this.time * .71) * uncertainty,
       0,
       Math.cos(this.time * .53) * uncertainty
     ));
-    const predictedTarget = perceivedTarget.clone().addScaledVector(this.targetVelocity, this.targetMemory > 0 ? .65 : 0);
+    const predictedTarget = this.predictedTarget.copy(perceivedTarget).addScaledVector(this.targetVelocity, this.targetMemory > 0 ? .65 : 0);
     const distanceToPlayer = _v2.copy(predictedTarget).sub(_tempSelfPos).setY(0).length();
     const laserEquipped = this.weaponSlot1 === 'laser' || this.weaponSlot2 === 'laser';
     const laserWindow = laserEquipped && Math.floor(this.time / 3.2) % 2 === 0;
@@ -1829,9 +1916,9 @@ class EnemyAI {
       }
     } else if (navigationDistance > 0.01) {
       // Normal pathing/steering
-      const forward = toTarget.clone().normalize();
+      const forward = this.forwardDirection.copy(toTarget).normalize();
       const right = _v3.set(-forward.z, 0, forward.x);
-      const desired = _v2.set(0, 0, 0);
+      const desired = this.desiredMove.set(0, 0, 0);
 
       if (this.state === 'RETREAT') {
         if (navigationDistance > 2.3) desired.add(forward);
@@ -1840,7 +1927,7 @@ class EnemyAI {
       } else if (this.state === 'ENGAGE') {
         // Circle-strafing orbit math
         this.orbitTimer -= dt;
-        const orbitVec = right.clone().multiplyScalar(this.orbitDirection);
+        const orbitVec = this.orbitVector.copy(right).multiplyScalar(this.orbitDirection);
         const targetRadius = this.activeWeapon === 'gatling' ? 15 : this.activeWeapon === 'cannon' ? 23 : 30;
         const radialAdjustment = (navigationDistance - targetRadius) * 0.5;
         desired.copy(orbitVec).addScaledVector(forward, radialAdjustment);
@@ -2145,7 +2232,7 @@ class EnemyAI {
         const aimError = Math.min(.65, Math.max(.08, distanceToPlayer * .007));
         const lateralError = _v3.set(-relativeZ, 0, relativeX).normalize()
           .multiplyScalar(Math.sin(this.time * 2.1 + this.strafeBias) * aimError);
-        const predictedPlayerAim = perceivedTarget.clone()
+        const predictedPlayerAim = this.predictedPlayerAim.copy(perceivedTarget)
           .addScaledVector(this.targetVelocity, leadTime)
           .add(lateralError)
           .add(_v2.set(0, 3.5, 0));

@@ -16,9 +16,16 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
   const defaults = {
     designVersion: 8,
     hiddenParts: { head: true },
-    hiddenBodyJoints: {},
-    hideAllJoints: false,
-    colors: { body: '#292e35', armorLight: '#67717b' },
+    hiddenBodyJoints: {
+      backpack: true,
+      leftArm: true,
+      rightArm: true,
+      leftSub: true,
+      rightSub: true,
+      lowerLink: true
+    },
+    hideAllJoints: true,
+    colors: { body: '#2a3038', armorLight: '#6f7782' },
     dimensions: {
     height: 10.75,
     radius: 2.9,
@@ -26,17 +33,25 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
     upperPivotY: 5.83
     },
     attachments: {
-      leftArm: [-3.15, 5.35, 0.12], rightArm: [3.15, 5.35, 0.12],
-      leftWeapon: [-1.9, 7.15, -0.15], rightWeapon: [1.9, 7.15, -0.15], backpack: [0, 0, 0],
-      leftHoming: [-3.15, 4.55, 2.44], rightHoming: [3.15, 4.55, 2.44],
+      leftArm: [-3.5434810546874997, 8.096, 0.12], rightArm: [3.5434810546874997, 8.096, 0.12],
+      leftWeapon: [-2.126160791015626, 9.711599945068361, 0.46400000000000063],
+      rightWeapon: [2.126160791015626, 9.711599945068361, 0.46400000000000063],
+      backpack: [0, 0, 0],
+      leftHoming: [-3.5434810546874997, 8.096, 0.12],
+      rightHoming: [3.5434810546874997, 8.096, 0.12],
       leftCannon: [-1.42, 7.05, -0.2], rightCannon: [1.42, 7.05, -0.2], leftGatling: [-1.42, 7.05, -0.2], rightGatling: [1.42, 7.05, -0.2], leftLaser: [-1.42, 7.05, -0.2], rightLaser: [1.42, 7.05, -0.2],
-      slot3Mount: [-1.42, 7.05, -0.2], slot4Mount: [1.42, 7.05, -0.2],
+      slot3Mount: [-2.126160791015626, 9.711599945068361, 0.46400000000000063],
+      slot4Mount: [2.126160791015626, 9.711599945068361, 0.46400000000000063],
       leftLeg: [-2.02, -0.07, 0], rightLeg: [2.02, -0.07, 0]
     },
     ballJointSize: 1,
     ballJointLayout: {
-      backpack: [0, -1.65, -1.45], leftArm: [-3.15, -1.32, .12], rightArm: [3.15, -1.32, .12],
-      leftSub: [-2.18, -.05, 1.76], rightSub: [2.18, -.05, 1.76], lowerLink: [0, -1.5, -.02]
+      backpack: [0, 0.6348001098632805, -2.4291997070312497],
+      leftArm: [-3.9372011718749995, 0.4559999999999998, 0.12],
+      rightArm: [3.9372011718749995, 0.4559999999999998, 0.12],
+      leftSub: [-2.362400878906251, 2.0715999450683604, 0.46400000000000063],
+      rightSub: [2.362400878906251, 2.0715999450683613, 0.46400000000000063],
+      lowerLink: [0, -1.5, -0.02]
     },
     partJointOffsets: {
       backpack: [0, 5.02, -1.45], leftArm: [0, 0, 0], rightArm: [0, 0, 0],
@@ -48,11 +63,11 @@ window.createMechaCharacterContext = function createMechaCharacterContext(THREE,
     meshes: {
       pelvis: { size: [3.72, 1.08, 2.62], position: [0, -0.64, -0.02] },
       hipSkirt: { size: [1.18, 1.3, 1.76], position: [1.76, -0.12, 0.02] },
-      torso: { size: [6.34, 2.08, 3.48], position: [0, 0.18, -0.18] },
+      torso: { size: [5.34, 2.08, 3.48], position: [0, 0.18, -0.18] },
       lowerChest: { size: [4.22, 0.76, 2.94], position: [0, -0.92, -0.04] },
-      frontArmor: { size: [4.72, 1.12, 0.68], position: [0, -0.02, 1.82] },
+      frontArmor: { size: [4.85, 1.12, 0.68], position: [0, -0.02, 1.82] },
       // Match the gameplay pivot at rest; the customizer can raise it further.
-      upperBody: { position: [0, 5.83, 0] },
+      upperBody: { position: [0, 6.8, 0] },
       leftArm: { rotation: [-0.06, 0.08, -0.08] },
       rightArm: { rotation: [-0.06, -0.08, 0.08] },
       head: { size: [0.76, 0.34, 0.82], position: [0, 0.06, 0.18] },

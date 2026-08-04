@@ -44,14 +44,14 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
     walkSpeed: 0.35,      // 보행 속도 배율 (0.2 ~ 3.0)
     strideScale: 0.3,    // 보폭 배율 (0.3 ~ 2.0)
     bodyLean: 0.16,      // 몸통 전방 기울임 (0 ~ 0.3 rad)
-    weightFeel: 0.8,     // 중량감/묵직함 (0.2 ~ 2.0)
+    weightFeel: 1.05,    // 중량감/묵직함 (0.2 ~ 2.0)
     hipSwingAmount: 0.5, // 힙 스윙 각도 (0.1 ~ 1.2 rad)
     kneeBaseBend: 0.42,  // 무릎 기본 굽힘 (0.1 ~ 0.8 rad)
     kneeLiftBend: 1.15,  // 무릎 리프트 추가 굽힘 (0.5 ~ 3.0)
     bounceAmount: 0.18,  // 바운스 기본 세기 (0 ~ 0.5)
     rollAmount: 0.15,    // 좌우 롤 세기 (0 ~ 0.15)
     stepBounceAmount: 1.0, // 발 딛음 수직 바운스 세기 (0.0 ~ 1.0)
-    sideShiftAmount: 0.52,  // 발 딛음 좌우 상체 이동 세기 (0.0 ~ 0.8)
+    sideShiftAmount: 0.28,  // 발 딛음 좌우 상체 이동 세기 (0.0 ~ 0.8)
     baseFootHeight: 0.60,   // 기본 발 높이 오프셋 (-1.5 ~ 1.5 m)
     stepHeightScale: 1.5,  // 보행 발 들림 높이 배율 (0.2 ~ 2.5)
     kneePosOffset: -0.22,  // 허벅지 아래 다리 길이 오프셋 (-1.5 ~ 1.5 m)
@@ -204,7 +204,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
   // Phase E: Direct Joint Drive (from mecha_reverse_joint_walk.html)
   // Instead of IK solver, directly apply kneeBend and anklePitch from gait state
   // Each joint has DIFFERENT response speed = cascading articulated motion
-  function applyDirectJointDrive(joints, gaitState, dt) {
+  function applyDirectJointDrive(joints, gaitState, dt, jumpCrouch = 0) {
     if (!joints || !joints.thigh || !joints.knee || !joints.shin) return;
 
     const {
@@ -463,7 +463,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       const leg = playerLegs[index];
       const joints = leg.userData?.joints;
       if (joints) {
-        applyDirectJointDrive(joints, gaitStates[index], dt);
+        applyDirectJointDrive(joints, gaitStates[index], dt, jumpCrouch);
       }
     }
 
