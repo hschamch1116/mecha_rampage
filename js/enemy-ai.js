@@ -297,7 +297,7 @@ const enemyLaserBeamGeometry = new THREE.CylinderGeometry(1, 1, 1, 8);
 const enemyFallbackMissilePort = new THREE.Vector3(0, 0, 1.6);
 
 class EnemyAI {
-  constructor({ scene, target, isBlocked, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null }) {
+  constructor({ scene, target, isBlocked, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onProjectileImpact, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null }) {
     this.scene = scene;
     this.target = target;
     this.isBlocked = isBlocked;
@@ -309,6 +309,7 @@ class EnemyAI {
     this.getSpawnPosition = getSpawnPosition;
     this.getCTFTargetPos = getCTFTargetPos;
     this.onPlayerHit = onPlayerHit;
+    this.onProjectileImpact = onProjectileImpact;
     this.onStatus = onStatus;
     this.onMessage = onMessage;
     this.isDamageImmune = isDamageImmune;
@@ -1403,6 +1404,7 @@ class EnemyAI {
       }
       
       if (shell.position.y <= .2 && shell.userData.life > 0) {
+        this.onProjectileImpact?.(shell.position, shell.userData.splashRadius || 1.2, shell);
         this.applyShellExplosion(shell, shell.position);
         shell.userData.life = 0;
       }
