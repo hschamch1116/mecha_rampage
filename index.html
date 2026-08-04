@@ -268,6 +268,14 @@
     #roundTransition, #timeWarning { position:absolute; left:50%; transform:translateX(-50%); display:none; text-align:center; font-family:Orbitron,sans-serif; font-weight:900; pointer-events:none; }
     #roundTransition { top:39%; min-width:330px; padding:18px 26px; border:1px solid #6ceaf7; background:rgba(3,14,23,.86); color:#dcfbff; font-size:24px; letter-spacing:.13em; text-shadow:0 0 14px #2edbea; box-shadow:0 0 30px rgba(39,214,236,.3); }
     #roundTransition.active { display:block; animation:roundTransitionPulse .55s ease-in-out infinite alternate; }
+    #victoryCelebration { position:absolute; inset:0; z-index:11; display:none; place-items:center; pointer-events:none; background:radial-gradient(circle at 50% 46%,rgba(255,211,83,.16),rgba(4,8,18,.08) 34%,rgba(2,4,10,.72) 100%); }
+    #victoryCelebration.active { display:grid; animation:victoryFadeIn .8s ease both; }
+    .victory-card { margin-top:-18vh; padding:24px 42px 20px; border:1px solid rgba(255,224,112,.72); background:rgba(16,15,7,.62); text-align:center; box-shadow:0 0 42px rgba(255,202,47,.22),inset 0 0 24px rgba(255,224,112,.08); font-family:Orbitron,sans-serif; }
+    .victory-title { color:#fff4a6; font-size:clamp(42px,7vw,88px); font-weight:1000; letter-spacing:.16em; text-shadow:0 0 12px #ffc928,0 0 34px rgba(255,176,25,.8); animation:victoryPulse 1.6s ease-in-out infinite alternate; }
+    .victory-subtitle { margin-top:12px; color:#fffbd9; font-size:clamp(12px,1.7vw,18px); font-weight:900; letter-spacing:.18em; }
+    .victory-caption { margin-top:10px; color:#f2d878; font-size:10px; font-weight:800; letter-spacing:.2em; }
+    @keyframes victoryFadeIn { from { opacity:0; } to { opacity:1; } }
+    @keyframes victoryPulse { to { transform:scale(1.035); filter:brightness(1.16); } }
     #timeWarning { top:27%; color:#fff1e8; font-size:clamp(36px,7vw,84px); letter-spacing:.08em; text-shadow:0 0 10px #ff2f46,0 0 28px #ff1838; }
     #timeWarning.active { display:block; animation:timeWarningPulse .45s ease-in-out infinite alternate; }
     @keyframes roundTransitionPulse { to { transform:translateX(-50%) scale(1.035); } }
@@ -741,6 +749,13 @@
     <div id="hitFlashOverlay" aria-hidden="true"></div>
     <div id="criticalDangerAlert" aria-live="assertive">DANGER // CRITICAL DAMAGE</div>
     <div id="roundTransition" aria-live="assertive"></div>
+    <div id="victoryCelebration" aria-live="assertive">
+      <div class="victory-card">
+        <div class="victory-title">VICTORY</div>
+        <div class="victory-subtitle">3판 2승 달성 · 전투 승리</div>
+        <div class="victory-caption">MECHA ACE // OPERATION COMPLETE</div>
+      </div>
+    </div>
     <div id="timeWarning" aria-live="assertive"></div>
     <div id="weaponCooldownLeft" class="weapon-cooldown-hud" aria-label="Left weapon cooldown">
       <div class="weapon-cooldown-head"><span>LEFT WEAPON</span><strong id="weaponCooldownLeftText" class="weapon-cooldown-value">READY</strong></div>
@@ -1222,6 +1237,8 @@
     let transitionTimer = 0;
     let battleElevatorOpening = null;
     let playerRespawnElevatorTimer = 0;
+    let playerRespawnGateTimer = 0;
+    let battleGateSynchronized = false;
     function beginLevelArrival() {
       envGroup.visible = true;
       scene.background = gameplayBackground;
@@ -1234,24 +1251,94 @@
         battleElevatorOpening = new THREE.Group();
         const shaftMat = new THREE.MeshStandardMaterial({ color: 0x050b10, roughness: .92, metalness: .18 });
         const rimMat = new THREE.MeshStandardMaterial({ color: 0x263b43, roughness: .38, metalness: .8 });
-        const shaft = new THREE.Mesh(new THREE.CircleGeometry(4.35, 48), shaftMat);
+        // Match the hangar hatch: 4.12 inner radius and 4.34 collar radius.
+        const shaft = new THREE.Mesh(new THREE.CircleGeometry(4.12, 64), shaftMat);
+        shaft.name = 'BattleElevatorHoleCap';
         shaft.rotation.x = -Math.PI / 2;
-        shaft.position.y = -.04;
+        // Keep the dark cap just below the battlefield deck so the opening is
+        // visible even though the arena floor has no physical cutout.
+        shaft.position.y = -.09;
         battleElevatorOpening.add(shaft);
-        const rim = new THREE.Mesh(new THREE.RingGeometry(4.35, 5.8, 48), rimMat);
+        const shaftWall = new THREE.Mesh(new THREE.CylinderGeometry(4.12, 4.12, 18.2, 64, 1, true), shaftMat);
+        shaftWall.position.y = -9.1;
+        shaftWall.receiveShadow = true;
+        battleElevatorOpening.add(shaftWall);
+        const shaftLevelLineMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.8, roughness: .24, metalness: .12, toneMapped: false });
+        for (const levelY of [-3.2, -7.4, -11.6, -15.8]) {
+          const levelRing = new THREE.Mesh(new THREE.RingGeometry(3.78, 3.81, 64), shaftLevelLineMat);
+          levelRing.rotation.x = Math.PI / 2;
+          levelRing.position.y = levelY;
+          battleElevatorOpening.add(levelRing);
+          const levelLine = new THREE.Mesh(new THREE.BoxGeometry(5.2, .02, .02), shaftLevelLineMat);
+          levelLine.position.set(0, levelY + .11, -2.76);
+          battleElevatorOpening.add(levelLine);
+        }
+        const battleTopLevelRing = new THREE.Mesh(new THREE.RingGeometry(3.78, 3.81, 64), shaftLevelLineMat);
+        battleTopLevelRing.rotation.x = Math.PI / 2;
+        battleTopLevelRing.position.y = -.24;
+        battleElevatorOpening.add(battleTopLevelRing);
+        const battleTopLevelLine = new THREE.Mesh(new THREE.BoxGeometry(5.2, .02, .02), shaftLevelLineMat);
+        battleTopLevelLine.position.set(0, -.13, -2.76);
+        battleElevatorOpening.add(battleTopLevelLine);
+        const rim = new THREE.Mesh(new THREE.RingGeometry(4.12, 4.34, 64), rimMat);
         rim.rotation.x = -Math.PI / 2;
         rim.position.y = .015;
         rim.receiveShadow = true;
         battleElevatorOpening.add(rim);
-        const innerRimMat = new THREE.MeshBasicMaterial({ color: 0x67e8ff, toneMapped: false });
-        const innerRim = new THREE.Mesh(new THREE.TorusGeometry(4.35, .08, 6, 48), innerRimMat);
+        const innerRimMat = new THREE.MeshStandardMaterial({ color: 0x111d23, roughness: .34, metalness: .86 });
+        const innerRim = new THREE.Mesh(new THREE.TorusGeometry(4.12, .1, 8, 64), innerRimMat);
         innerRim.rotation.x = Math.PI / 2;
         innerRim.position.y = .04;
         battleElevatorOpening.add(innerRim);
+
+        // Match the hangar's split hatch: left/right halves, layered steel trim,
+        // recessed panels, radial braces, and service bolts all move as one door.
+        const battleGateTrimMat = new THREE.MeshStandardMaterial({ color: 0x60727a, roughness: .28, metalness: .92 });
+        const battleGateInsetMat = new THREE.MeshStandardMaterial({ color: 0x101a20, roughness: .52, metalness: .78 });
+        const battleGateBraceMat = new THREE.MeshStandardMaterial({ color: 0x8b5427, roughness: .38, metalness: .82 });
+        const battleGateBoltGeo = new THREE.CylinderGeometry(.075, .075, .035, 8);
+        for (const [gate, startAngle] of [[arrivalGateLeft, Math.PI / 2], [arrivalGateRight, -Math.PI / 2]]) {
+          const outerTrim = new THREE.Mesh(new THREE.RingGeometry(3.78, 4.04, 40, 1, startAngle, Math.PI), battleGateTrimMat);
+          outerTrim.rotation.x = -Math.PI / 2;
+          outerTrim.position.y = .115;
+          gate.add(outerTrim);
+          const innerInset = new THREE.Mesh(new THREE.RingGeometry(1.18, 3.42, 32, 1, startAngle, Math.PI), battleGateInsetMat);
+          innerInset.rotation.x = -Math.PI / 2;
+          innerInset.position.y = .112;
+          gate.add(innerInset);
+          for (const radius of [1.35, 2.35, 3.28]) {
+            const panelBand = new THREE.Mesh(new THREE.RingGeometry(radius - .035, radius + .035, 32, 1, startAngle, Math.PI), battleGateTrimMat);
+            panelBand.rotation.x = -Math.PI / 2;
+            panelBand.position.y = .138;
+            gate.add(panelBand);
+          }
+          for (let boltIndex = 0; boltIndex < 6; boltIndex++) {
+            const angle = startAngle + (boltIndex + .5) / 6 * Math.PI;
+            const bolt = new THREE.Mesh(battleGateBoltGeo, battleGateBraceMat);
+            bolt.position.set(Math.cos(angle) * 3.62, .16, Math.sin(angle) * 3.62);
+            gate.add(bolt);
+          }
+          const centerBrace = new THREE.Mesh(new THREE.BoxGeometry(.12, .09, 7.45), battleGateBraceMat);
+          centerBrace.position.set(gate === arrivalGateLeft ? -2.02 : 2.02, .15, 0);
+          gate.add(centerBrace);
+        }
+        for (const side of [-1, 1]) {
+          const track = new THREE.Mesh(new THREE.BoxGeometry(5.5, .11, .16), rimMat);
+          track.position.set(side * 5.15, -.02, 0);
+          battleElevatorOpening.add(track);
+        }
         envGroup.add(battleElevatorOpening);
       }
       battleElevatorOpening.position.set(arrivalSpawn.x, 0, arrivalSpawn.z);
       battleElevatorOpening.visible = true;
+      const arrivalHoleCap = battleElevatorOpening.getObjectByName('BattleElevatorHoleCap');
+      if (arrivalHoleCap) arrivalHoleCap.position.y = -.09;
+      if (!battleGateSynchronized && hangarLiftGateLeft && hangarLiftGateRight) {
+        // The respawn gate uses the exact hangar gate mesh and detail hierarchy.
+        arrivalGateLeft.copy(hangarLiftGateLeft, true);
+        arrivalGateRight.copy(hangarLiftGateRight, true);
+        battleGateSynchronized = true;
+      }
       if (hangarLiftPlatform) {
         scene.attach(hangarLiftPlatform);
         hangarLiftPlatform.visible = true;
@@ -1263,6 +1350,7 @@
       arrivalGateLeft.position.x = 0;
       arrivalGateRight.position.x = 0;
       arrivalGateGroup.visible = true;
+      playerRespawnGateTimer = 0;
       // The lift rises first, then the landing gate opens and the safety fence lowers.
       arrivalSequenceTimer = 3.2;
       elevatorLandingImpactTimer = 0;
@@ -1441,6 +1529,27 @@
     hangarReflectionProbe.position.set(0, 7.5, 0);
     scene.add(hangarReflectionProbe);
     window.hangarReflectionProbe = hangarReflectionProbe;
+    let hangarReflectionCacheDirty = true;
+    function applyHangarReflectionCache() {
+      hangarGroup.traverse(object => {
+        if (!object.isMesh || !object.material) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => {
+          if ((material.isMeshStandardMaterial || material.isMeshPhysicalMaterial) && !material.transparent) {
+            material.envMap = hangarReflectionTarget.texture;
+            material.envMapIntensity = Math.min(material.envMapIntensity ?? .35, .35);
+            material.needsUpdate = true;
+          }
+        });
+      });
+    }
+    function updateHangarReflectionCache() {
+      if (!hangarReflectionCacheDirty) return;
+      hangarReflectionProbe.position.copy(player.localToWorld(new THREE.Vector3(0, 4.55, 13.05)));
+      hangarReflectionProbe.update(renderer, scene);
+      applyHangarReflectionCache();
+      hangarReflectionCacheDirty = false;
+    }
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(innerWidth, innerHeight);
     renderer.shadowMap.enabled = true;
@@ -1457,6 +1566,9 @@
     const loadingTitle = document.querySelector('.loading-title');
     const loadingCountdown = document.getElementById('loadingCountdown');
     let battleRenderPrewarmed = false;
+    let battleGarbageCollectorReady = false;
+    let battleGarbageCollectorPreparing = false;
+    const battleGarbageCollectorWaiters = [];
     function setStartupLoading(progress, status) {
       const value = Math.round(THREE.MathUtils.clamp(progress, 0, 100));
       loadingFill.style.width = `${value}%`;
@@ -1464,6 +1576,35 @@
       loadingStatus.textContent = status;
     }
     setStartupLoading(8, 'CALIBRATING RENDERER');
+
+    function prepareBattleGarbageCollector(onReady) {
+      if (battleGarbageCollectorReady) {
+        onReady?.();
+        return;
+      }
+      if (onReady) battleGarbageCollectorWaiters.push(onReady);
+      if (battleGarbageCollectorPreparing) return;
+      battleGarbageCollectorPreparing = true;
+      setStartupLoading(99, 'PREPARING GC COLLECTOR');
+      prewarmBattleRendering();
+      const settle = () => {
+        // Chrome exposes this only with the devtools --js-flags hook. In a
+        // normal browser build, two idle/stable frames are our safe handoff
+        // after pooled allocations and renderer compilation have settled.
+        if (typeof window.gc === 'function') window.gc();
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          battleGarbageCollectorReady = true;
+          battleGarbageCollectorPreparing = false;
+          const waiters = battleGarbageCollectorWaiters.splice(0);
+          waiters.forEach(waiter => waiter());
+        }));
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(settle, { timeout: 1200 });
+      } else {
+        requestAnimationFrame(settle);
+      }
+    }
 
     function prewarmBattleRendering() {
       if (battleRenderPrewarmed) return;
@@ -1505,9 +1646,13 @@
         if (loadingCountdown) loadingCountdown.textContent = seconds > 0 ? `엘리베이터 작동까지 ${seconds}초` : 'ELEVATOR MOVING';
         if (remaining > 0) requestAnimationFrame(updateBattleLoading);
         else {
-          loadingScreen.classList.add('hidden');
-          if (loadingTitle) loadingTitle.textContent = 'INITIALIZING';
-          beginLevelArrival();
+          setStartupLoading(99, 'PREPARING GC COLLECTOR');
+          if (loadingCountdown) loadingCountdown.textContent = '메모리 정리 준비 중';
+          prepareBattleGarbageCollector(() => {
+            loadingScreen.classList.add('hidden');
+            if (loadingTitle) loadingTitle.textContent = 'INITIALIZING';
+            beginLevelArrival();
+          });
         }
       };
       updateBattleLoading();
@@ -2275,8 +2420,21 @@
     const groundTexture = createSurfaceTexture('#626a70', '#a8afb3', '#343b40', 28, 28);
     groundTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     const walkableSurfaces = [];
+    // Leave a real opening in the battlefield floor at the player deployment
+    // point. A single PlaneGeometry could only draw a dark decal over the
+    // surface, so use a ShapeGeometry with a circular hole for the elevator.
+    const battlefieldGroundShape = new THREE.Shape();
+    battlefieldGroundShape.moveTo(-180, -180);
+    battlefieldGroundShape.lineTo(180, -180);
+    battlefieldGroundShape.lineTo(180, 180);
+    battlefieldGroundShape.lineTo(-180, 180);
+    battlefieldGroundShape.lineTo(-180, -180);
+    const respawnShaftHole = new THREE.Path();
+    // Ground is rotated -PI/2 below, so local shape Y maps to world -Z.
+    respawnShaftHole.absarc(30, -72, 4.5, 0, Math.PI * 2, true);
+    battlefieldGroundShape.holes.push(respawnShaftHole);
     const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(360, 360),
+      new THREE.ShapeGeometry(battlefieldGroundShape, 64),
       new THREE.MeshStandardMaterial({ map: groundTexture, color: 0xb0b7ba, roughness: .9, metalness: .05 })
     );
     ground.rotation.x = -Math.PI / 2;
@@ -2500,6 +2658,8 @@
     // low, wide heavy-weapons silhouette from the supplied reference.
     const { armorMat, armorLightMat, gunmetalMat, accentMat, glowMat, eyeGreenMat,
       warningMat, missilePortMat, hydraulicMat, jointBallMat, jointGlowMat } = mechaMaterials;
+    const warningStripeYellowMat = new THREE.MeshStandardMaterial({ color: 0xd6a72d, roughness: .34, metalness: .68 });
+    const warningStripeDarkMat = new THREE.MeshStandardMaterial({ color: 0x151b1d, roughness: .48, metalness: .78 });
     window.jointBallMat = jointBallMat;
     window.jointGlowMat = jointGlowMat;
     if (mechaHideAllJoints || mechaBallJointSize <= 0.01) {
@@ -2566,6 +2726,20 @@
       light.position.set(x, y, z);
       parent.add(light);
       return light;
+    }
+
+    function addHazardStripePanel(parent, width, height, depth, position, slope = .42) {
+      const panel = mechBox(width, height, depth, warningStripeDarkMat, .018);
+      panel.position.set(...position);
+      parent.add(panel);
+      const stripeHeight = Math.max(.055, height * .11);
+      for (let index = 0; index < 4; index++) {
+        const stripe = mechBox(width * .9, stripeHeight, depth * 1.25, warningStripeYellowMat, .008);
+        stripe.position.set(0, -height * .34 + index * height * .22, depth * .56);
+        stripe.rotation.z = slope;
+        parent.add(stripe);
+      }
+      return panel;
     }
 
     const customPartBindings = {};
@@ -3201,6 +3375,7 @@
       const thighServicePanel = mechBox(.42, .62, .055, gunmetalMat, .025);
       thighServicePanel.position.set(0, -.7, .87);
       thigh.add(thighServicePanel);
+      addHazardStripePanel(thigh, .5, .54, .035, [0, -.7, .925], side * -.42);
       for (const panelSide of [-1, 1]) {
         const thighRail = mechBox(.055, .86, .06, armorLightMat, .018);
         thighRail.position.set(panelSide * .25, -.7, .91);
@@ -3788,6 +3963,7 @@
       const support = mechBox(.58, .72, .72, gunmetalMat, .1);
       support.position.y = -.58;
       mount.add(support);
+      addHazardStripePanel(mount, .5, .38, .035, [0, -.58, .385], side * -.42);
 
       const cannon = new THREE.Group();
       cannon.add(mechBox(1.25, .88, 2.2, armorMat, .14));
@@ -4322,6 +4498,7 @@
     const TITLE_LIFT_START_Y = -8.6;
     const HANGAR_LIFT_GATE_OPEN_X = 5.9;
     const HANGAR_LIFT_GATE_CLOSED_X = 0;
+    const HANGAR_LIFT_GATE_BASE_Y = -.18;
     // The reverse-joint preview has a shorter visual reach than the original
     // walker rig. Keep its sole pressed onto the maintenance deck only.
     const HANGAR_STAND_GROUND_OFFSET = -.32;
@@ -5161,20 +5338,30 @@
       // Deep elevator shaft interior: recessed wall ribs and four clearly marked
       // basement levels keep the opening readable instead of showing a shallow void.
       const shaftInnerMat = new THREE.MeshStandardMaterial({ color: 0x12232c, roughness: .42, metalness: .78 });
-      const shaftLevelMat = new THREE.MeshBasicMaterial({ color: 0xffb52e, toneMapped: false });
+      const shaftLevelMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.8, roughness: .24, metalness: .12, toneMapped: false });
       const shaftLevelY = [-3.2, -7.4, -11.6, -15.8];
       for (const levelY of shaftLevelY) {
-        const cylindricalLevelRing = createFlatCircularSquareRing(3.78, 3.66, .055, shaftLevelMat);
+        const cylindricalLevelRing = createFlatCircularSquareRing(3.78, 3.74, .03, shaftLevelMat);
         cylindricalLevelRing.rotation.x = Math.PI / 2;
         cylindricalLevelRing.position.y = levelY;
         shaft.add(cylindricalLevelRing);
-        const levelBand = new THREE.Mesh(new THREE.BoxGeometry(5.8, .12, .08), shaftInnerMat);
+        const levelBand = new THREE.Mesh(new THREE.BoxGeometry(5.8, .07, .05), shaftInnerMat);
         levelBand.position.set(0, levelY, -2.8);
         shaft.add(levelBand);
-        const levelLight = new THREE.Mesh(new THREE.BoxGeometry(5.2, .035, .035), shaftLevelMat);
+        const levelLight = new THREE.Mesh(new THREE.BoxGeometry(5.2, .02, .02), shaftLevelMat);
         levelLight.position.set(0, levelY + .11, -2.76);
         shaft.add(levelLight);
       }
+      const topLevelRing = createFlatCircularSquareRing(3.78, 3.74, .03, shaftLevelMat);
+      topLevelRing.rotation.x = Math.PI / 2;
+      topLevelRing.position.y = -.24;
+      shaft.add(topLevelRing);
+      const topLevelBand = new THREE.Mesh(new THREE.BoxGeometry(5.8, .07, .05), shaftInnerMat);
+      topLevelBand.position.set(0, -.24, -2.8);
+      shaft.add(topLevelBand);
+      const topLevelLight = new THREE.Mesh(new THREE.BoxGeometry(5.2, .02, .02), shaftLevelMat);
+      topLevelLight.position.set(0, -.13, -2.76);
+      shaft.add(topLevelLight);
       for (const x of [-2.5, 2.5]) {
         const verticalRib = new THREE.Mesh(new THREE.BoxGeometry(.12, shaftDepth - .6, .12), shaftInnerMat);
         verticalRib.position.set(x, -shaftDepth * .5, -2.8);
@@ -5186,7 +5373,7 @@
       const levelCtx = levelCanvas.getContext('2d');
       levelCtx.fillStyle = '#071015';
       levelCtx.fillRect(0, 0, 512, 128);
-      levelCtx.strokeStyle = '#ffb52e';
+      levelCtx.strokeStyle = '#ffffff';
       levelCtx.lineWidth = 6;
       levelCtx.strokeRect(6, 6, 500, 116);
       levelCtx.font = '900 58px Orbitron, sans-serif';
@@ -5296,6 +5483,20 @@
       deckInnerHazardRing.rotation.x = -Math.PI / 2;
       deckInnerHazardRing.position.y = .022;
       hangarLiftPlatform.add(deckInnerHazardRing);
+
+      // Alternating physical hazard wedges make the elevator edge readable
+      // as industrial safety equipment without adding emissive neon.
+      const warningRingSegments = 16;
+      for (let segmentIndex = 0; segmentIndex < warningRingSegments; segmentIndex++) {
+        const start = segmentIndex / warningRingSegments * Math.PI * 2;
+        const segment = new THREE.Mesh(
+          new THREE.RingGeometry(3.82, 4.0, 6, 1, start, Math.PI * 2 / warningRingSegments * .86),
+          segmentIndex % 2 ? warningStripeDarkMat : warningStripeYellowMat
+        );
+        segment.rotation.x = -Math.PI / 2;
+        segment.position.y = .036;
+        hangarLiftPlatform.add(segment);
+      }
 
       const deckLightRing = createFlatCircularSquareRing(4.03, 3.94, .035, shaftLightMat);
       deckLightRing.rotation.x = -Math.PI / 2;
@@ -5433,15 +5634,17 @@
       const liftGateMat = new THREE.MeshStandardMaterial({ color: 0x1a2a33, roughness: .34, metalness: .86 });
       const hatchRadius = 4.12;
       hangarLiftGateLeft = new THREE.Mesh(
+        // Three.js CylinderGeometry uses x = sin(theta): this is the left half.
         new THREE.CylinderGeometry(hatchRadius, hatchRadius, .2, 48, 1, false, Math.PI, Math.PI),
         liftGateMat
       );
       hangarLiftGateRight = new THREE.Mesh(
+        // Three.js CylinderGeometry uses x = sin(theta): this is the right half.
         new THREE.CylinderGeometry(hatchRadius, hatchRadius, .2, 48, 1, false, 0, Math.PI),
         liftGateMat
       );
-      hangarLiftGateLeft.position.set(HANGAR_LIFT_GATE_CLOSED_X, -.18, 0);
-      hangarLiftGateRight.position.set(HANGAR_LIFT_GATE_CLOSED_X, -.18, 0);
+      hangarLiftGateLeft.position.set(HANGAR_LIFT_GATE_CLOSED_X, HANGAR_LIFT_GATE_BASE_Y, 0);
+      hangarLiftGateRight.position.set(HANGAR_LIFT_GATE_CLOSED_X, HANGAR_LIFT_GATE_BASE_Y, 0);
       hangarLiftGateLeft.castShadow = hangarLiftGateRight.castShadow = true;
       hangarGroup.add(hangarLiftGateLeft, hangarLiftGateRight);
 
@@ -5455,6 +5658,43 @@
           rib.position.set(gate === hangarLiftGateLeft ? -2.02 : 2.02, .125, z);
           gate.add(rib);
         }
+      }
+      // Non-emissive elevator-gate detailing: layered steel trim, recessed
+      // panel bands, radial braces, and service bolts all move with each door.
+      const gateTrimMat = new THREE.MeshStandardMaterial({ color: 0x60727a, roughness: .28, metalness: .92 });
+      const gateInsetMat = new THREE.MeshStandardMaterial({ color: 0x101a20, roughness: .52, metalness: .78 });
+      const gateBraceMat = new THREE.MeshStandardMaterial({ color: 0x8b5427, roughness: .38, metalness: .82 });
+      const gateBoltGeo = new THREE.CylinderGeometry(.075, .075, .035, 8);
+      // RingGeometry uses x = cos(theta), so its detail arcs use the opposite
+      // angle ranges from the CylinderGeometry door halves above.
+      for (const [gate, startAngle] of [[hangarLiftGateLeft, Math.PI / 2], [hangarLiftGateRight, -Math.PI / 2]]) {
+        const outerTrim = new THREE.Mesh(new THREE.RingGeometry(3.78, 4.04, 40, 1, startAngle, Math.PI), gateTrimMat);
+        outerTrim.rotation.x = -Math.PI / 2;
+        outerTrim.position.y = .115;
+        gate.add(outerTrim);
+
+        const innerInset = new THREE.Mesh(new THREE.RingGeometry(1.18, 3.42, 32, 1, startAngle, Math.PI), gateInsetMat);
+        innerInset.rotation.x = -Math.PI / 2;
+        innerInset.position.y = .112;
+        gate.add(innerInset);
+
+        for (const radius of [1.35, 2.35, 3.28]) {
+          const panelBand = new THREE.Mesh(new THREE.RingGeometry(radius - .035, radius + .035, 32, 1, startAngle, Math.PI), gateTrimMat);
+          panelBand.rotation.x = -Math.PI / 2;
+          panelBand.position.y = .138;
+          gate.add(panelBand);
+        }
+
+        for (let boltIndex = 0; boltIndex < 6; boltIndex++) {
+          const angle = startAngle + (boltIndex + .5) / 6 * Math.PI;
+          const bolt = new THREE.Mesh(gateBoltGeo, gateBraceMat);
+          bolt.position.set(Math.cos(angle) * 3.62, .16, Math.sin(angle) * 3.62);
+          gate.add(bolt);
+        }
+
+        const centerBrace = new THREE.Mesh(new THREE.BoxGeometry(.12, .09, 7.45), gateBraceMat);
+        centerBrace.position.set(gate === hangarLiftGateLeft ? -2.02 : 2.02, .15, 0);
+        gate.add(centerBrace);
       }
       for (const side of [-1, 1]) {
         const track = new THREE.Mesh(new THREE.BoxGeometry(5.5, .11, .16), shaftTrimMat);
@@ -6157,7 +6397,7 @@
       );
       operatorTablet.position.set(0, -.22, .16);
       elevatorOperatorHuman.arms.right.wristGroup.add(operatorTablet);
-      elevatorOperator.userData = { humanRef: elevatorOperatorHuman, controlStation: elevatorControlStation };
+      elevatorOperator.userData = { humanRef: elevatorOperatorHuman, controlStation: elevatorControlStation, hangarDynamic: true };
       hangarGroup.add(elevatorOperator);
 
 
@@ -7026,18 +7266,41 @@
         backWallPlate.material.map = HANGAR_SURFACE_TEXTURE_ENABLED ? wallPanelTexture : null;
         backWallPlate.material.needsUpdate = true;
       }
+      const dynamicRoots = [
+        heroPilot,
+        hangarGateLeft,
+        hangarGateRight,
+        hangarLiftGateLeft,
+        hangarLiftGateRight,
+        hangarLiftPlatform,
+        elevatorSafetyFenceGroup,
+        ...maintenanceMechanics,
+        ...wanderingPatrolCrew,
+        ...hangarVentFans,
+        ...hangarLaunchParticles,
+        ...(window.hangarRepairDrones || []),
+        ...(window.hangarSteamParticles || []),
+        ...(window.hangarDustParticles || [])
+      ];
+      dynamicRoots.forEach(root => {
+        if (root) root.userData.hangarDynamic = true;
+      });
     }
 
     function enterHangar() {
       hangarActive = true;
       hangarLaunching = false;
       hangarLaunchTime = 0;
+      hangarReflectionCacheDirty = true;
       if (hangarLiftPlatform && hangarLiftPlatform.parent !== hangarGroup) hangarGroup.attach(hangarLiftPlatform);
       if (battleElevatorOpening) battleElevatorOpening.visible = false;
+      arrivalGateGroup.visible = false;
       if (hangarGateLeft) hangarGateLeft.position.x = -3.9;
       if (hangarGateRight) hangarGateRight.position.x = 3.9;
       if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : -HANGAR_LIFT_GATE_OPEN_X;
       if (hangarLiftGateRight) hangarLiftGateRight.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : HANGAR_LIFT_GATE_OPEN_X;
+      if (hangarLiftGateLeft) hangarLiftGateLeft.position.y = HANGAR_LIFT_GATE_BASE_Y;
+      if (hangarLiftGateRight) hangarLiftGateRight.position.y = HANGAR_LIFT_GATE_BASE_Y;
       if (hangarLiftPlatform) hangarLiftPlatform.position.y = titleActive ? TITLE_LIFT_START_Y : 0;
       if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = titleActive ? 0 : -0.96;
       for (const particle of hangarLaunchParticles) {
@@ -7075,20 +7338,8 @@
       if (typeof applyHangarLights === 'function') applyHangarLights(hangarLightConfig);
       if (typeof applyWarningLights === 'function') applyWarningLights();
       if (typeof applyMechaKeyLight === 'function') applyMechaKeyLight();
-      // Bake the hangar reflection from 10m directly in front of the cockpit.
-      hangarReflectionProbe.position.copy(player.localToWorld(new THREE.Vector3(0, 4.55, 13.05)));
-      hangarReflectionProbe.update(renderer, scene);
-      hangarGroup.traverse(object => {
-        if (!object.isMesh || !object.material) return;
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        materials.forEach(material => {
-          if ((material.isMeshStandardMaterial || material.isMeshPhysicalMaterial) && !material.transparent) {
-            material.envMap = hangarReflectionTarget.texture;
-            material.envMapIntensity = Math.min(material.envMapIntensity ?? .35, .35);
-            material.needsUpdate = true;
-          }
-        });
-      });
+      // Update the reflection once for this hangar entry, then reuse the cached cube map.
+      updateHangarReflectionCache();
       for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems]) item.visible = false;
       player.visible = true;
       player.position.set(0, titleActive ? TITLE_LIFT_START_Y * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET : HANGAR_STAND_GROUND_OFFSET, 0);
@@ -7299,14 +7550,25 @@
       hangarSparkLight.distance = 10;
       hangarSparkLight.intensity = 0;
       if (titleActive && !hangarLaunching) {
-        titleRevealTime = Math.min(4.8, titleRevealTime + dt);
+        titleRevealTime = Math.min(6.8, titleRevealTime + dt);
         const reveal = THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.0);
+        // Open the split hatch first, then start the elevator after a short hold.
         const gateOpen = THREE.MathUtils.smoothstep(titleRevealTime, .2, 1.3);
-        const liftProgress = THREE.MathUtils.smoothstep(titleRevealTime, .10, 3.0); // Elevator arrives completely at ground level at 3.0s
-        const fenceLowerProgress = THREE.MathUtils.smoothstep(titleRevealTime, 2.9, 3.7); // Lower immediately after platform arrival.
+        const liftProgress = THREE.MathUtils.smoothstep(titleRevealTime, 1.55, 4.45); // Elevator starts after the gate opens.
+        const fenceLowerProgress = THREE.MathUtils.smoothstep(titleRevealTime, 5.45, 6.25); // Lower one second after the elevator arrives.
+        const landingProgress = THREE.MathUtils.clamp((titleRevealTime - 4.23) / .9, 0, 1);
+        const landingBounce = landingProgress > 0
+          ? -.18 * Math.sin(landingProgress * Math.PI * 2.1) * Math.exp(-landingProgress * 3.5)
+          : 0;
+        const gateDropProgress = THREE.MathUtils.smoothstep(titleRevealTime, .18, .58);
+        const gateDropBounce = landingProgress > 0
+          ? -.06 * Math.sin(landingProgress * Math.PI * 2.1) * Math.exp(-landingProgress * 4.2)
+          : 0;
         if (hangarLiftGateLeft) hangarLiftGateLeft.position.x = -gateOpen * HANGAR_LIFT_GATE_OPEN_X;
         if (hangarLiftGateRight) hangarLiftGateRight.position.x = gateOpen * HANGAR_LIFT_GATE_OPEN_X;
-        if (hangarLiftPlatform) hangarLiftPlatform.position.y = THREE.MathUtils.lerp(TITLE_LIFT_START_Y, 0, liftProgress);
+        if (hangarLiftGateLeft) hangarLiftGateLeft.position.y = HANGAR_LIFT_GATE_BASE_Y - gateDropProgress * .1 + gateDropBounce;
+        if (hangarLiftGateRight) hangarLiftGateRight.position.y = HANGAR_LIFT_GATE_BASE_Y - gateDropProgress * .1 + gateDropBounce;
+        if (hangarLiftPlatform) hangarLiftPlatform.position.y = THREE.MathUtils.lerp(TITLE_LIFT_START_Y, 0, liftProgress) + landingBounce;
         if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = THREE.MathUtils.lerp(0, -0.96, fenceLowerProgress);
         // Keep the walker locked to the whole rising plate, not just a vertical pose offset.
         player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET;
@@ -7982,12 +8244,14 @@
     let pitch = -0.18;
     let verticalVelocity = 0;
     let grounded = true;
+    let normalJumpPoseTimer = 0;
     // Heavy mech flight: thrust builds upward momentum, while gravity wins hard
     // as soon as the pilot eases off the booster.
     const JETPACK_THRUST_ACCELERATION = 36;
     const MECH_GRAVITY = 27;
     const MAX_JETPACK_ASCENT_SPEED = 19;
     const MAX_MECH_FALL_SPEED = 31;
+    const NORMAL_JUMP_POSE_DURATION = .36;
     let walkCycle = 0;
     let walkBlend = 0;
     let bodyBounceOffset = 0;
@@ -8035,11 +8299,28 @@ let landingRecoveryTimer = 0;
     let playerRoundWins = 0;
     const TOTAL_ROUNDS = 3;
     let matchOver = false;
+    let victoryCelebrationActive = false;
+    let victoryCelebrationTime = 0;
     let battleStarted = false;
     let battleCountdown = 3;
     let battleCountdownActive = false;
     let roundTransitionTimer = 0;
     let vsStateActive = false;
+
+    function startVictoryCelebration() {
+      victoryCelebrationActive = true;
+      victoryCelebrationTime = 0;
+      document.getElementById('victoryCelebration').classList.add('active');
+      document.getElementById('timeWarning').classList.remove('active');
+      document.getElementById('roundTransition').classList.remove('active');
+      document.getElementById('matchStateText').textContent = 'VICTORY // CELEBRATION';
+      showMessage('VICTORY · 3판 2승 달성');
+    }
+
+    function updateVictoryCelebration(dt) {
+      if (!victoryCelebrationActive) return;
+      victoryCelebrationTime += dt;
+    }
 
     let powerLevel = 0;
     const PLAYER_MAX_HEALTH = 200;
@@ -10796,6 +11077,8 @@ let landingRecoveryTimer = 0;
       startTitleHangarBgm();
       customizerActive = false;
       hangarGroup.visible = true;
+      hangarReflectionCacheDirty = true;
+      updateHangarReflectionCache();
       customStudio.visible = false;
       scene.background = hangarBackground;
       scene.fog = hangarFog;
@@ -10865,15 +11148,45 @@ let landingRecoveryTimer = 0;
 
       player.updateWorldMatrix(true, true);
     }
+    function applyCustomizerDraftInPlace() {
+      Object.entries(customDraft.meshes).forEach(([name, config]) => {
+        if (mechaMeshes[name] && config) mechaMeshes[name] = JSON.parse(JSON.stringify(config));
+        applyCustomPartPreview(name, config);
+      });
+      Object.assign(mechaAttachments, JSON.parse(JSON.stringify(customDraft.attachments)));
+      Object.assign(mechaPartJointOffsets, JSON.parse(JSON.stringify(customDraft.partJointOffsets)));
+      Object.assign(mechaBallJointLayout, JSON.parse(JSON.stringify(customDraft.ballJointLayout)));
+      Object.assign(mechaHiddenParts, JSON.parse(JSON.stringify(customDraft.hiddenParts)));
+      Object.assign(mechaHiddenBodyJoints, JSON.parse(JSON.stringify(customDraft.hiddenBodyJoints)));
+      Object.assign(mechaColors, JSON.parse(JSON.stringify(customDraft.colors)));
+      armorMat.color.set(customDraft.colors.body);
+      armorLightMat.color.set(customDraft.colors.armorLight);
+      for (const material of bodyArmorFadeMaterials) material.color.set(customDraft.colors.body);
+      for (const material of bodyArmorLightFadeMaterials) material.color.set(customDraft.colors.armorLight);
+      bodyAttachmentJoints.forEach(joint => {
+        const position = customDraft.ballJointLayout[joint.userData.bodyJointId];
+        if (Array.isArray(position)) joint.position.fromArray(position);
+        joint.visible = !customDraft.hideAllJoints && !customDraft.hiddenBodyJoints[joint.userData.bodyJointId];
+      });
+      allJointsHiddenState = !!customDraft.hideAllJoints;
+      applyBodyJointSize(customDraft.ballJointSize);
+      headGroup.visible = !customDraft.hiddenParts.head;
+      restoreSavedAttachments();
+      resetPlayerMechaPose();
+      Object.entries(customDraft.meshes).forEach(([name, config]) => applyCustomPartPreview(name, config));
+      restoreSavedAttachments();
+      player.updateWorldMatrix(true, true);
+    }
     document.getElementById('customToggleJointsButton').addEventListener('click', () => {
       toggleAllJointsVisibility();
     });
     document.getElementById('customSaveButton').addEventListener('click', () => {
       setCustomizerAssemblyStage('parts');
       plantCustomizerFeet();
+      applyCustomizerDraftInPlace();
       localStorage.setItem('mechaCustomization', JSON.stringify(customDraft));
-      sessionStorage.setItem('reopenMechaCustomizer', '1');
-      location.reload();
+      document.getElementById('customBackButton').click();
+      showMessage('MECHA CONFIG APPLIED');
     });
     document.getElementById('customExportButton').addEventListener('click', () => {
       plantCustomizerFeet();
@@ -14081,6 +14394,7 @@ let landingRecoveryTimer = 0;
           verticalVelocity = jumpBoostEquipped ? 30.6 : 10.2;
           playGameSound('jump');
           poweredJumpLanding = jumpBoostEquipped;
+          normalJumpPoseTimer = jumpBoostEquipped ? 0 : NORMAL_JUMP_POSE_DURATION;
           grounded = false;
         }
         verticalVelocity -= 25 * dt;
@@ -14237,6 +14551,11 @@ if (!wasGrounded && grounded) {
 
       attackTimer = Math.max(0, attackTimer - dt);
       const speedRatio = THREE.MathUtils.clamp(actualGroundSpeed / 12.35, 0, 3.3);
+      normalJumpPoseTimer = Math.max(0, normalJumpPoseTimer - dt);
+      const jumpPoseProgress = 1 - normalJumpPoseTimer / NORMAL_JUMP_POSE_DURATION;
+      const jumpCompression = !jetpackEquipped && !jumpBoostEquipped && normalJumpPoseTimer > 0
+        ? 1 - THREE.MathUtils.smoothstep(jumpPoseProgress, 0, .52)
+        : 0;
       if (mechaGaitController) {
         mechaGaitController.update({
           dt,
@@ -14248,6 +14567,7 @@ if (!wasGrounded && grounded) {
           turnRate,
           turnStability,
           landingImpact,
+          jumpCompression,
           speedRatio,
           rotationBeforeMove
         });
@@ -15506,6 +15826,20 @@ if (!wasGrounded && grounded) {
         camera.lookAt(cockpitLookTarget);
         return;
       }
+      if (victoryCelebrationActive) {
+        const focus = player.position.clone().add(new THREE.Vector3(0, 4.25, 0));
+        const orbitAngle = victoryCelebrationTime * (reducedMotion ? 0 : .22);
+        const orbitRadius = 13.5;
+        const orbitHeight = 5.1 + Math.sin(victoryCelebrationTime * .45) * .45;
+        const orbitPosition = focus.clone().add(new THREE.Vector3(
+          Math.sin(orbitAngle) * orbitRadius,
+          orbitHeight,
+          Math.cos(orbitAngle) * orbitRadius
+        ));
+        camera.position.lerp(orbitPosition, 1 - Math.exp(-2.6 * dt));
+        camera.lookAt(focus);
+        return;
+      }
       if (customizerActive) {
         const targetPos = player.position.clone().add(new THREE.Vector3(0, 4.35, 0));
         const horizontalDistance = Math.cos(customCameraPitch) * customCameraDistance;
@@ -16023,6 +16357,9 @@ if (!wasGrounded && grounded) {
       playerKills = 0;
       cpuKills = 0;
       matchOver = false;
+      victoryCelebrationActive = false;
+      victoryCelebrationTime = 0;
+      document.getElementById('victoryCelebration').classList.remove('active');
       battleStarted = false;
       battleCountdown = 3;
       battleCountdownActive = true;
@@ -16142,6 +16479,7 @@ if (!wasGrounded && grounded) {
           enemyAI2.shells.length = 0;
         }
         showMessage(finalResult);
+        if (playerRoundWins >= 2) startVictoryCelebration();
       }
       const secondsLeft = Math.ceil(matchTimeRemaining);
       const timeWarning = document.getElementById('timeWarning');
@@ -16234,7 +16572,10 @@ if (!wasGrounded && grounded) {
         document.getElementById('matchStateText').textContent = arrivalSequenceTimer > 1.8
           ? 'ELEVATOR ASCENDING'
           : 'SAFETY FENCE LOWERING';
-        if (arrivalSequenceTimer <= 0) arrivalGateGroup.visible = false;
+        if (arrivalSequenceTimer <= 0) {
+          arrivalGateGroup.visible = false;
+          battleElevatorOpening.visible = false;
+        }
         return;
       }
 
@@ -16490,7 +16831,22 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
 
     function updatePlayerRespawn(dt) {
-      if (!playerDestroyed) return;
+      if (!playerDestroyed && playerRespawnGateTimer <= 0) return;
+      if (playerRespawnGateTimer > 0) {
+        playerRespawnGateTimer = Math.max(0, playerRespawnGateTimer - dt);
+        const gateProgress = THREE.MathUtils.smoothstep(1 - playerRespawnGateTimer / .55, 0, 1);
+        arrivalGateLeft.position.x = -gateProgress * HANGAR_LIFT_GATE_OPEN_X;
+        arrivalGateRight.position.x = gateProgress * HANGAR_LIFT_GATE_OPEN_X;
+        if (playerRespawnGateTimer <= 0) {
+          playerDestroyed = false;
+          arrivalGateGroup.visible = false;
+          const holeCap = battleElevatorOpening?.getObjectByName('BattleElevatorHoleCap');
+          if (holeCap) holeCap.position.y = .006;
+          showMessage('PLAYER UNIT REDEPLOYED');
+          updateHUD();
+        }
+        return;
+      }
       playerRespawnTimer = Math.max(0, playerRespawnTimer - dt);
       if (playerRespawnTimer > 0) return;
       if (playerRespawnElevatorTimer > 0) {
@@ -16500,9 +16856,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         player.position.y = THREE.MathUtils.lerp(-7.5, 0, eased);
         if (hangarLiftPlatform?.parent === scene) hangarLiftPlatform.position.y = player.position.y;
         if (playerRespawnElevatorTimer <= 0) {
-          playerDestroyed = false;
-          showMessage('PLAYER UNIT REDEPLOYED');
-          updateHUD();
+          playerRespawnGateTimer = .55;
+          showMessage('LANDING GATE OPEN');
         }
         return;
       }
@@ -16583,9 +16938,20 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         hangarLiftPlatform.position.set(player.position.x, -7.5, player.position.z);
         hangarLiftPlatform.visible = true;
       }
+      if (battleElevatorOpening) {
+        battleElevatorOpening.position.set(player.position.x, 0, player.position.z);
+        battleElevatorOpening.visible = true;
+        const holeCap = battleElevatorOpening.getObjectByName('BattleElevatorHoleCap');
+        if (holeCap) holeCap.position.y = -.09;
+      }
+      arrivalGateGroup.position.set(player.position.x, .05, player.position.z);
+      arrivalGateLeft.position.x = 0;
+      arrivalGateRight.position.x = 0;
+      arrivalGateGroup.visible = true;
       player.position.y = -7.5;
       player.visible = true;
       playerRespawnElevatorTimer = 1.8;
+      playerRespawnGateTimer = 0;
       playerDestroyed = true;
       pendingPlayerDeathData = null;
       if (deathData?.droppedJetpackPosition) {
@@ -16734,6 +17100,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       playerKills = 0;
       cpuKills = 0;
       matchOver = false;
+      victoryCelebrationActive = false;
+      victoryCelebrationTime = 0;
+      document.getElementById('victoryCelebration').classList.remove('active');
       battleStarted = false;
       battleCountdown = 3;
       battleCountdownActive = false;
@@ -16921,10 +17290,11 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
     updateHUD();
 
-    function mergeStaticVisualChildren(parent) {
+    function mergeStaticVisualChildren(parent, skipHangarDynamic = false) {
       const buckets = new Map();
       for (const child of [...parent.children]) {
         if (!child.isMesh || child.isInstancedMesh || child.isSkinnedMesh || child.material.transparent || child.material.isShaderMaterial) continue;
+        if (skipHangarDynamic && (child.userData.hangarDynamic || child.children.length)) continue;
         // Customizer bindings, hit parts, and dynamic meshes keep their own
         // objects. Everything else is static relative to this parent.
         if (child.userData.customPartName || child.userData.customSnapPart || child.userData.dynamicMechPart) continue;
@@ -16954,11 +17324,56 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         parent.add(merged);
       }
     }
-    function optimizeStaticVisualDrawCalls(root) {
+    function hasHangarDynamicAncestor(node, root) {
+      let current = node;
+      while (current && current !== root) {
+        if (current.userData?.hangarDynamic) return true;
+        current = current.parent;
+      }
+      return false;
+    }
+    function optimizeStaticVisualDrawCalls(root, skipHangarDynamic = false) {
       const groups = [];
       root.traverse(node => { if (node.isGroup) groups.push(node); });
       // Deepest-first preserves every local transform while merging details.
-      for (let index = groups.length - 1; index >= 0; index--) mergeStaticVisualChildren(groups[index]);
+      for (let index = groups.length - 1; index >= 0; index--) {
+        if (skipHangarDynamic && hasHangarDynamicAncestor(groups[index], root)) continue;
+        mergeStaticVisualChildren(groups[index], skipHangarDynamic);
+      }
+    }
+    function instanceRepeatedStaticMeshes(root) {
+      const groups = [];
+      root.traverse(node => { if (node.isGroup) groups.push(node); });
+      for (let index = groups.length - 1; index >= 0; index--) {
+        const parent = groups[index];
+        if (hasHangarDynamicAncestor(parent, root)) continue;
+        const buckets = new Map();
+        for (const child of [...parent.children]) {
+          if (!child.isMesh || child.isInstancedMesh || child.isSkinnedMesh || child.children.length) continue;
+          if (!child.visible || child.material?.transparent || child.material?.isShaderMaterial) continue;
+          if (child.userData.hangarDynamic || child.userData.customPartName || child.userData.customSnapPart || child.userData.dynamicMechPart) continue;
+          if (!child.geometry || Array.isArray(child.material)) continue;
+          const key = `${child.geometry.uuid}|${child.material.uuid}|${child.castShadow}|${child.receiveShadow}|${child.renderOrder}`;
+          (buckets.get(key) || buckets.set(key, []).get(key)).push(child);
+        }
+        for (const meshes of buckets.values()) {
+          if (meshes.length < 3) continue;
+          const source = meshes[0];
+          const batch = new THREE.InstancedMesh(source.geometry, source.material, meshes.length);
+          batch.name = 'HangarStaticInstancedBatch';
+          batch.castShadow = source.castShadow;
+          batch.receiveShadow = source.receiveShadow;
+          batch.renderOrder = source.renderOrder;
+          meshes.forEach((mesh, instanceIndex) => {
+            mesh.updateMatrix();
+            batch.setMatrixAt(instanceIndex, mesh.matrix);
+            parent.remove(mesh);
+          });
+          batch.instanceMatrix.needsUpdate = true;
+          batch.computeBoundingSphere();
+          parent.add(batch);
+        }
+      }
     }
     optimizeStaticVisualDrawCalls(body);
     optimizeStaticVisualDrawCalls(pelvis);
@@ -16966,6 +17381,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     for (const leg of playerLegs) optimizeStaticVisualDrawCalls(leg);
     optimizeStaticVisualDrawCalls(roadDetailGroup);
     optimizeStaticVisualDrawCalls(futureBackdrop);
+    optimizeStaticVisualDrawCalls(hangarGroup, true);
+    instanceRepeatedStaticMeshes(hangarGroup);
 
     function getRenderBudgetStats(root) {
       const stats = { meshes: 0, instances: 0, triangles: 0 };
@@ -17060,6 +17477,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         updateSciFiTransition(dt);
         updateSafeZones();
         updateCTF(dt);
+        updateVictoryCelebration(dt);
         updateBattleIntro(dt);
         updateRoundTransition(dt);
         updateTreeCollisions();

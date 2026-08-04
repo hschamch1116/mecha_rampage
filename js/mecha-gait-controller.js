@@ -236,10 +236,10 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
     if (joints.knee.userData.basePosY === undefined) {
       joints.knee.userData.basePosY = joints.knee.position.y;
     }
-    const targetKneePosY = joints.knee.userData.basePosY - kneePosOffset;
+    const targetKneePosY = joints.knee.userData.basePosY - kneePosOffset - jumpCrouch * .28;
     joints.knee.position.y = THREE.MathUtils.lerp(joints.knee.position.y, targetKneePosY, kneeBlend);
 
-    const kneeTarget = gaitState.kneeBend + kneeAngleOffset;
+    const kneeTarget = gaitState.kneeBend + kneeAngleOffset + jumpCrouch * .88;
     joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, kneeTarget, kneeBlend);
     joints.knee.rotation.y = 0;
     joints.knee.rotation.z = 0;
@@ -307,12 +307,14 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       turnRate = 0,
       turnStability = 1,
       landingImpact = 0,
+      jumpCompression = 0,
       speedRatio = 0,
       rotationBeforeMove = 0
     } = params;
 
     const { walkSpeed, strideScale: userStride, bodyLean, weightFeel,
       bounceAmount, rollAmount, baseFootHeight = 0.0, stepHeightScale = 1.0 } = gaitParams;
+    const jumpCrouch = THREE.MathUtils.clamp(jumpCompression, 0, 1);
 
     // Phase A: Cycle timing — continuous phase persistence (no snap-reset to 0 on stop)
     const walking = actualGroundSpeed > 0.35 && grounded;
@@ -390,7 +392,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
 
       const downBounce = -landingPulse * stepBounceAmount * 0.45 * weightFeel * walkBlend;
       const upBounce = vaultingPulse * bounceAmount * 0.55 * weightFeel * walkBlend;
-      const verticalBounce = downBounce + upBounce;
+      const verticalBounce = downBounce + upBounce - jumpCrouch * .72;
       window.mechaGaitBounce = verticalBounce;
 
       const pelvisBaseY = mechaMeshes.pelvis.position[1];
@@ -420,7 +422,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       if (waistRig) {
         waistRig.position.y = THREE.MathUtils.lerp(
           waistRig.position.y,
-          baseWaistY + baseFootHeight + verticalBounce * 0.65,
+          baseWaistY + baseFootHeight + verticalBounce * 0.65 - jumpCrouch * .24,
           1 - Math.exp(-9 * dt)
         );
         waistRig.rotation.y = THREE.MathUtils.lerp(waistRig.rotation.y, -pelvis.rotation.y * 0.85, 1 - Math.exp(-8 * dt));
