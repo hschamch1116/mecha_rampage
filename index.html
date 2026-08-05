@@ -345,8 +345,10 @@
     #audioMuteButton.muted { color:#ff9a9a; background:rgba(255,72,72,.2); }
     #pauseOverlay { position:absolute; inset:0; z-index:12; display:grid; place-items:center; pointer-events:none; opacity:0; visibility:hidden; background:rgba(3,7,14,.42); backdrop-filter:blur(3px); transition:opacity .16s ease, visibility .16s ease; }
     #pauseOverlay.active { opacity:1; visibility:visible; }
-    #pauseOverlay .pause-card { min-width:280px; padding:26px 34px; border:1px solid rgba(114,228,244,.76); background:rgba(5,15,23,.9); color:#e9fcff; text-align:center; box-shadow:0 0 38px rgba(44,202,228,.26), inset 0 0 22px rgba(78,219,239,.08); font:900 28px Orbitron, sans-serif; letter-spacing:.16em; }
+    #pauseOverlay .pause-card { min-width:280px; padding:26px 34px; border:1px solid rgba(114,228,244,.76); background:rgba(5,15,23,.9); color:#e9fcff; text-align:center; box-shadow:0 0 38px rgba(44,202,228,.26), inset 0 0 22px rgba(78,219,239,.08); font:900 28px Orbitron, sans-serif; letter-spacing:.16em; pointer-events:auto; }
     #pauseOverlay small { display:block; margin-top:12px; color:#91bec6; font:800 11px Orbitron, sans-serif; letter-spacing:.11em; }
+    #pauseReturnTitleButton { display:block; width:100%; margin-top:18px; padding:11px 14px; border:1px solid #ffe36a; background:rgba(82,59,8,.72); color:#fff3a6; font:900 11px Orbitron,sans-serif; letter-spacing:.08em; cursor:pointer; }
+    #pauseReturnTitleButton:hover { background:rgba(132,96,12,.88); box-shadow:0 0 16px rgba(255,203,39,.34); }
     #mobileControls { display:none; position:fixed; inset:0; z-index:45; pointer-events:none; touch-action:none; user-select:none; font:900 11px Orbitron, sans-serif; }
     #mobileControls.active { display:block; }
     .mobile-pad, .mobile-actions { position:absolute; bottom:clamp(18px, 7vw, 58px); pointer-events:auto; }
@@ -367,8 +369,7 @@
       #playerStatusHud .status-header { margin-bottom:3px; font-size:6px; }
       #playerStatusHud .status-online, #playerStatusHud .vital-label { font-size:6px; }
       #playerStatusHud .vital { margin-top:3px; }
-      #playerStatusHud .vital-health, #playerStatusHud .vital-shield { display:block; }
-      #playerStatusHud .vital:not(.vital-health):not(.vital-shield) { display:none; }
+      #playerStatusHud .vital-health, #playerStatusHud .vital-shield, #playerStatusHud .vital-boost { display:block; }
       #playerStatusHud .vital-value { font-size:9px; }
       #playerStatusHud .vital-track { height:4px; }
       #mechVitalsRing { display:none; }
@@ -689,7 +690,7 @@
       <div style="display:flex;gap:8px;margin-top:6px;"><button id="cameraPositionCopy" type="button" style="flex:1;padding:8px;">COPY CAMERA</button><button id="cameraPositionApply" type="button" style="flex:1;padding:8px;">APPLY CAMERA</button></div>
 
       <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">BATTLEFIELD ATMOSPHERE</h3>
-      <label class="settings-row">TIME OF DAY <input id="battlefieldTimeOfDay" type="range" min="0" max="24" step="0.25" value="12"><output id="battlefieldTimeOfDayVal">12:00</output></label>
+      <label class="settings-row">TIME OF DAY <input id="battlefieldTimeOfDay" type="range" min="0" max="24" step="0.25" value="10"><output id="battlefieldTimeOfDayVal">10:00</output></label>
       <label class="settings-row">ENVIRONMENT COLOR <input id="battlefieldEnvironmentColor" type="color" value="#dceaf5"><output id="battlefieldEnvironmentColorVal">#dceaf5</output></label>
 
       <h3 style="margin: 14px 0 8px 0; color: #49dcf0; font-size: 11px; letter-spacing: 0.1em; border-top: 1px solid rgba(73,220,240,0.3); padding-top: 10px;">HANGAR ATMOSPHERE & FOG</h3>
@@ -805,8 +806,8 @@
         <div class="vital-label"><span>ENERGY SHIELD</span><span class="vital-value"><span id="playerShieldHudText">0</span>%</span></div>
         <div class="vital-track"><div class="vital-fill" id="playerShieldBar"></div></div>
       </div>
-      <div class="vital">
-        <div class="vital-label"><span>BOOST ENERGY</span><span class="vital-value"><span id="boostHudText">100</span>%</span></div>
+      <div class="vital vital-boost">
+        <div class="vital-label"><span>BOOST ENERGY</span><span class="vital-value"><span id="boostHudText">200</span></span></div>
         <div class="vital-track"><div class="vital-fill" id="boostBar"></div></div>
       </div>
     </div>
@@ -892,7 +893,7 @@
     <div id="lockReticle"></div>
     <div id="battleIntro">READY</div>
     <div id="message"></div>
-    <div id="pauseOverlay" aria-live="polite"><div class="pause-card">PAUSED<small>PRESS P TO RESUME</small></div></div>
+    <div id="pauseOverlay" aria-live="polite"><div class="pause-card">PAUSED<small>PRESS P TO RESUME</small><button id="pauseReturnTitleButton" type="button">RETURN TO TITLE</button></div></div>
     <div id="mobileControls" aria-label="Mobile controls">
       <div class="mobile-pad" id="mobileJoystick" aria-label="Movement joystick">
         <div class="mobile-joystick-knob" id="mobileJoystickKnob"></div>
@@ -1088,6 +1089,10 @@
     let playerBaseFlagGroup = null;
     let droppedEnemyFlagMesh = null;
     let droppedPlayerFlagMesh = null;
+    const sceneWindDirection = new THREE.Vector3(-0.45, 0, 0.89).normalize();
+    const sceneWindSpeed = 2.4;
+    const sceneWindStrength = 1.0;
+    const defaultFlagWindStrength = 1.35;
 
     function createFlagMesh(flagColorHex, isBackpack = false) {
       const group = new THREE.Group();
@@ -1120,7 +1125,7 @@
       finial.receiveShadow = true;
       group.add(finial);
 
-      // Flag Cloth Banner
+      // Flag Cloth Banner: segmented surface so only the free edge ripples.
       const flagWidth = 2.2 * scale;
       const flagHeight = 1.35 * scale;
       const flagMat = new THREE.MeshStandardMaterial({
@@ -1131,7 +1136,10 @@
         metalness: 0.05,
         side: THREE.DoubleSide
       });
-      const cloth = new THREE.Mesh(new THREE.BoxGeometry(0.04 * scale, flagHeight, flagWidth), flagMat);
+      const clothGeometry = new THREE.PlaneGeometry(flagWidth, flagHeight, 16, 8);
+      const clothBasePositions = new Float32Array(clothGeometry.attributes.position.array);
+      const cloth = new THREE.Mesh(clothGeometry, flagMat);
+      cloth.rotation.y = Math.PI / 2;
       cloth.position.set(0, poleHeight - flagHeight * 0.5, flagWidth * 0.5 + poleRadius);
       cloth.castShadow = true;
       cloth.receiveShadow = true;
@@ -1159,7 +1167,52 @@
         group.add(glowRing);
       }
 
+      group.userData.ctfFlag = {
+        cloth,
+        clothBasePositions,
+        flagWidth,
+        flagHeight,
+        scale,
+        phase: Math.random() * Math.PI * 2,
+        baseRotationZ: group.rotation.z,
+        isBackpack
+      };
+
       return group;
+    }
+
+    function updateCTFFlagVisual(flagGroup, dt) {
+      const flag = flagGroup?.userData?.ctfFlag;
+      if (!flag || !flagGroup.visible) return;
+      const position = flag.cloth.geometry.attributes.position;
+      const time = performance.now() * .001;
+      const motionSpeed = flag.isBackpack ? Math.min(1.8, Math.abs(locomotionSpeed) * .09) : 0;
+      const windWave = sceneWindSpeed + motionSpeed;
+      const gust = .82 + Math.sin(time * .7 + flag.phase) * .18;
+      // Keep a visible default breeze even while the carrier is standing
+      // still; the shared scene direction continues to control its heading.
+      const windStrength = (flag.isBackpack ? .15 + motionSpeed * .045 : .12)
+        * defaultFlagWindStrength * sceneWindStrength * gust;
+      for (let index = 0; index < position.count; index++) {
+        const baseIndex = index * 3;
+        const baseX = flag.clothBasePositions[baseIndex];
+        const baseY = flag.clothBasePositions[baseIndex + 1];
+        const u = THREE.MathUtils.clamp((baseX + flag.flagWidth * .5) / flag.flagWidth, 0, 1);
+        const freeEdge = 1 - u;
+        const windDirectionPhase = (sceneWindDirection.x * .9 + sceneWindDirection.z * 1.4) * u;
+        const wave = Math.sin(time * windWave + u * 7.2 + windDirectionPhase + flag.phase) * windStrength * freeEdge * freeEdge;
+        const secondary = Math.sin(time * (windWave * 1.7) + u * 13.5 + windDirectionPhase * 1.6 + flag.phase * 1.6) * windStrength * .28 * freeEdge;
+        position.array[baseIndex] = baseX;
+        position.array[baseIndex + 1] = baseY + Math.sin(time * 2.2 + u * 4 + flag.phase) * .012 * freeEdge;
+        position.array[baseIndex + 2] = wave + secondary + sceneWindDirection.x * .045 * freeEdge;
+      }
+      position.needsUpdate = true;
+      flag.cloth.geometry.computeVertexNormals();
+
+      const sway = flag.isBackpack
+        ? THREE.MathUtils.clamp(locomotionSpeed * .0018, -.035, .035)
+        : 0;
+      flagGroup.rotation.z = flag.baseRotationZ + Math.sin(time * 5.5 + flag.phase) * (.012 + Math.abs(sway)) + sway;
     }
 
     function createCTFFlags() {
@@ -1181,7 +1234,9 @@
       playerBackpackFlag.visible = false;
 
       enemyBackpackFlag = createFlagMesh(0x21cfff, true);
-      enemyBackpackFlag.position.set(0, 3.2, -1.95);
+      // The enemy walker is an 8m model; keep the carried flag above its
+      // torso and slightly behind the back so the body cannot occlude it.
+      enemyBackpackFlag.position.set(0, 7.2, -2.35);
       enemyBackpackFlag.rotation.y = Math.PI;
       enemyBackpackFlag.visible = false;
     }
@@ -1216,8 +1271,10 @@
         enemyBaseFlagGroup.visible = (enemyFlagState === 'base');
       }
 
-      if (typeof body !== 'undefined' && body && playerBackpackFlag && playerBackpackFlag.parent !== body) {
-        body.add(playerBackpackFlag);
+      if (playerBackpackFlag && playerBackpackFlag.parent !== longBoosterAntennaPivot) {
+        longBoosterAntennaPivot.add(playerBackpackFlag);
+        playerBackpackFlag.position.set(0, 0, 0);
+        playerBackpackFlag.rotation.set(0, Math.PI, 0);
       }
 
       if (!battleStarted || matchOver) return;
@@ -1288,6 +1345,8 @@
         enemyBackpackFlag.visible = cpuHasFlag;
         if (enemyAI && enemyAI.group && enemyBackpackFlag.parent !== enemyAI.group) {
           enemyAI.group.add(enemyBackpackFlag);
+          enemyBackpackFlag.position.set(0, 7.2, -2.35);
+          enemyBackpackFlag.rotation.set(0, Math.PI, 0);
         }
       }
 
@@ -1299,6 +1358,12 @@
         droppedPlayerFlagMesh.visible = (playerFlagState === 'dropped');
         if (playerFlagState === 'dropped') droppedPlayerFlagMesh.position.copy(playerFlagDroppedPos);
       }
+      updateCTFFlagVisual(playerBaseFlagGroup, dt);
+      updateCTFFlagVisual(enemyBaseFlagGroup, dt);
+      updateCTFFlagVisual(droppedEnemyFlagMesh, dt);
+      updateCTFFlagVisual(droppedPlayerFlagMesh, dt);
+      updateCTFFlagVisual(playerBackpackFlag, dt);
+      updateCTFFlagVisual(enemyBackpackFlag, dt);
 
       const pTxt = document.getElementById('playerFlagScoreText');
       const cTxt = document.getElementById('cpuFlagScoreText');
@@ -1551,7 +1616,8 @@
     const hangarBackground = new THREE.Color(0x08121a);
     const gameplayFog = new THREE.FogExp2(0xdceaf5, .0035);
     const hangarFog = new THREE.FogExp2(0x0c1720, .0095);
-    const battlefieldAtmosphere = { timeOfDay: 12, environmentColor: '#dceaf5' };
+    const battlefieldAtmosphere = { timeOfDay: 10, environmentColor: '#dceaf5' };
+    let currentRainIntensity = .05;
     scene.background = gameplayBackground;
     scene.fog = gameplayFog;
 
@@ -1795,6 +1861,7 @@
       const transientWarmupEffects = [createMechDeathWarmupEffect(), ...createTransientWarmupEffects()];
       const stagedEffects = [
         explosionPool?.[0], burningEffectPool?.[0], missileTrailPool?.[0],
+        mechDeathEffectPool?.[0], mechDeathDebrisPool?.[0],
         playerShellPool?.[0], laserBeamPool?.[0],
         enemyAI?.shellPool?.[0], enemyAI?.laserBeamPool?.[0], enemyAI?.missileTrailPool?.[0],
         enemyAI2?.shellPool?.[0], enemyAI2?.laserBeamPool?.[0], enemyAI2?.missileTrailPool?.[0],
@@ -1822,7 +1889,7 @@
         for (const effect of transientWarmupEffects) {
           scene.remove(effect);
           effect.traverse(object => {
-            if (object.geometry && object.geometry !== footstepRingGeometry && object.geometry !== footstepDustGeometry) object.geometry.dispose();
+            if (object.geometry && object.geometry !== footstepRingGeometry && object.geometry !== footstepDustGeometry && object.geometry !== explosionSphereGeo) object.geometry.dispose();
             if (object.material) object.material.dispose();
           });
         }
@@ -1907,7 +1974,9 @@
       const uniforms = {
         uTime: { value: 0 },
         uCameraPos: { value: new THREE.Vector3() },
-        uWind: { value: new THREE.Vector3(2.4, 0, .8) },
+        // Keep the rain drift aligned with the shared scene wind used by flags.
+        // The vertical fall speed remains controlled per drop in the shader.
+        uWind: { value: sceneWindDirection.clone().multiplyScalar(sceneWindSpeed) },
         uVolume: { value: new THREE.Vector3(76, 54, 76) },
         uOpacity: { value: .58 }
       };
@@ -2108,7 +2177,7 @@
         const mixColor = key => new THREE.Color(from[key]).lerp(new THREE.Color(to[key]), amount);
         return { top: mixColor('top'), mid: mixColor('mid'), horizon: mixColor('horizon'), sun: mixColor('sun'), daylight: THREE.MathUtils.lerp(from.daylight, to.daylight, amount) };
       }
-      return sampleBattlefieldTime(12);
+      return sampleBattlefieldTime(10);
     };
     const colorToHex = color => `#${color.getHexString()}`;
     const applyBattlefieldAtmosphere = (syncEnvironmentColor = false) => {
@@ -2143,12 +2212,18 @@
       });
       const cloudTint = profile.top.clone().lerp(environmentColor, .35).lerp(profile.sun, .12);
       const cloudNightColor = new THREE.Color(0x071226);
+      const rainCloudColor = new THREE.Color(0x3b4a5a);
       cloudLayers.forEach((layer, index) => {
         const baseCloudColor = new THREE.Color(index === 0 ? 0xf7fbff : 0xdbe9f3);
-        const timeCloudColor = baseCloudColor.clone().lerp(cloudTint, .58);
-        timeCloudColor.lerp(cloudNightColor, (1 - profile.daylight) * .56);
-        layer.mesh.material.color.copy(timeCloudColor);
-        layer.mesh.material.opacity = layer.opacity * (.72 + profile.daylight * .28);
+        // Keep a little neutral cloud volume, but let the TOD/environment
+        // tint dominate so sunset and night colors are visible on the cloud
+        // layers instead of being washed back to white.
+        const timeCloudColor = baseCloudColor.clone().lerp(cloudTint, .78);
+        timeCloudColor.lerp(cloudNightColor, (1 - profile.daylight) * .72);
+        const weatherCloudColor = timeCloudColor.clone().lerp(rainCloudColor, currentRainIntensity * .82);
+        layer.mesh.material.color.copy(weatherCloudColor);
+        layer.mesh.material.opacity = layer.opacity * (.72 + profile.daylight * .28) * (1 + currentRainIntensity * .18);
+        layer.mesh.material.needsUpdate = true;
       });
       const timeControl = document.getElementById('battlefieldTimeOfDay');
       const colorControl = document.getElementById('battlefieldEnvironmentColor');
@@ -2266,6 +2341,11 @@
 
       const dangerZoneHalfSize = Math.max(1, arenaHalfSize - DANGER_ZONE_INSET);
       const wallGeo = new THREE.PlaneGeometry(dangerZoneHalfSize * 2, 40);
+      // Only the transparent danger-zone boundary sits ten metres beyond
+      // the concrete barrier. Gameplay collision and concrete geometry keep
+      // using dangerZoneHalfSize above.
+      const transparentDangerZoneHalfSize = dangerZoneHalfSize + 10;
+      const transparentWallGeo = new THREE.PlaneGeometry(transparentDangerZoneHalfSize * 2, 40);
       const barrierGroup = new THREE.Group();
       barrierGroup.name = 'DangerZoneTenMeterConcreteBarrier';
       const barrierConcreteMat = new THREE.MeshStandardMaterial({ color: 0x73797a, roughness: .92, metalness: .04 });
@@ -2499,25 +2579,25 @@
       }
 
       // Transparent danger-zone planes sit behind the ten-meter concrete wall.
-      const backWall = new THREE.Mesh(wallGeo, matX);
-      backWall.position.set(0, 20, -dangerZoneHalfSize);
+      const backWall = new THREE.Mesh(transparentWallGeo, matX);
+      backWall.position.set(0, 20, -transparentDangerZoneHalfSize);
       barrierGroup.add(backWall);
 
       // Front (z = 82)
-      const frontWall = new THREE.Mesh(wallGeo, matX);
-      frontWall.position.set(0, 20, dangerZoneHalfSize);
+      const frontWall = new THREE.Mesh(transparentWallGeo, matX);
+      frontWall.position.set(0, 20, transparentDangerZoneHalfSize);
       frontWall.rotation.y = Math.PI;
       barrierGroup.add(frontWall);
 
       // Left (x = -82)
-      const leftWall = new THREE.Mesh(wallGeo, matZ);
-      leftWall.position.set(-dangerZoneHalfSize, 20, 0);
+      const leftWall = new THREE.Mesh(transparentWallGeo, matZ);
+      leftWall.position.set(-transparentDangerZoneHalfSize, 20, 0);
       leftWall.rotation.y = Math.PI / 2;
       barrierGroup.add(leftWall);
 
       // Right (x = 82)
-      const rightWall = new THREE.Mesh(wallGeo, matZ);
-      rightWall.position.set(dangerZoneHalfSize, 20, 0);
+      const rightWall = new THREE.Mesh(transparentWallGeo, matZ);
+      rightWall.position.set(transparentDangerZoneHalfSize, 20, 0);
       rightWall.rotation.y = -Math.PI / 2;
       barrierGroup.add(rightWall);
 
@@ -2560,6 +2640,60 @@
       return texture;
     }
 
+    function createDistantBuildingAtlasTexture(variant = 0) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      const palettes = [
+        ['#071421', '#1d536a', '#46d9e7'],
+        ['#0d1023', '#3a2d68', '#e75bd7'],
+        ['#101a1d', '#3d5b54', '#ffc45b']
+      ];
+      const palette = palettes[variant % palettes.length];
+      let seed = (variant + 1) * 0x45d9f3b;
+      const random = () => {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+      // Keep the canvas transparent: only the skyline silhouettes and lights
+      // are drawn, allowing the sky to show through the cylinder gaps.
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let x = -30; x < canvas.width + 30; ) {
+        const width = 92 + random() * 170;
+        const top = 74 + random() * 205;
+        const gradient = ctx.createLinearGradient(0, top, 0, canvas.height);
+        gradient.addColorStop(0, `${palette[1]}e8`);
+        gradient.addColorStop(.42, `${palette[0]}f2`);
+        gradient.addColorStop(1, `${palette[0]}ff`);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, top, width, canvas.height - top);
+        ctx.fillStyle = `${palette[2]}55`;
+        ctx.fillRect(x + width * .12, top + 8, Math.max(2, width * .025), canvas.height - top - 8);
+        if (random() > .36) {
+          ctx.fillStyle = `${palette[2]}99`;
+          ctx.fillRect(x + width * .5, top - 14, Math.max(2, width * .018), 14);
+        }
+        const windowWidth = Math.max(3, width * .055);
+        const windowGapX = Math.max(9, width * .11);
+        const windowGapY = 18 + random() * 9;
+        for (let wy = top + 20; wy < canvas.height - 12; wy += windowGapY) {
+          for (let wx = x + 12; wx < x + width - 8; wx += windowGapX) {
+            if (random() < .34) continue;
+            ctx.fillStyle = random() > .78 ? `${palette[2]}d0` : `${palette[2]}55`;
+            ctx.fillRect(wx, wy, windowWidth, 4 + random() * 3);
+          }
+        }
+        x += width + 18 + random() * 42;
+      }
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.needsUpdate = true;
+      return texture;
+    }
+
     function createFutureBackdrop() {
       while (futureBackdrop.children.length) futureBackdrop.remove(futureBackdrop.children[0]);
       aerialPods.length = 0;
@@ -2597,11 +2731,34 @@
         for (let floor = 4; floor < height - 4; floor += THREE.MathUtils.randFloat(5, 8)) {
           const band = new THREE.Mesh(new THREE.BoxGeometry(width + .18, .1, depth + .18), lightMaterial);
           band.position.y = floor;
-          band.material = lightMaterial;
           tower.add(band);
         }
         futureBackdrop.add(tower);
       }
+
+      // Enclose the whole battlefield with one distant cylindrical skyline
+      // shell. Use a separate texture instance so its tiling is isolated from
+      // any other future background texture use.
+      const sceneBackgroundCylinderTexture = createDistantBuildingAtlasTexture(0);
+      sceneBackgroundCylinderTexture.repeat.set(4.5, 1);
+      sceneBackgroundCylinderTexture.needsUpdate = true;
+      const sceneBackgroundCylinderMaterial = new THREE.MeshBasicMaterial({
+        map: sceneBackgroundCylinderTexture,
+        transparent: true,
+        alphaTest: .035,
+        opacity: .56,
+        side: THREE.BackSide,
+        depthWrite: false,
+        toneMapped: false
+      });
+      const sceneBackgroundCylinder = new THREE.Mesh(
+        new THREE.CylinderGeometry(260, 260, 160, 96, 1, true),
+        sceneBackgroundCylinderMaterial
+      );
+      sceneBackgroundCylinder.name = 'SceneBackgroundCylinderShell';
+      sceneBackgroundCylinder.position.y = 68;
+      sceneBackgroundCylinder.renderOrder = -4;
+      futureBackdrop.add(sceneBackgroundCylinder);
 
       const ringMaterials = [
         new THREE.MeshBasicMaterial({ color: 0x2ee9ff, transparent: true, opacity: .24, toneMapped: false }),
@@ -3230,7 +3387,7 @@
     // mech's forward (+Z) direction and follows the upper-body turret.
     const mechaSearchlight = new THREE.Group();
     mechaSearchlight.name = 'MechaSearchlight';
-    mechaSearchlight.position.set(2.28, 1.46, 1.08);
+    mechaSearchlight.position.set(2.28, 1.46, 1.28);
     mechaSearchlight.rotation.y = -.08;
     const searchlightBracket = mechBox(.28, .72, .34, gunmetalMat, .06);
     searchlightBracket.position.set(0, -.34, -.04);
@@ -3285,17 +3442,8 @@
     mechaSearchlight.name = 'MechaSearchlightRight';
     body.add(mechaSearchlight, mechaSearchlightLeft);
 
-    // Dual Tac-Comm Signal Antennae on Back Dorsal Spine
+    // The rear booster carries the single long antenna below.
     const antennaMasts = [];
-    for (const antX of [-.24, .24]) {
-      const antennaPivot = new THREE.Group();
-      antennaPivot.position.set(antX, 1.655, -1.2);
-      const antenna = mechCylinder(.03, .015, 1.25, gunmetalMat, 8);
-      antenna.position.y = .625;
-      antennaPivot.add(antenna);
-      body.add(antennaPivot);
-      antennaMasts.push({ pivot: antennaPivot, phase: antX > 0 ? .8 : 0 });
-    }
 
     const centerKeel = mechBox(.72, 1.34, .3, gunmetalMat, .07);
     centerKeel.position.set(0, -.08, 1.94);
@@ -4270,7 +4418,7 @@
       const support = mechBox(.58, .72, .72, gunmetalMat, .1);
       support.position.y = -.58;
       mount.add(support);
-      addHazardStripePanel(mount, .5, .38, .035, [0, -.58, .385], side * -.42);
+      addHazardStripePanel(support, .5, .38, .035, [0, 0, .385], side * -.42);
 
       const cannon = new THREE.Group();
       cannon.add(mechBox(1.25, .88, 2.2, armorMat, .14));
@@ -4348,7 +4496,6 @@
         model.visible = false;
         mount.add(model);
       }
-      player.add(mount);
       shoulderWeaponMounts.push(mount);
       shoulderWeaponModels.cannon.push(cannon);
       shoulderWeaponModels.gatling.push(gatling);
@@ -4462,6 +4609,15 @@
     const packSpine = mechBox(.42, 1.56, .16, gunmetalMat, .04);
     packSpine.position.set(0, 5.02, -2.46);
     jetpack.add(packSpine);
+    const longBoosterAntennaPivot = new THREE.Group();
+    longBoosterAntennaPivot.position.set(-.56, 5.78, -2.46);
+    const longBoosterAntenna = mechCylinder(.028, .014, 1.72, gunmetalMat, 8);
+    longBoosterAntenna.position.y = .86;
+    const longBoosterAntennaTip = new THREE.Mesh(new THREE.SphereGeometry(.07, 8, 6), boosterAccentMat);
+    longBoosterAntennaTip.position.y = 1.72;
+    longBoosterAntennaPivot.add(longBoosterAntenna, longBoosterAntennaTip);
+    jetpack.add(longBoosterAntennaPivot);
+    antennaMasts.push({ pivot: longBoosterAntennaPivot, phase: 1.45, long: true });
     const backpackCell = mechBox(.72, 1.14, .18, warningMat, .06);
     backpackCell.position.set(0, 5.05, -2.18);
     jetpack.add(backpackCell);
@@ -4554,20 +4710,6 @@
       feedPipe.rotation.z = side * -.32;
       jetpack.add(feedPipe);
     }
-    const antennaBase = mechCylinder(.2, .25, .3, gunmetalMat, 14);
-    antennaBase.position.set(-1.78, 6.08, -2.04);
-    jetpack.add(antennaBase);
-    const antennaMast = mechCylinder(.045, .055, 1.28, hydraulicMat, 10);
-    antennaMast.position.set(-1.76, 6.88, -2.04);
-    antennaMast.rotation.z = -.04;
-    jetpack.add(antennaMast);
-    const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(.11, 12, 8), warningMat);
-    antennaTip.position.set(-1.8, 7.56, -2.04);
-    jetpack.add(antennaTip);
-    const antennaDish = mechCylinder(.18, .08, .08, armorLightMat, 16);
-    antennaDish.rotation.x = Math.PI / 2;
-    antennaDish.position.set(-1.76, 7.16, -2.08);
-    jetpack.add(antennaDish);
     for (const leg of playerLegs) {
       const foot = leg.userData.joints.foot;
       const soleNozzle = mechCylinder(.28, .18, .34, gunmetalMat, 12);
@@ -4585,6 +4727,12 @@
     }
     jetpack.visible = true;
     player.add(jetpack);
+    // The antenna pair belongs to the rear booster pack, not the torso.
+    // Preserve their authored world placement while making them inherit the
+    // booster movement and exhaust vibration.
+    for (const mast of antennaMasts) {
+      if (mast.pivot.parent !== jetpack) jetpack.attach(mast.pivot);
+    }
     for (const flame of [...jetFlames, ...footBoostFlames]) {
       flame.traverse(object => {
         if (object.isMesh) object.frustumCulled = true;
@@ -7184,6 +7332,7 @@
           hub.position.set(rx, 0.12, rz);
 
           const propellerGroup = new THREE.Group();
+          propellerGroup.name = 'DroneRotor';
           propellerGroup.position.set(rx, 0.18, rz);
 
           for (let b = 0; b < 3; b++) {
@@ -7599,6 +7748,30 @@
       hangarLaunching = false;
       hangarLaunchTime = 0;
       if (hangarLiftPlatform && hangarLiftPlatform.parent !== hangarGroup) hangarGroup.attach(hangarLiftPlatform);
+      // A battle elevator can temporarily be re-parented to the battlefield
+      // during arrival. Restore the complete hangar elevator visibility when
+      // entering the hangar again, including the pause -> title path.
+      if (hangarLiftPlatform) {
+        // attach() preserves the battlefield world position. The hangar lift
+        // must be returned to the center of the hangar shaft before showing it.
+        hangarLiftPlatform.position.x = 0;
+        hangarLiftPlatform.position.z = 0;
+        hangarLiftPlatform.visible = true;
+      }
+      if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.visible = true;
+      if (window.hangarRepairDrones) {
+        for (const drone of window.hangarRepairDrones) {
+          if (drone.parent !== hangarGroup) hangarGroup.attach(drone);
+          const data = drone.userData;
+          data.fieldPatrolActive = false;
+          data.fieldPatrolTime = 0;
+          data.state = 'WAITING';
+          data.waitTimer = data.arrivalDelay;
+          drone.position.copy(data.route.start);
+          drone.rotation.set(0, 0, 0);
+          drone.visible = true;
+        }
+      }
       if (battleElevatorOpening) battleElevatorOpening.visible = false;
       arrivalGateGroup.visible = false;
       if (hangarGateLeft) hangarGateLeft.position.x = -3.9;
@@ -7607,7 +7780,7 @@
       if (hangarLiftGateRight) hangarLiftGateRight.position.x = titleActive ? HANGAR_LIFT_GATE_CLOSED_X : HANGAR_LIFT_GATE_OPEN_X;
       if (hangarLiftGateLeft) hangarLiftGateLeft.position.y = HANGAR_LIFT_GATE_BASE_Y;
       if (hangarLiftGateRight) hangarLiftGateRight.position.y = HANGAR_LIFT_GATE_BASE_Y;
-      if (hangarLiftPlatform) hangarLiftPlatform.position.y = titleActive ? TITLE_LIFT_START_Y : 0;
+      if (hangarLiftPlatform) hangarLiftPlatform.position.y = titleActive && !titleReturnElevatorDrop ? TITLE_LIFT_START_Y : 0;
       if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = titleActive ? 0 : -0.96;
       for (const particle of hangarLaunchParticles) {
         particle.visible = false;
@@ -7647,7 +7820,7 @@
       // The dirty guard makes the first hangar entry bake the probe once;
       // later returns reuse the same cube map without a render hitch.
       updateHangarReflectionCache();
-      for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems]) item.visible = false;
+      for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems, ...droneItems]) item.visible = false;
       player.visible = true;
       player.position.set(0, titleActive ? TITLE_LIFT_START_Y * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET : HANGAR_STAND_GROUND_OFFSET, 0);
       player.rotation.set(0, Math.PI, 0);
@@ -7857,6 +8030,14 @@
       hangarSparkLight.distance = 10;
       hangarSparkLight.intensity = 0;
       if (titleActive && !hangarLaunching) {
+        if (titleReturnElevatorDrop) {
+          titleRevealTime = Math.min(3.2, titleRevealTime + dt);
+          const dropProgress = THREE.MathUtils.smoothstep(titleRevealTime, 0, 2.8);
+          if (hangarLiftPlatform) hangarLiftPlatform.position.y = THREE.MathUtils.lerp(0, TITLE_LIFT_START_Y, dropProgress);
+          if (elevatorSafetyFenceGroup) elevatorSafetyFenceGroup.position.y = THREE.MathUtils.lerp(-0.96, 0, dropProgress);
+          player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET;
+          player.rotation.y = Math.PI;
+        } else {
         titleRevealTime = Math.min(6.8, titleRevealTime + dt);
         const reveal = THREE.MathUtils.smoothstep(titleRevealTime, .25, 3.0);
         // Open the split hatch first, then start the elevator after a short hold.
@@ -7880,6 +8061,7 @@
         // Keep the walker locked to the whole rising plate, not just a vertical pose offset.
         player.position.y = (hangarLiftPlatform ? hangarLiftPlatform.position.y : 0) * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET;
         player.rotation.y = Math.PI + (reveal < .995 ? Math.sin(now * .65) * .08 * (1 - reveal) : 0);
+        }
       }
       const hangarElevatorArrived = !titleActive || !hangarLiftPlatform || hangarLiftPlatform.position.y > -.05;
       for (const mechanic of maintenanceMechanics) {
@@ -8293,6 +8475,54 @@
           }
         }
       }
+      function activateFieldDrones() {
+        if (!window.hangarRepairDrones) return;
+        for (const drone of window.hangarRepairDrones) {
+          const data = drone.userData;
+          // Reuse the hangar meshes in the field environment after the hangar
+          // is hidden instead of creating another set of drone resources.
+          if (drone.parent !== envGroup) envGroup.attach(drone);
+          data.fieldPatrolActive = true;
+          data.fieldPatrolTime = data.phase * .7;
+          data.scanBeams?.forEach(beam => beam.visible = false);
+          if (data.scanEmitter) data.scanEmitter.visible = false;
+          drone.visible = true;
+          drone.position.set(
+            player.position.x + Math.cos(data.phase) * 18,
+            8.5 + (data.id % 3) * 2.2,
+            player.position.z - 18 + Math.sin(data.phase) * 10
+          );
+        }
+      }
+
+      window.updateFieldDrones = function updateFieldDrones(dt) {
+        if (!window.hangarRepairDrones || hangarActive || hangarLaunching || !envGroup.visible) return;
+        const now = performance.now() * .001;
+        for (const drone of window.hangarRepairDrones) {
+          const data = drone.userData;
+          if (!data.fieldPatrolActive) continue;
+          data.fieldPatrolTime += dt;
+          for (let rotorIndex = 0; rotorIndex < data.rotorBlades.length; rotorIndex++) {
+            data.rotorBlades[rotorIndex].rotation.y += dt * 42 * (rotorIndex % 2 === 0 ? 1 : -1);
+          }
+          const angle = data.fieldPatrolTime * (.16 + data.id * .025) + data.phase;
+          const radius = 16 + data.id * 5;
+          const target = new THREE.Vector3(
+            player.position.x + Math.cos(angle) * radius,
+            8.5 + Math.sin(now * .8 + data.phase) * 1.6 + data.id * 1.8,
+            player.position.z + Math.sin(angle) * radius - 5
+          );
+          const previous = drone.position.clone();
+          drone.position.lerp(target, 1 - Math.exp(-1.8 * dt));
+          const movement = drone.position.clone().sub(previous);
+          if (movement.lengthSq() > .0001) {
+            drone.rotation.z = THREE.MathUtils.lerp(drone.rotation.z, -movement.x * 1.8, dt * 3.5);
+            drone.rotation.x = THREE.MathUtils.lerp(drone.rotation.x, movement.z * 1.8, dt * 3.5);
+            drone.rotation.y = THREE.MathUtils.lerp(drone.rotation.y, Math.atan2(movement.x, movement.z), dt * 2.5);
+          }
+        }
+      }
+
       // Update Hero Pilot (`heroPilot`)
       if (heroPilot) {
         const breath = Math.sin(now * 2.2) * 0.04;
@@ -8532,7 +8762,9 @@
       hangarLaunching = false;
       hangarActive = false;
       hangarGroup.visible = false;
-      for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems]) item.visible = true;
+      // Hangar drones stay in the hangar. A field drone is created only after
+      // a player or CPU collects the dedicated drone companion pickup.
+      for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems, ...droneItems]) item.visible = true;
       envGroup.visible = false;
       jetpack.visible = true;
       for (const flame of [...jetFlames, ...footBoostFlames]) flame.visible = false;
@@ -8633,6 +8865,7 @@ let landingRecoveryTimer = 0;
     const PLAYER_MAX_HEALTH = 200;
     const PLAYER_MAX_ENERGY = 200;
     const PLAYER_MAX_SHIELD = 200;
+    const BOOST_ENERGY_PICKUP_AMOUNT = PLAYER_MAX_ENERGY;
     let playerHealth = PLAYER_MAX_HEALTH;
     let lastFireDamageMessageAt = 0;
     const partHealth = { head: 100, torso: 100, leftArm: 100, rightArm: 100, legs: 100 };
@@ -8688,6 +8921,7 @@ let landingRecoveryTimer = 0;
     let freeCamPitch = 0;
     let jetpackEquipped = false;
     let jetpackTimeRemaining = 0;
+    let boostEnergyCapacity = PLAYER_MAX_ENERGY;
     let boostEnergy = PLAYER_MAX_ENERGY;
     let homingMissileAmmo = 0;
     let homingRackRotationIndex = 0;
@@ -8721,6 +8955,7 @@ let landingRecoveryTimer = 0;
     let titleActive = true;
     let titleIntroPlayed = false;
     let titleRevealTime = 0;
+    let titleReturnElevatorDrop = false;
     let hangarLaunching = false;
     let hangarLaunchTime = 0;
     let mobileDashRequest = false;
@@ -8940,6 +9175,16 @@ let landingRecoveryTimer = 0;
     const jumpItems = [];
     const healthItems = [];
     const shieldItems = [];
+    const droneItems = [];
+    const MAX_DRONE_COMPANIONS = 2;
+    const playerDroneCompanions = [];
+    const droneCompanionProjectiles = [];
+    const droneCompanionProjectilePool = [];
+    const droneCompanionProjectileGeometry = new THREE.SphereGeometry(.12, 8, 6);
+    const droneCompanionProjectileMaterial = new THREE.MeshBasicMaterial({
+      color: 0xffb347,
+      toneMapped: false
+    });
     const PICKUP_STAY_MS = 30000;
     const PICKUP_RELOCATE_INTERVAL_MS = 450;
     let pickupRelocationCursor = 0;
@@ -8978,6 +9223,9 @@ let landingRecoveryTimer = 0;
     const burningEffects = [];
     const burningEffectPool = [];
     const mechDeathEffects = [];
+    const mechDeathEffectPool = [];
+    const mechDeathDebrisPool = [];
+    const scatteredMechParts = [];
     const footstepEffects = [];
     const footstepDecals = [];
     const footstepRingGeometry = new THREE.RingGeometry(.38, .7, 24);
@@ -9112,6 +9360,7 @@ let landingRecoveryTimer = 0;
     const explosionSparkParticlePool = [];
     const EXPLOSION_SMOKE_CAPACITY = 256;
     const EXPLOSION_SPARK_CAPACITY = 72;
+    const EXPLOSION_SPARK_LIFETIME = 1.05;
     const explosionParticleDirection = new THREE.Vector3();
     const explosionParticleAxis = new THREE.Vector3(0, 0, 1);
     for (let index = 0; index < EXPLOSION_SMOKE_CAPACITY; index++) {
@@ -9123,7 +9372,7 @@ let landingRecoveryTimer = 0;
     for (let index = 0; index < EXPLOSION_SPARK_CAPACITY; index++) {
       explosionSparkParticlePool.push({
         position: new THREE.Vector3(), velocity: new THREE.Vector3(),
-        quaternion: new THREE.Quaternion(), elapsed: 0, duration: .68, radius: 0
+        quaternion: new THREE.Quaternion(), elapsed: 0, duration: EXPLOSION_SPARK_LIFETIME, radius: 0
       });
     }
     const explosionSmokeInstances = new THREE.InstancedMesh(
@@ -9271,7 +9520,7 @@ let landingRecoveryTimer = 0;
     const missileTrailPool = [];
     for (let i = 0; i < 48; i++) missileTrailPool.push(new THREE.Mesh(missileTrailGeo, missileTrailMatBase.clone()));
     const homingSmokeTrailGeo = new THREE.IcosahedronGeometry(.2, 1);
-    const homingSmokeTrailMatBase = new THREE.MeshBasicMaterial({ color: 0x7f8b8c, transparent: true, opacity: .24, depthWrite: false });
+    const homingSmokeTrailMatBase = new THREE.MeshBasicMaterial({ color: 0x4c585a, transparent: true, opacity: .42, depthWrite: false });
     const homingSmokeTrailPool = [];
     const homingSmokeTrails = [];
     for (let i = 0; i < 96; i++) {
@@ -9485,6 +9734,7 @@ let landingRecoveryTimer = 0;
       }
     });
     document.getElementById('pauseButton').addEventListener('click', togglePause);
+    document.getElementById('pauseReturnTitleButton').addEventListener('click', returnToTitleFromPause);
     document.getElementById('freeCamButton').addEventListener('click', toggleFreeCamera);
     document.getElementById('cockpitCameraButton').addEventListener('click', () => {
       cockpitCameraActive = !cockpitCameraActive;
@@ -9644,11 +9894,22 @@ let landingRecoveryTimer = 0;
     let stability = 100;
     const collapsingBuildings = new Set();
     const buildingCollapseStates = new Map();
+    const buildingTiltStates = new Map();
     const pendingSupportChecks = new Set();
     const collapsedRubbleObstacles = [];
     const collapsedRubbleBuildingIds = new Set();
-    const collapsedRubbleGeometry = new THREE.DodecahedronGeometry(1, 0);
-    const collapsedRubbleMaterial = new THREE.MeshStandardMaterial({ color: 0x777c7e, roughness: .94, metalness: .03 });
+    // Persistent post-collapse debris uses the same rectilinear language as
+    // the buildings: broken wall blocks, floor slabs and exposed beams.
+    const collapsedRubbleGeometries = [
+      new THREE.BoxGeometry(1, 1, 1),
+      new THREE.BoxGeometry(1, 1, 1.8),
+      new THREE.BoxGeometry(1, 1.7, 1)
+    ];
+    const collapsedRubbleMaterials = [
+      new THREE.MeshStandardMaterial({ color: 0x777c7e, roughness: .94, metalness: .03 }),
+      new THREE.MeshStandardMaterial({ color: 0x929698, roughness: .92, metalness: .03 }),
+      new THREE.MeshStandardMaterial({ color: 0x5f666a, roughness: .96, metalness: .02 })
+    ];
 
     function createFacadeMaterial(frame, glass, warm, cool) {
       const canvas = document.createElement('canvas');
@@ -9971,7 +10232,7 @@ let landingRecoveryTimer = 0;
         visualTuningRevision: 2
       });
     }
-    battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(visualSettings.battlefieldTimeOfDay ?? 12), 0, 24);
+    battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(visualSettings.battlefieldTimeOfDay ?? 10), 0, 24);
     battlefieldAtmosphere.environmentColor = visualSettings.battlefieldEnvironmentColor || '#dceaf5';
     const visualControls = {
       reflectionIntensity: ['envMapIntensity', 3],
@@ -10033,9 +10294,11 @@ let landingRecoveryTimer = 0;
         }, null, 2);
       }
       if (key === 'rainIntensity') {
+        currentRainIntensity = THREE.MathUtils.clamp(amount, 0, 1);
         rainSystem.setIntensity(amount);
         rainSplashSystem.setIntensity(amount);
         applyWetSurfaceIntensity(amount);
+        applyBattlefieldAtmosphere(false);
       }
       transparentWindowMat.needsUpdate = true;
       localStorage.setItem('mechaVisualSettings', JSON.stringify(visualSettings));
@@ -10296,7 +10559,7 @@ let landingRecoveryTimer = 0;
           applyVisualSetting(id, value);
         });
         if ('battlefieldTimeOfDay' in parsed || 'battlefieldEnvironmentColor' in parsed) {
-          battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(parsed.battlefieldTimeOfDay ?? 12), 0, 24);
+          battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(parsed.battlefieldTimeOfDay ?? 10), 0, 24);
           battlefieldAtmosphere.environmentColor = parsed.battlefieldEnvironmentColor || '#dceaf5';
           if (battlefieldTimeControl) battlefieldTimeControl.value = battlefieldAtmosphere.timeOfDay;
           if (battlefieldColorControl) battlefieldColorControl.value = battlefieldAtmosphere.environmentColor;
@@ -10795,17 +11058,22 @@ let landingRecoveryTimer = 0;
     function spawnCollapsedRubble(buildingId, centerX, centerZ) {
       if (collapsedRubbleBuildingIds.has(buildingId)) return;
       collapsedRubbleBuildingIds.add(buildingId);
-      const pileCount = 5;
+      const pileCount = 10;
       for (let index = 0; index < pileCount; index++) {
         const angle = (index / pileCount) * Math.PI * 2 + Math.random() * .45;
-        const distance = 1.3 + Math.random() * 2.7;
-        const width = .85 + Math.random() * .9;
-        const height = .35 + Math.random() * .45;
-        const depth = .75 + Math.random() * .85;
-        const mesh = new THREE.Mesh(collapsedRubbleGeometry, collapsedRubbleMaterial);
+        const distance = 1.0 + Math.random() * 3.8;
+        const fragmentType = index % 5 === 0 ? 2 : index % 3 === 0 ? 1 : 0;
+        const width = fragmentType === 2 ? .22 + Math.random() * .22 : .75 + Math.random() * 1.05;
+        const height = fragmentType === 2 ? 1.0 + Math.random() * .8 : fragmentType === 1 ? .18 + Math.random() * .18 : .32 + Math.random() * .58;
+        const depth = fragmentType === 1 ? .72 + Math.random() * .7 : .65 + Math.random() * .95;
+        const mesh = new THREE.Mesh(
+          collapsedRubbleGeometries[fragmentType],
+          collapsedRubbleMaterials[index % collapsedRubbleMaterials.length]
+        );
+        const actualHeight = height * (fragmentType === 2 ? 1.7 : 1);
         mesh.position.set(
           centerX + Math.cos(angle) * distance,
-          height * .5,
+          actualHeight * .5,
           centerZ + Math.sin(angle) * distance
         );
         mesh.scale.set(width, height, depth);
@@ -10828,7 +11096,13 @@ let landingRecoveryTimer = 0;
       buildingShadowProxies.clear();
       while (building.children.length) building.remove(building.children[0]);
       cannonPhysics.clearDynamics();
-      for (const piece of debris) scene.remove(piece);
+      for (const piece of debris) {
+        scene.remove(piece);
+        if (piece.userData.poolType === 'mechDeath') {
+          piece.visible = false;
+          mechDeathDebrisPool.push(piece);
+        }
+      }
       debris.length = 0;
       clearFractureInstances();
       for (const item of powerItems) scene.remove(item);
@@ -10844,7 +11118,9 @@ let landingRecoveryTimer = 0;
       for (const item of healthItems) scene.remove(item);
       healthItems.length = 0;
       for (const item of shieldItems) scene.remove(item);
+      for (const item of droneItems) scene.remove(item);
       shieldItems.length = 0;
+      droneItems.length = 0;
       for (const block of blocks) block.userData.cameraFadeMaterial?.dispose();
       cameraFadedObjects.clear();
       blocks.length = 0;
@@ -10857,6 +11133,7 @@ let landingRecoveryTimer = 0;
       stability = 100;
       collapsingBuildings.clear();
       buildingCollapseStates.clear();
+      buildingTiltStates.clear();
       pendingSupportChecks.clear();
       destructibleSmallHouses.length = 0;
 
@@ -12336,6 +12613,7 @@ let landingRecoveryTimer = 0;
       playGameSound('ui');
       startTitleHangarBgm();
       titleActive = false;
+      titleReturnElevatorDrop = false;
       titleIntroPlayed = true;
       titleCameraDragging = false;
       hangarCameraYaw = 0;
@@ -12363,6 +12641,7 @@ let landingRecoveryTimer = 0;
       const returnCameraPitch = hangarCameraPitch;
       titleActive = true;
       titleIntroPlayed = true;
+      titleReturnElevatorDrop = false;
       titleCameraYaw = THREE.MathUtils.clamp(returnCameraYaw, -.85, .85);
       titleCameraPitch = THREE.MathUtils.clamp(returnCameraPitch, -.85, .95);
       titleRevealTime = 4.8;
@@ -12641,9 +12920,6 @@ let landingRecoveryTimer = 0;
         : slot === 1 ? missileMuzzleLeft : missileMuzzle;
       if (useHoming) {
         const activeMissileFlash = slot === 1 ? missileFlashLeft : missileFlash;
-        homingRackRotationIndex = (homingRackRotationIndex + 1) % 4;
-        const activeRack = slot === 1 ? missileRackLeft : missileRack;
-        activeRack.rotation.z = homingRackRotationIndex * Math.PI / 2;
         activeMissileFlash.userData.timer = .12;
         activeMissileFlash.visible = true;
         attackTimer = .26;
@@ -13129,9 +13405,42 @@ let landingRecoveryTimer = 0;
         scene.add(shieldPickup);
         shieldItems.push(shieldPickup);
       }
+      for (let index = 0; index < MAX_DRONE_COMPANIONS; index++) {
+        const droneSpawn = getRandomItemPoint();
+        const dronePickup = window.hangarRepairDrones?.[0]?.clone(true) || new THREE.Group();
+        dronePickup.name = `DroneCompanionPickup_${index + 1}`;
+        dronePickup.scale.setScalar(.58);
+        dronePickup.position.set(droneSpawn.x, 2.0, droneSpawn.z);
+        dronePickup.userData.baseY = 2.0;
+        dronePickup.userData.phase = Math.random() * Math.PI * 2;
+        dronePickup.userData.pickupKind = 'drone-companion';
+        dronePickup.traverse(object => {
+          if (!object.isMesh) return;
+          object.frustumCulled = true;
+          if (!object.material) return;
+          const sourceMaterial = object.material;
+          const applyPickupMaterial = material => {
+            const pickupMaterial = material.clone();
+            if (pickupMaterial.isMeshStandardMaterial) {
+              const isFrame = Number(pickupMaterial.metalness || 0) > .88;
+              pickupMaterial.color.setHex(isFrame ? 0x9ff4ff : 0x087f9f);
+              pickupMaterial.emissive.setHex(isFrame ? 0x176f82 : 0x043f5a);
+              pickupMaterial.emissiveIntensity = isFrame ? .75 : 1.1;
+              pickupMaterial.needsUpdate = true;
+            }
+            return pickupMaterial;
+          };
+          object.material = Array.isArray(sourceMaterial)
+            ? sourceMaterial.map(applyPickupMaterial)
+            : applyPickupMaterial(sourceMaterial);
+        });
+        scene.add(dronePickup);
+        droneItems.push(dronePickup);
+      }
       const itemGroups = [
         [powerItems, 0xffad4d], [jetpackItems, 0xb05cff], [homingItems, 0x6cff68],
-        [laserItems, 0x21dfff], [jumpItems, 0xffd34f], [healthItems, 0x4dffcf], [shieldItems, 0x56c9ff]
+        [laserItems, 0x21dfff], [jumpItems, 0xffd34f], [healthItems, 0x4dffcf], [shieldItems, 0x56c9ff],
+        [droneItems, 0xffb347]
       ];
       pickupRelocationCursor = 0;
       for (const [items, color] of itemGroups) {
@@ -13282,13 +13591,20 @@ let landingRecoveryTimer = 0;
       const dropCount = health.floors >= 14 ? 5 : 4;
       const guaranteedTypes = [Math.random() < .5 ? 'repair' : 'shield', Math.random() < .55 ? 'overdrive' : 'missile'];
       for (let index = 0; index < dropCount; index++) {
-        const angle = index / dropCount * Math.PI * 2 + Math.random() * .45;
-        const radius = THREE.MathUtils.randFloat(7.1, 9.2);
-        const position = new THREE.Vector3(
-          bounds.x + Math.cos(angle) * radius,
-          0,
-          bounds.z + Math.sin(angle) * radius
-        );
+        let position = null;
+        for (let attempt = 0; attempt < 18 && !position; attempt++) {
+          const angle = index / dropCount * Math.PI * 2 + Math.random() * .45 + attempt * .17;
+          // Place salvage just outside the rubble ring so the mech can reach
+          // it without having to push through collapsed building pieces.
+          const radius = THREE.MathUtils.randFloat(11.2, 14.2);
+          const candidate = new THREE.Vector3(
+            bounds.x + Math.cos(angle) * radius,
+            0,
+            bounds.z + Math.sin(angle) * radius
+          );
+          if (isPickupPointClearOfRubble(candidate, 1.1)) position = candidate;
+        }
+        if (!position) position = new THREE.Vector3(bounds.x, 0, bounds.z + 14.2);
         const type = guaranteedTypes[index] || chooseCollapseLootType();
         spawnSalvagePickup(type, position);
       }
@@ -13299,6 +13615,13 @@ let landingRecoveryTimer = 0;
     function createCityDecor() {
       while (cityDecor.children.length) {
         const object = cityDecor.children[0];
+        // Battle spectator drones share the hangar drone GPU resources.
+        // Their clone is removed here, but the source geometry/materials must
+        // remain alive for the hangar and for the next city rebuild.
+        if (object.userData?.isBattleSpectatorDrone) {
+          cityDecor.remove(object);
+          continue;
+        }
         object.geometry?.dispose();
         if (Array.isArray(object.material)) object.material.forEach(material => material.dispose());
         else object.material?.dispose();
@@ -13410,6 +13733,11 @@ let landingRecoveryTimer = 0;
       const branchD = new THREE.InstancedMesh(new THREE.CylinderGeometry(.045, .1, 1.12, 8), branchMaterial, count);
       const crownGeometry = new THREE.IcosahedronGeometry(1.32, 3);
       const crowns = leafMaterials.map(material => new THREE.InstancedMesh(crownGeometry, material, count));
+      const crownSecondLayer = leafMaterials.map((_, index) => new THREE.InstancedMesh(
+        crownGeometry,
+        leafMaterials[(index + 2) % leafMaterials.length],
+        count
+      ));
       const matrix = new THREE.Matrix4();
       const quaternion = new THREE.Quaternion();
       const up = new THREE.Vector3(0, 1, 0);
@@ -13471,14 +13799,30 @@ let landingRecoveryTimer = 0;
           const rotatedX = ox * Math.cos(localYaw) - oz * Math.sin(localYaw);
           const rotatedZ = ox * Math.sin(localYaw) + oz * Math.cos(localYaw);
           const foliageHeightScale = point.roadside ? 1.25 : 1;
+          const foliageSizeBoost = point.roadside ? 1.06 : 1.05;
           quaternion.setFromAxisAngle(up, localYaw * .32);
           matrix.compose(
             new THREE.Vector3(point.x + rotatedX * scale, oy * scale + (point.roadside ? .12 : 0), point.z + rotatedZ * scale),
             quaternion,
-            new THREE.Vector3(size * scale, size * scale * THREE.MathUtils.randFloat(.82, 1.16) * foliageHeightScale, size * scale)
+            new THREE.Vector3(size * scale * foliageSizeBoost, size * scale * THREE.MathUtils.randFloat(.82, 1.16) * foliageHeightScale * foliageSizeBoost, size * scale * foliageSizeBoost)
           );
-        crowns[crownIndex].setMatrixAt(index, matrix);
+          crowns[crownIndex].setMatrixAt(index, matrix);
           crowns[crownIndex].setColorAt(index, new THREE.Color().setHSL(.27 + Math.random() * .05, .42 + Math.random() * .1, .63 + Math.random() * .12));
+
+          // A second offset layer fills the gaps between the primary foliage
+          // lobes without creating another geometry or another tree collider.
+          const layerYaw = localYaw + .58;
+          const layerOffset = .16 * scale;
+          const layerX = rotatedX + Math.cos(layerYaw) * layerOffset;
+          const layerZ = rotatedZ + Math.sin(layerYaw) * layerOffset;
+          quaternion.setFromAxisAngle(up, layerYaw * .32);
+          matrix.compose(
+            new THREE.Vector3(point.x + layerX, (oy + .1) * scale + (point.roadside ? .12 : 0), point.z + layerZ),
+            quaternion,
+            new THREE.Vector3(size * scale * .92, size * scale * THREE.MathUtils.randFloat(.78, 1.08) * foliageHeightScale * .92, size * scale * .92)
+          );
+          crownSecondLayer[crownIndex].setMatrixAt(index, matrix);
+          crownSecondLayer[crownIndex].setColorAt(index, new THREE.Color().setHSL(.27 + Math.random() * .05, .42 + Math.random() * .1, .58 + Math.random() * .1));
         });
         // Low octagonal metal guards protect each trunk without becoming a
         // new obstacle in the pedestrian/mech lanes.
@@ -13491,16 +13835,16 @@ let landingRecoveryTimer = 0;
       trunks.receiveShadow = true;
       treeGuardPlates.castShadow = treeGuardPlates.receiveShadow = true;
       branchA.castShadow = branchB.castShadow = branchC.castShadow = branchD.castShadow = true;
-      crowns.forEach(crown => {
+      [...crowns, ...crownSecondLayer].forEach(crown => {
         crown.castShadow = true;
         crown.receiveShadow = true;
         if (crown.instanceColor) crown.instanceColor.needsUpdate = true;
       });
       if (trunks.instanceColor) trunks.instanceColor.needsUpdate = true;
-      cityDecor.add(treeGuardPlates, trunks, branchA, branchB, branchC, branchD, ...crowns);
+      cityDecor.add(treeGuardPlates, trunks, branchA, branchB, branchC, branchD, ...crowns, ...crownSecondLayer);
       treeTrunks = [trunks];
       treeBranches = [branchA, branchB, branchC, branchD];
-      treeCrowns = crowns;
+      treeCrowns = [...crowns, ...crownSecondLayer];
 
       // One lamp pair per row keeps both road sides balanced while reducing
       // repeated shadow and draw work by roughly half.
@@ -13837,19 +14181,33 @@ let landingRecoveryTimer = 0;
         cityFireSources.push({ group, flames, smoke, phase: index * 1.7 + Math.random() * 3 });
       });
 
-      const droneBodyMat = new THREE.MeshStandardMaterial({ color: 0x26313a, roughness: .35, metalness: .82 });
-      const droneGlowMat = new THREE.MeshBasicMaterial({ color: 0xff4352, transparent: true, opacity: .9, toneMapped: false });
-      const dronePositions = currentLevel === 1 ? [[-32, 12, -76], [36, 15, -58]] : [[-32, 12, -76], [36, 15, -58], [-55, 10, 54]];
+      // Reuse the detailed hangar repair-drone geometry/materials for the
+      // battle spectators. clone(true) shares GPU resources instead of
+      // rebuilding another set of meshes for every city patrol drone.
+      const hangarDroneSources = window.hangarRepairDrones || [];
+      const dronePositions = currentLevel === 1
+        ? [[-26, 16, -18], [26, 19, -12], [-18, 15, 28], [24, 22, 28]]
+        : [[-28, 17, -20], [28, 20, -14], [-20, 16, 28], [25, 23, 30], [-42, 24, 2], [42, 22, 10]];
       dronePositions.forEach(([x, y, z], index) => {
-        const drone = new THREE.Group();
+        if (!hangarDroneSources.length) return;
+        const drone = hangarDroneSources[index % hangarDroneSources.length].clone(true);
+        const rotorBlades = [];
+        drone.traverse(node => {
+          if (node.name === 'DroneRotor') rotorBlades.push(node);
+        });
+        drone.name = `BattleSpectatorDrone_${index + 1}`;
+        drone.scale.multiplyScalar(1.35);
         drone.position.set(x, y, z);
-        const body = new THREE.Mesh(new THREE.SphereGeometry(.38, 10, 8), droneBodyMat);
-        const rotor = new THREE.Mesh(new THREE.BoxGeometry(1.5, .035, .08), droneBodyMat);
-        const lamp = new THREE.Mesh(new THREE.SphereGeometry(.1, 8, 6), droneGlowMat);
-        lamp.position.y = -.18;
-        drone.add(body, rotor, lamp);
+        drone.userData = {
+          isBattleSpectatorDrone: true,
+          rotorBlades,
+          base: new THREE.Vector3(x, y, z),
+          phase: index * 1.9,
+          orbitRadius: 3.8 + (index % 3) * .9,
+          orbitSpeed: .12 + (index % 2) * .025
+        };
         cityDecor.add(drone);
-        cityPatrolDrones.push({ drone, lamp, base: new THREE.Vector3(x, y, z), phase: index * 1.9 });
+        cityPatrolDrones.push({ drone, rotorBlades, base: drone.userData.base, phase: drone.userData.phase, orbitRadius: drone.userData.orbitRadius, orbitSpeed: drone.userData.orbitSpeed });
       });
     }
 
@@ -14548,14 +14906,18 @@ let landingRecoveryTimer = 0;
         });
       }
       for (const patrol of cityPatrolDrones) {
-        const orbit = now * .16 + patrol.phase;
+        const orbit = now * patrol.orbitSpeed + patrol.phase;
         patrol.drone.position.set(
-          patrol.base.x + Math.cos(orbit) * 2.6,
+          patrol.base.x + Math.cos(orbit) * patrol.orbitRadius,
           patrol.base.y + Math.sin(now * .9 + patrol.phase) * .7,
-          patrol.base.z + Math.sin(orbit) * 2.6
+          patrol.base.z + Math.sin(orbit) * patrol.orbitRadius
         );
         patrol.drone.rotation.y = -orbit + Math.PI / 2;
-        patrol.lamp.material.opacity = .55 + (.5 + .5 * Math.sin(now * 5 + patrol.phase)) * .4;
+        patrol.drone.rotation.z = Math.sin(now * 1.8 + patrol.phase) * .035;
+        patrol.drone.rotation.x = Math.cos(now * 1.35 + patrol.phase) * .025;
+        for (const rotor of patrol.rotorBlades) {
+          rotor.rotation.y += dt * 32;
+        }
       }
     }
 
@@ -15107,6 +15469,18 @@ let landingRecoveryTimer = 0;
       return bestPoint;
     }
 
+    function isPickupPointClearOfRubble(point, clearance = 1.4) {
+      for (const rubble of collapsedRubbleObstacles) {
+        rubble.mesh.updateWorldMatrix(true, false);
+        blockCollider.setFromObject(rubble.mesh);
+        if (
+          point.x >= blockCollider.min.x - clearance && point.x <= blockCollider.max.x + clearance &&
+          point.z >= blockCollider.min.z - clearance && point.z <= blockCollider.max.z + clearance
+        ) return false;
+      }
+      return true;
+    }
+
     function getRandomItemPoint() {
       const existingItems = [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems];
       const protectedSpawnPoints = [
@@ -15114,16 +15488,19 @@ let landingRecoveryTimer = 0;
         getFormationSpawn('enemy', 0),
         getFormationSpawn('enemy', 1)
       ];
+      let fallback = null;
       for (let attempt = 0; attempt < 80; attempt++) {
         const point = getRandomSpawnPoint();
         if (protectedSpawnPoints.some(spawn => point.distanceToSquared(spawn) < 18 * 18)) continue;
+        if (!isPickupPointClearOfRubble(point, 1.6)) continue;
+        fallback = point;
         if (existingItems.every(item => {
           const dx = item.position.x - point.x;
           const dz = item.position.z - point.z;
           return dx * dx + dz * dz > 25;
         })) return point;
       }
-      return getRandomSpawnPoint();
+      return fallback || getRandomSpawnPoint();
     }
 
     function projectileHitsBarrier(position, velocity) {
@@ -15237,6 +15614,7 @@ let landingRecoveryTimer = 0;
       pendingSupportChecks.add(buildingId);
       const destroyedColumns = columns.filter(column => column.userData.buildingId === buildingId && column.userData.broken).length;
       if (block.userData.isColumn) showMessage(`MAIN COLUMNS ${destroyedColumns}/4 DESTROYED`);
+      if (destroyedColumns === 2 && !collapsingBuildings.has(buildingId)) startBuildingTilt(buildingId);
       if (destroyedColumns >= 4 && !collapsingBuildings.has(buildingId)) startCollapse(buildingId);
     }
 
@@ -15374,7 +15752,72 @@ let landingRecoveryTimer = 0;
       }
     }
 
+    function startBuildingTilt(buildingId) {
+      if (buildingTiltStates.has(buildingId) || collapsingBuildings.has(buildingId)) return;
+      const bounds = buildingBounds.find(entry => entry.buildingId === buildingId);
+      if (!bounds) return;
+      const destroyed = columns.filter(column =>
+        column.userData.buildingId === buildingId && column.userData.broken
+      );
+      if (destroyed.length < 2) return;
+
+      const tiltDirection = new THREE.Vector3();
+      for (const column of destroyed) {
+        tiltDirection.x += column.position.x - bounds.x;
+        tiltDirection.z += column.position.z - bounds.z;
+      }
+      if (tiltDirection.lengthSq() < .01) {
+        tiltDirection.set(buildingId % 2 ? 1 : -1, 0, 0);
+      } else {
+        tiltDirection.normalize();
+      }
+      // Rotation around this horizontal axis makes the upper floors lean
+      // toward the side where the two main yellow supports were lost.
+      const tiltAxis = new THREE.Vector3(tiltDirection.z, 0, -tiltDirection.x).normalize();
+      const entries = blocks
+        .filter(block => block.userData.buildingId === buildingId && !block.userData.broken && !block.userData.removed)
+        .map(block => ({
+          block,
+          startPosition: block.position.clone(),
+          startQuaternion: block.quaternion.clone()
+        }));
+      if (!entries.length) return;
+      buildingTiltStates.set(buildingId, {
+        buildingId,
+        center: new THREE.Vector3(bounds.x, 0, bounds.z),
+        axis: tiltAxis,
+        angle: THREE.MathUtils.degToRad(6.5),
+        elapsed: 0,
+        duration: 1.1,
+        entries
+      });
+      showMessage('TWO MAIN COLUMNS LOST · STRUCTURE LEANING');
+      shake = Math.max(shake, .24);
+    }
+
+    function updateBuildingTilts(dt) {
+      for (const [buildingId, state] of buildingTiltStates) {
+        if (collapsingBuildings.has(buildingId)) {
+          buildingTiltStates.delete(buildingId);
+          continue;
+        }
+        state.elapsed = Math.min(state.duration, state.elapsed + dt);
+        const progress = THREE.MathUtils.clamp(state.elapsed / state.duration, 0, 1);
+        const eased = progress * progress * (3 - 2 * progress);
+        const tilt = new THREE.Quaternion().setFromAxisAngle(state.axis, state.angle * eased);
+        for (const entry of state.entries) {
+          const { block, startPosition, startQuaternion } = entry;
+          if (block.userData.broken || block.userData.removed) continue;
+          const relative = startPosition.clone().sub(state.center).applyQuaternion(tilt);
+          block.position.copy(state.center).add(relative);
+          block.quaternion.copy(tilt).multiply(startQuaternion);
+        }
+        if (progress >= 1) buildingTiltStates.delete(buildingId);
+      }
+    }
+
     function startCollapse(buildingId) {
+      buildingTiltStates.delete(buildingId);
       collapsingBuildings.add(buildingId);
       const shadowProxy = buildingShadowProxies.get(buildingId);
       if (shadowProxy) shadowProxy.visible = false;
@@ -15551,9 +15994,13 @@ let landingRecoveryTimer = 0;
       const flightSway = THREE.MathUtils.clamp(Math.abs(verticalVelocity) / 18, 0, 1);
       antennaMasts.forEach((mast, index) => {
         const phase = mast.phase + index * .22;
-        const motion = walkSway * .055 + flightSway * .08;
-        mast.pivot.rotation.x = -0.18 + Math.sin(antennaTime * 8.2 + phase) * motion;
-        mast.pivot.rotation.z = Math.cos(antennaTime * 6.7 + phase) * motion * .7;
+        const antennaScale = mast.long ? .7 : 1;
+        const motion = (.012 + walkSway * .14 + flightSway * .2) * antennaScale;
+        const stepWave = Math.sin(antennaTime * (7.2 + walkSway * 3.4) + phase);
+        const swayWave = Math.cos(antennaTime * 5.4 + phase * 1.7);
+        mast.pivot.rotation.x = -0.18 + stepWave * motion;
+        mast.pivot.rotation.z = swayWave * motion * .78;
+        mast.pivot.rotation.y = Math.sin(antennaTime * 4.6 + phase) * motion * .22;
       });
       if (playerDestroyed) return;
       for (let index = 0; index < laserCooldowns.length; index++) {
@@ -15737,7 +16184,7 @@ if (!wasGrounded && grounded) {
 }
       if (!energyUsed) {
         const rechargeRate = grounded ? 34 : jetpackEquipped ? 11 : 0;
-        boostEnergy = Math.min(PLAYER_MAX_ENERGY, boostEnergy + rechargeRate * dt);
+        boostEnergy = Math.min(boostEnergyCapacity, boostEnergy + rechargeRate * dt);
       }
       const dashJetsActive = dashing;
       if (jetpackEquipped && energyUsed && !dashing) {
@@ -15937,6 +16384,18 @@ if (!wasGrounded && grounded) {
         1 - Math.exp(-11 * dt)
       );
       upperBodyPivot.rotation.z = THREE.MathUtils.lerp(upperBodyPivot.rotation.z, 0, 1 - Math.exp(-10 * dt));
+      // The antenna bases are mounted to the moving upper body. Add a small
+      // delayed visual response so they flex with torso pitch/roll instead of
+      // looking rigid while the body turns, braces, or lands.
+      antennaMasts.forEach((mast, index) => {
+        const phase = mast.phase + index * .22;
+        mast.pivot.rotation.x += body.rotation.x * .75 + upperBodyPivot.rotation.x * .55;
+        mast.pivot.rotation.z += body.rotation.z * .9 + upperBodyPivot.rotation.z * 1.15;
+        mast.pivot.rotation.y += Math.sin(antennaTime * 3.2 + phase) * Math.abs(upperBodyPivot.rotation.y) * .035;
+        const boosterMotion = ((dashing ? .16 : 0) + (airBoosting ? .14 : 0) + Math.min(.1, Math.abs(verticalVelocity) * .004)) * (mast.long ? .7 : 1);
+        mast.pivot.rotation.x += Math.sin(antennaTime * 10.5 + phase) * boosterMotion;
+        mast.pivot.rotation.z += Math.cos(antennaTime * 8.4 + phase) * boosterMotion * .72;
+      });
       headGroup.rotation.x = THREE.MathUtils.lerp(
         headGroup.rotation.x,
         THREE.MathUtils.clamp(-launchPitch * .42, -.42, .34),
@@ -15965,6 +16424,7 @@ if (!wasGrounded && grounded) {
     }
 
     function updateDebris(dt) {
+      updateBuildingTilts(dt);
       updateBuildingCollapses(dt);
       updateFractureInstances(dt);
       cannonPhysics.syncKinematic('player', player, playerRadius, MECH_HEIGHT, !playerDestroyed && player.visible);
@@ -16006,6 +16466,9 @@ if (!wasGrounded && grounded) {
           if (piece.userData.isDustCloud) {
             piece.geometry.dispose();
             piece.material.dispose();
+          } else if (piece.userData.poolType === 'mechDeath') {
+            piece.visible = false;
+            mechDeathDebrisPool.push(piece);
           }
           debris.splice(i, 1);
         }
@@ -16342,7 +16805,7 @@ if (!wasGrounded && grounded) {
         explosionSmokeParticles.push(particle);
       }
       if (!SHOW_EXPLOSION_SPARKS) return;
-      for (let index = 0; index < 3; index++) {
+      for (let index = 0; index < 5; index++) {
         const particle = explosionSparkParticlePool.pop();
         if (!particle) break;
         explosionParticleDirection.set(Math.random() - .5, Math.random() * .8, Math.random() - .5).normalize();
@@ -16465,7 +16928,9 @@ if (!wasGrounded && grounded) {
       group.position.y = burningAnchor?.position?.y != null
         ? burningAnchor.position.y + .04
         : .14;
-      group.scale.setScalar(THREE.MathUtils.clamp(radius * .34, .55, 1.8));
+      // Large blasts get a visibly larger persistent fire footprint while the
+      // gameplay damage radius below remains independently bounded.
+      group.scale.setScalar(THREE.MathUtils.clamp(radius * .46, .55, 3.2));
       group.userData.elapsed = 0;
       group.userData.duration = 5 + Math.random() * 3;
       group.userData.radius = THREE.MathUtils.clamp(radius * .34, .9, 2.8);
@@ -16476,19 +16941,24 @@ if (!wasGrounded && grounded) {
 
     const MECH_DEATH_SPLASH_RADIUS = 20;
     const MECH_DEATH_MAX_DAMAGE = 90;
+    const MECH_DEATH_EFFECT_POOL_SIZE = 4;
+    const MECH_DEATH_DEBRIS_POOL_SIZE = 48;
+    const mechDeathTint = new THREE.Color();
+    const mechDeathPrimaryTint = new THREE.Color();
+    const mechDeathDebrisGeometry = new THREE.TetrahedronGeometry(1, 0);
+    const mechDeathDebrisMaterials = [
+      new THREE.MeshStandardMaterial({ color: 0x17212d, roughness: .3, metalness: .9 }),
+      new THREE.MeshStandardMaterial({ color: 0x48677f, roughness: .34, metalness: .78 }),
+      new THREE.MeshStandardMaterial({ color: 0x5ee7ff, emissive: 0x5ee7ff, emissiveIntensity: .75, roughness: .24, metalness: .58 })
+    ];
 
-    function spawnMechDeathExplosion(position, primaryColor = 0x5ee7ff, splashSource = null) {
-      const center = position.clone().add(new THREE.Vector3(0, 4.15, 0));
-
+    function createMechDeathEffectGroup(primaryColor = 0x5ee7ff) {
       const group = new THREE.Group();
-      group.position.copy(center);
-      // A destroyed heavy mech uses the same irregular three-layer sphere
-      // language as the other explosions, scaled to the mech's silhouette.
       const sphereLayers = explosionSphereLayerConfig.map((config, index) => {
         const layer = new THREE.Mesh(explosionSphereGeo, createExplosionSphereMaterial(config));
-        const tint = new THREE.Color(primaryColor);
-        layer.material.uniforms.uColor.value.lerp(tint, index === 0 ? .08 : .42);
-        layer.scale.setScalar(.08);
+        mechDeathPrimaryTint.setHex(primaryColor);
+        mechDeathTint.setHex(config.color).lerp(mechDeathPrimaryTint, index === 0 ? .08 : .42);
+        layer.material.uniforms.uColor.value.copy(mechDeathTint);
         return layer;
       });
       const damageRadiusRing = new THREE.Mesh(
@@ -16504,10 +16974,45 @@ if (!wasGrounded && grounded) {
         })
       );
       damageRadiusRing.rotation.x = -Math.PI / 2;
-      damageRadiusRing.position.y = -4.02;
-      damageRadiusRing.scale.setScalar(MECH_DEATH_SPLASH_RADIUS);
       const light = new THREE.PointLight(primaryColor, 28, 42, 2);
       group.add(...sphereLayers, damageRadiusRing, light);
+      group.userData = { sphereLayers, damageRadiusRing, light };
+      group.visible = false;
+      return group;
+    }
+
+    for (let index = 0; index < MECH_DEATH_EFFECT_POOL_SIZE; index++) {
+      mechDeathEffectPool.push(createMechDeathEffectGroup());
+    }
+    for (let index = 0; index < MECH_DEATH_DEBRIS_POOL_SIZE; index++) {
+      const piece = new THREE.Mesh(mechDeathDebrisGeometry, mechDeathDebrisMaterials[index % mechDeathDebrisMaterials.length].clone());
+      piece.visible = false;
+      piece.userData.poolType = 'mechDeath';
+      mechDeathDebrisPool.push(piece);
+    }
+
+    function spawnMechDeathExplosion(position, primaryColor = 0x5ee7ff, splashSource = null) {
+      const center = position.clone().add(new THREE.Vector3(0, 4.15, 0));
+      const group = mechDeathEffectPool.pop();
+      if (!group) return;
+      group.position.copy(center);
+      const { sphereLayers, damageRadiusRing, light } = group.userData;
+      mechDeathTint.setHex(primaryColor);
+      mechDeathPrimaryTint.setHex(primaryColor);
+      sphereLayers.forEach((layer, index) => {
+        const config = explosionSphereLayerConfig[index];
+        mechDeathTint.setHex(config.color).lerp(mechDeathPrimaryTint, index === 0 ? .08 : .42);
+        layer.material.uniforms.uColor.value.copy(mechDeathTint);
+        layer.material.uniforms.uTime.value = 0;
+        layer.material.uniforms.uOpacity.value = config.opacity;
+        layer.scale.setScalar(.08);
+      });
+      damageRadiusRing.material.color.setHex(primaryColor);
+      damageRadiusRing.rotation.x = -Math.PI / 2;
+      damageRadiusRing.position.y = -4.02;
+      damageRadiusRing.scale.setScalar(MECH_DEATH_SPLASH_RADIUS);
+      light.color.setHex(primaryColor);
+      light.intensity = 28;
       group.userData = {
         elapsed: 0,
         delay: .42,
@@ -16520,21 +17025,19 @@ if (!wasGrounded && grounded) {
         damageRadiusRing,
         light
       };
+      group.visible = true;
       scene.add(group);
       mechDeathEffects.push(group);
-
-      const metalMats = [
-        new THREE.MeshStandardMaterial({ color: 0x17212d, roughness: .3, metalness: .9 }),
-        new THREE.MeshStandardMaterial({ color: 0x48677f, roughness: .34, metalness: .78 }),
-        new THREE.MeshStandardMaterial({ color: primaryColor, emissive: primaryColor, emissiveIntensity: .75, roughness: .24, metalness: .58 })
-      ];
       for (let i = 0; i < 12; i++) {
-        const piece = new THREE.Mesh(
-          new THREE.TetrahedronGeometry(.22 + Math.random() * .38, 0),
-          metalMats[i % metalMats.length]
-        );
+        const piece = mechDeathDebrisPool.pop();
+        if (!piece) break;
+        piece.visible = true;
+        piece.scale.setScalar(.22 + Math.random() * .38);
+        piece.material.color.setHex(i % 3 === 2 ? primaryColor : i % 3 === 1 ? 0x48677f : 0x17212d);
+        if (i % 3 === 2) piece.material.emissive.setHex(primaryColor);
         piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * 1.8, (Math.random() - .5) * 1.6));
         piece.userData = {
+          poolType: 'mechDeath',
           velocity: new THREE.Vector3((Math.random() - .5) * 28, 12 + Math.random() * 18, (Math.random() - .5) * 28),
           angularVelocity: new THREE.Vector3((Math.random() - .5) * 14, (Math.random() - .5) * 14, (Math.random() - .5) * 14),
           life: 2.8 + Math.random() * 1.4,
@@ -16543,7 +17046,68 @@ if (!wasGrounded && grounded) {
         scene.add(piece);
         debris.push(piece);
       }
+      const windowBlastCenter = center.clone();
+      windowBlastCenter.y = 0;
+      shatterWindowsInRadius(windowBlastCenter, new THREE.Vector3(0, 1, 0), MECH_DEATH_SPLASH_RADIUS * 1.35, 48);
       shake = Math.max(shake, 1.35);
+    }
+
+    function scatterPlayerMechParts(origin) {
+      if (scatteredMechParts.length) return;
+      const sources = [
+        body, headGroup, weaponPods[0], weaponPods[1], missileRack, missileRackLeft,
+        jetpack, laserCannonMount, laserCannonMountLeft, shoulderWeaponMounts[0],
+        shoulderWeaponMounts[1], playerLegs[0], playerLegs[1]
+      ].filter(source => source?.parent);
+      const worldOrigin = origin.clone();
+      for (const source of sources) {
+        const parent = source.parent;
+        const localPosition = source.position.clone();
+        const localQuaternion = source.quaternion.clone();
+        const localScale = source.scale.clone();
+        scene.attach(source);
+        const away = source.position.clone().sub(worldOrigin).setY(.2);
+        if (away.lengthSq() < .01) away.set(Math.random() - .5, .2, Math.random() - .5);
+        scatteredMechParts.push({
+          source,
+          parent,
+          localPosition,
+          localQuaternion,
+          localScale,
+          velocity: away.normalize().multiplyScalar(4 + Math.random() * 5).add(new THREE.Vector3(0, 7 + Math.random() * 5, 0)),
+          angularVelocity: new THREE.Vector3((Math.random() - .5) * 8, (Math.random() - .5) * 8, (Math.random() - .5) * 8),
+          life: 3.8
+        });
+      }
+    }
+
+    function updateScatteredMechParts(dt) {
+      for (let index = scatteredMechParts.length - 1; index >= 0; index--) {
+        const part = scatteredMechParts[index];
+        part.velocity.y -= 16 * dt;
+        part.source.position.addScaledVector(part.velocity, dt);
+        part.source.rotation.x += part.angularVelocity.x * dt;
+        part.source.rotation.y += part.angularVelocity.y * dt;
+        part.source.rotation.z += part.angularVelocity.z * dt;
+        part.life -= dt;
+        if (part.life > 0) continue;
+        part.parent.attach(part.source);
+        part.source.position.copy(part.localPosition);
+        part.source.quaternion.copy(part.localQuaternion);
+        part.source.scale.copy(part.localScale);
+        scatteredMechParts.splice(index, 1);
+      }
+    }
+
+    function restoreScatteredMechParts() {
+      for (let index = scatteredMechParts.length - 1; index >= 0; index--) {
+        const part = scatteredMechParts[index];
+        part.parent.attach(part.source);
+        part.source.position.copy(part.localPosition);
+        part.source.quaternion.copy(part.localQuaternion);
+        part.source.scale.copy(part.localScale);
+      }
+      scatteredMechParts.length = 0;
     }
 
     function applyMechDeathSplash(center, sourceKey, radius = MECH_DEATH_SPLASH_RADIUS) {
@@ -16612,9 +17176,6 @@ if (!wasGrounded && grounded) {
           damageBlock(block, splashDamage, impulse);
         }
       }
-
-      // Shatter windows in circular blast radius
-      shatterWindowsInRadius(groundCenter, new THREE.Vector3(0, 1, 0), radius * 1.35, 48);
 
       // Destroy small houses within radial splash radius
       for (const house of destructibleSmallHouses) {
@@ -16716,9 +17277,9 @@ if (!wasGrounded && grounded) {
           explosionParticleDummy.position.copy(particle.position);
           explosionParticleDummy.quaternion.copy(particle.quaternion);
           explosionParticleDummy.scale.set(
-            particle.radius * Math.max(0, 1 - t * 1.45),
-            particle.radius * Math.max(0, 1 - t * 1.45),
-            particle.radius
+            particle.radius * Math.max(0, 1 - t * 1.1),
+            particle.radius * Math.max(0, 1 - t * 1.1),
+            particle.radius * Math.max(0, 1 - t * .82)
           );
         } else {
           explosionParticleDummy.position.set(0, -1000, 0);
@@ -16846,10 +17407,8 @@ if (!wasGrounded && grounded) {
         effect.userData.light.intensity = effect.userData.exploded ? 28 * Math.pow(1 - t, 2) : 4 + charge * 7;
         if (t >= 1) {
           scene.remove(effect);
-          effect.traverse(object => {
-            object.geometry?.dispose();
-            object.material?.dispose();
-          });
+          effect.visible = false;
+          mechDeathEffectPool.push(effect);
           mechDeathEffects.splice(index, 1);
         }
       }
@@ -16976,11 +17535,12 @@ if (!wasGrounded && grounded) {
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .22;
         if (!playerDestroyed && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
           jetpackEquipped = true;
-          jetpackTimeRemaining = 60;
-          boostEnergy = PLAYER_MAX_ENERGY;
+          jetpackTimeRemaining = Math.max(jetpackTimeRemaining, 60);
+          boostEnergyCapacity += BOOST_ENERGY_PICKUP_AMOUNT;
+          boostEnergy = boostEnergyCapacity;
           jetpack.visible = true;
           playGameSound('pickup');
-          showMessage('JETPACK EQUIPPED!');
+          showMessage(`BOOST CAPACITY +${BOOST_ENERGY_PICKUP_AMOUNT} // ${Math.ceil(boostEnergy)}`);
           queuePickupRespawn(item, 32);
           updateHUD();
         } else if (getCpuPickupOwner(item, cpu => !cpu.jetpackEquipped)) {
@@ -17039,6 +17599,342 @@ if (!wasGrounded && grounded) {
           queuePickupRespawn(item, 20);
         }
       }
+      for (let i = droneItems.length - 1; i >= 0; i--) {
+        const item = droneItems[i];
+        if (!refreshPickup(item)) continue;
+        item.rotation.y += pickupSpin * .8;
+        item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .24;
+        if (!playerDestroyed && playerDroneCompanions.length < MAX_DRONE_COMPANIONS && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
+          grantDroneCompanion(null);
+          playGameSound('pickup');
+          showMessage('DRONE SUPPORT ONLINE');
+          queuePickupRespawn(item, 30);
+        } else {
+          const cpu = getCpuPickupOwner(item, candidate => (candidate.droneCompanions?.length || 0) < MAX_DRONE_COMPANIONS);
+          if (cpu) {
+            grantDroneCompanion(cpu);
+            queuePickupRespawn(item, 30);
+          }
+        }
+      }
+    }
+
+    function acquireDroneCompanionProjectile(origin, direction, owner) {
+      const projectile = droneCompanionProjectilePool.pop() || new THREE.Mesh(
+        droneCompanionProjectileGeometry,
+        droneCompanionProjectileMaterial
+      );
+      projectile.visible = true;
+      projectile.position.copy(origin);
+      projectile.userData.velocity = projectile.userData.velocity || new THREE.Vector3();
+      projectile.userData.velocity.copy(direction).multiplyScalar(52);
+      projectile.userData.life = 1.5;
+      projectile.userData.owner = owner;
+      projectile.userData.damage = 6;
+      scene.add(projectile);
+      droneCompanionProjectiles.push(projectile);
+    }
+
+    function releaseDroneCompanionProjectile(projectile) {
+      scene.remove(projectile);
+      projectile.visible = false;
+      projectile.userData.life = 0;
+      droneCompanionProjectilePool.push(projectile);
+    }
+
+    function createDroneCompanion(ownerAI = null) {
+      const sourceDrone = window.hangarRepairDrones?.[0];
+      if (!sourceDrone) return null;
+      const existingCompanions = ownerAI ? (ownerAI.droneCompanions || []) : playerDroneCompanions;
+      const formationSlot = [0, 1].find(slot => !existingCompanions.some(companion => companion?.formationSlot === slot)) ?? 0;
+      const group = sourceDrone.clone(true);
+      group.name = ownerAI ? 'EnemyDroneCompanion' : 'PlayerDroneCompanion';
+      group.scale.setScalar(.62);
+      group.visible = true;
+      group.traverse(object => {
+        if (object.isMesh) object.frustumCulled = true;
+        if (object.name === 'DroneScanEmitter') object.visible = false;
+      });
+      scene.add(group);
+      return {
+        group,
+        ownerAI,
+        health: 90,
+        maxHealth: 90,
+        fireTimer: .35,
+        orbit: ownerAI ? Math.PI : 0,
+        formationSlot,
+        phase: Math.random() * Math.PI * 2,
+        active: true
+      };
+    }
+
+    function grantDroneCompanion(ownerAI = null) {
+      if (ownerAI) {
+        ownerAI.droneCompanions ||= [];
+        if (ownerAI.droneCompanions.length >= MAX_DRONE_COMPANIONS) return null;
+        const companion = createDroneCompanion(ownerAI);
+        if (companion) ownerAI.droneCompanions.push(companion);
+        return companion;
+      }
+      if (playerDroneCompanions.length >= MAX_DRONE_COMPANIONS) return null;
+      const companion = createDroneCompanion();
+      if (companion) playerDroneCompanions.push(companion);
+      return companion;
+    }
+
+    function destroyDroneCompanion(companion, message = true) {
+      if (!companion?.active) return;
+      companion.active = false;
+      companion.group.visible = false;
+      scene.remove(companion.group);
+      if (companion.ownerAI) {
+        companion.ownerAI.droneCompanions = (companion.ownerAI.droneCompanions || []).filter(entry => entry !== companion);
+      } else {
+        const index = playerDroneCompanions.indexOf(companion);
+        if (index >= 0) playerDroneCompanions.splice(index, 1);
+      }
+      spawnExplosionEffect(companion.group.position.clone(), .85);
+      if (message) showMessage(companion.ownerAI ? 'CPU DRONE DESTROYED' : 'DRONE DESTROYED');
+    }
+
+    function destroyDroneCompanionsForOwner(ownerAI = null) {
+      const companions = ownerAI
+        ? [...(ownerAI.droneCompanions || [])]
+        : [...playerDroneCompanions];
+      for (const companion of companions) destroyDroneCompanion(companion, false);
+    }
+
+    function damageDroneCompanion(companion, damage) {
+      if (!companion?.active) return;
+      companion.health = Math.max(0, companion.health - damage);
+      if (companion.health <= 0) destroyDroneCompanion(companion);
+    }
+
+    function getDroneOwnerPosition(companion, target) {
+      if (companion.ownerAI) return companion.ownerAI.group.position;
+      return player.position;
+    }
+
+    function dronePathHitsBounds(start, end, bounds, margin = 1.8) {
+      const minX = bounds.x - bounds.halfX - margin;
+      const maxX = bounds.x + bounds.halfX + margin;
+      const minZ = bounds.z - bounds.halfZ - margin;
+      const maxZ = bounds.z + bounds.halfZ + margin;
+      const dx = end.x - start.x;
+      const dz = end.z - start.z;
+      let tMin = 0;
+      let tMax = 1;
+      for (const [origin, delta, min, max] of [[start.x, dx, minX, maxX], [start.z, dz, minZ, maxZ]]) {
+        if (Math.abs(delta) < .0001) {
+          if (origin < min || origin > max) return false;
+          continue;
+        }
+        let t1 = (min - origin) / delta;
+        let t2 = (max - origin) / delta;
+        if (t1 > t2) [t1, t2] = [t2, t1];
+        tMin = Math.max(tMin, t1);
+        tMax = Math.min(tMax, t2);
+        if (tMin > tMax) return false;
+      }
+      return tMax >= 0 && tMin <= 1;
+    }
+
+    function dronePathHitsMech(start, end, mechPosition, radius = 5.4) {
+      const startX = start.x - mechPosition.x;
+      const startZ = start.z - mechPosition.z;
+      const deltaX = end.x - start.x;
+      const deltaZ = end.z - start.z;
+      const lengthSq = deltaX * deltaX + deltaZ * deltaZ;
+      const ratio = lengthSq > .0001
+        ? THREE.MathUtils.clamp(-(startX * deltaX + startZ * deltaZ) / lengthSq, 0, 1)
+        : 0;
+      const closestX = startX + deltaX * ratio;
+      const closestZ = startZ + deltaZ * ratio;
+      return closestX * closestX + closestZ * closestZ < radius * radius;
+    }
+
+    function getDroneAvoidedTarget(position, desired, mechPosition = null) {
+      const result = desired.clone();
+      const mechAvoidRadius = 5.4;
+      if (mechPosition) {
+        const awayFromMech = result.clone().sub(mechPosition).setY(0);
+        if (awayFromMech.lengthSq() < mechAvoidRadius * mechAvoidRadius) {
+          if (awayFromMech.lengthSq() < .0001) awayFromMech.set(1, 0, 0);
+          awayFromMech.normalize().multiplyScalar(mechAvoidRadius);
+          result.x = mechPosition.x + awayFromMech.x;
+          result.z = mechPosition.z + awayFromMech.z;
+        }
+      }
+      for (const bounds of buildingBounds) {
+        if (collapsingBuildings.has(bounds.buildingId)) continue;
+        const insideX = Math.abs(result.x - bounds.x) < bounds.halfX + 1.5;
+        const insideZ = Math.abs(result.z - bounds.z) < bounds.halfZ + 1.5;
+        if (!insideX || !insideZ) continue;
+        const pushX = bounds.halfX + 1.5 - Math.abs(result.x - bounds.x);
+        const pushZ = bounds.halfZ + 1.5 - Math.abs(result.z - bounds.z);
+        if (pushX < pushZ) result.x += result.x >= bounds.x ? pushX : -pushX;
+        else result.z += result.z >= bounds.z ? pushZ : -pushZ;
+      }
+      result.x = THREE.MathUtils.clamp(result.x, -arenaHalfSize + 4, arenaHalfSize - 4);
+      result.z = THREE.MathUtils.clamp(result.z, -arenaHalfSize + 4, arenaHalfSize - 4);
+      const blockingBounds = buildingBounds.filter(bounds =>
+        !collapsingBuildings.has(bounds.buildingId) && dronePathHitsBounds(position, result, bounds)
+      );
+      const pathCutsThroughMech = mechPosition && dronePathHitsMech(position, result, mechPosition, mechAvoidRadius);
+      if (!blockingBounds.length && !pathCutsThroughMech) return result;
+
+      // Route through clear building corners and/or around the mech. This
+      // keeps the drone from cutting through a narrow building-mech corridor.
+      const candidates = [];
+      for (const bounds of blockingBounds) {
+        const margin = 2.4;
+        for (const x of [bounds.x - bounds.halfX - margin, bounds.x + bounds.halfX + margin]) {
+          for (const z of [bounds.z - bounds.halfZ - margin, bounds.z + bounds.halfZ + margin]) {
+            const candidate = new THREE.Vector3(x, result.y, z);
+            if (buildingBounds.some(other =>
+              !collapsingBuildings.has(other.buildingId) && dronePathHitsBounds(position, candidate, other, 1.2)
+            )) continue;
+            candidates.push(candidate);
+          }
+        }
+      }
+      if (pathCutsThroughMech && mechPosition) {
+        const preferredAngle = Math.atan2(result.z - mechPosition.z, result.x - mechPosition.x);
+        for (let index = 0; index < 8; index++) {
+          const angle = preferredAngle + (index - 3.5) * (Math.PI * 2 / 8);
+          candidates.push(new THREE.Vector3(
+            mechPosition.x + Math.cos(angle) * (mechAvoidRadius + 1.8),
+            result.y,
+            mechPosition.z + Math.sin(angle) * (mechAvoidRadius + 1.8)
+          ));
+        }
+      }
+      if (!candidates.length) return result;
+      const clearCandidates = candidates.filter(candidate =>
+        !buildingBounds.some(other =>
+          !collapsingBuildings.has(other.buildingId) && dronePathHitsBounds(position, candidate, other, 1.2)
+        ) && (!mechPosition || !dronePathHitsMech(position, candidate, mechPosition, mechAvoidRadius))
+      );
+      if (!clearCandidates.length) return result;
+      clearCandidates.sort((a, b) => a.distanceToSquared(result) - b.distanceToSquared(result));
+      return clearCandidates[0];
+    }
+
+    function findDroneTarget(companion) {
+      if (companion.ownerAI) {
+        return !playerDestroyed && player.visible ? player : null;
+      }
+      let closest = null;
+      let closestDistanceSq = Infinity;
+      for (const candidate of [enemyAI, enemyAI2]) {
+        if (!candidate?.alive || !candidate.group.visible) continue;
+        const distanceSq = companion.group.position.distanceToSquared(candidate.group.position);
+        if (distanceSq < closestDistanceSq) {
+          closest = candidate;
+          closestDistanceSq = distanceSq;
+        }
+      }
+      return closest;
+    }
+
+    function updateDroneCompanionProjectiles(dt) {
+      for (let index = droneCompanionProjectiles.length - 1; index >= 0; index--) {
+        const projectile = droneCompanionProjectiles[index];
+        projectile.userData.life -= dt;
+        const previous = projectile.position.clone();
+        projectile.position.addScaledVector(projectile.userData.velocity, dt);
+        const companion = projectile.userData.owner;
+        const target = companion?.active ? findDroneTarget(companion) : null;
+        let hit = projectile.userData.life <= 0 || projectileHitsBuilding(projectile.position, projectile.userData.velocity);
+        if (!hit && target) {
+          const targetPosition = target.group ? target.group.position.clone().add(new THREE.Vector3(0, 3.5, 0)) : target.position.clone().add(new THREE.Vector3(0, 3.5, 0));
+          const segment = projectile.position.clone().sub(previous);
+          const distance = segment.lengthSq();
+          const ratio = distance > .001
+            ? THREE.MathUtils.clamp(targetPosition.clone().sub(previous).dot(segment) / distance, 0, 1)
+            : 0;
+          const closest = previous.clone().addScaledVector(segment, ratio);
+          if (closest.distanceToSquared(targetPosition) < 7.2) {
+            const direction = projectile.userData.velocity.clone().normalize();
+            if (companion.ownerAI) {
+              damagePlayer(projectile.userData.damage, closest, 'cpu', companion.group.position);
+            } else {
+              const wasAlive = target.alive;
+              target.takeDamage(projectile.userData.damage, direction, closest);
+              if (wasAlive && !target.alive) {
+                playerKills++;
+                score += 500;
+              }
+            }
+            spawnExplosionEffect(closest, .35);
+            hit = true;
+          }
+        }
+        if (hit) {
+          const lastIndex = droneCompanionProjectiles.length - 1;
+          if (index !== lastIndex) droneCompanionProjectiles[index] = droneCompanionProjectiles[lastIndex];
+          droneCompanionProjectiles.length = lastIndex;
+          releaseDroneCompanionProjectile(projectile);
+        }
+      }
+    }
+
+    function updateDroneCompanionIncomingDamage(companion) {
+      if (!companion?.active) return;
+      for (const attacker of [enemyAI, enemyAI2]) {
+        if (!attacker?.alive) continue;
+        for (const shell of attacker.shells || []) {
+          if (shell.visible && shell.position.distanceToSquared(companion.group.position) < 2.8) {
+            damageDroneCompanion(companion, Math.max(4, shell.userData.damage * .45));
+            // Let EnemyAI remove the shell on its normal update pass; removing
+            // it here would leave a stale entry and double-return it to the pool.
+            shell.userData.life = 0;
+            break;
+          }
+        }
+      }
+    }
+
+    function updateDroneCompanions(dt) {
+      const companions = [
+        ...playerDroneCompanions,
+        ...(enemyAI?.droneCompanions || []),
+        ...(enemyAI2?.droneCompanions || [])
+      ].filter(companion => companion?.active);
+      for (const companion of companions) {
+        const ownerPosition = getDroneOwnerPosition(companion);
+        const ownerYaw = companion.ownerAI ? companion.ownerAI.group.rotation.y : player.rotation.y;
+        companion.orbit += dt * .65;
+        // Keep the two support drones in a wide left/right formation. Their
+        // slots stay stable even when one drone is destroyed and replaced.
+        const side = companion.formationSlot === 0 ? -1 : 1;
+        const offset = new THREE.Vector3(side * 6.8, 8.2 + Math.sin(performance.now() * .002 + companion.phase) * .45, -1.4)
+          .applyAxisAngle(new THREE.Vector3(0, 1, 0), ownerYaw);
+        const desired = getDroneAvoidedTarget(companion.group.position, ownerPosition.clone().add(offset), ownerPosition);
+        const previous = companion.group.position.clone();
+        const desiredStep = desired.clone().sub(previous);
+        const maxDroneStep = 10.5 * dt;
+        if (desiredStep.length() > maxDroneStep) desiredStep.setLength(maxDroneStep);
+        companion.group.position.add(desiredStep);
+        const movement = companion.group.position.clone().sub(previous);
+        if (movement.lengthSq() > .0001) {
+          companion.group.rotation.z = THREE.MathUtils.lerp(companion.group.rotation.z, -movement.x * 1.8, dt * 5);
+          companion.group.rotation.x = THREE.MathUtils.lerp(companion.group.rotation.x, movement.z * 1.8, dt * 5);
+          companion.group.rotation.y = THREE.MathUtils.lerp(companion.group.rotation.y, Math.atan2(movement.x, movement.z), dt * 3);
+        }
+        companion.fireTimer -= dt;
+        const target = findDroneTarget(companion);
+        if (target && companion.fireTimer <= 0 && companion.group.position.distanceTo(target.group ? target.group.position : target.position) < 46) {
+          const targetPosition = target.group ? target.group.position.clone().add(new THREE.Vector3(0, 3.5, 0)) : target.position.clone().add(new THREE.Vector3(0, 3.5, 0));
+          const origin = companion.group.position.clone();
+          const direction = targetPosition.sub(origin).normalize();
+          acquireDroneCompanionProjectile(origin, direction, companion);
+          companion.fireTimer = .42;
+        }
+        updateDroneCompanionIncomingDamage(companion);
+      }
+      updateDroneCompanionProjectiles(dt);
     }
 
     let pickupSearchNearest = null;
@@ -17064,7 +17960,7 @@ if (!wasGrounded && grounded) {
       smoke.scale.setScalar(.35 + Math.random() * .22);
       smoke.userData.velocity.copy(velocity).multiplyScalar(-.012);
       smoke.userData.life = .6 + Math.random() * .18;
-      smoke.material.opacity = .2 + Math.random() * .08;
+      smoke.material.opacity = .36 + Math.random() * .12;
       scene.add(smoke);
       homingSmokeTrails.push(smoke);
     }
@@ -17075,7 +17971,7 @@ if (!wasGrounded && grounded) {
         smoke.position.addScaledVector(smoke.userData.velocity, dt);
         const ratio = Math.max(0, smoke.userData.life / .78);
         smoke.scale.multiplyScalar(1 + dt * 1.9);
-        smoke.material.opacity = ratio * .26;
+        smoke.material.opacity = ratio * .48;
         if (smoke.userData.life > 0) continue;
         scene.remove(smoke);
         smoke.visible = false;
@@ -17297,6 +18193,19 @@ if (!wasGrounded && grounded) {
         // leaving the right side clear for the title panel.
         const titleSway = reducedMotion ? 0 : Math.sin(performance.now() * .00018) * .1745;
         const drift = reducedMotion ? 0 : Math.sin(performance.now() * .00045) * .32;
+        // During pause -> title, the elevator reverses from the game-start
+        // position. Keep the original title framing instead of letting the
+        // camera follow the lift below the floor.
+        if (titleReturnElevatorDrop) {
+          const dropTarget = new THREE.Vector3(isMobileViewport() ? -4.0 : -3.0, -1.45, 0);
+          const dropOrbitOffset = new THREE.Vector3(6.4 + drift, 10.8 + titleCameraPitch * 8.5, -19.6)
+            .applyAxisAngle(new THREE.Vector3(0, 1, 0), titleCameraYaw + titleSway);
+          const dropCamPos = dropTarget.clone().add(dropOrbitOffset);
+          dropCamPos.y = 10.8 + titleCameraPitch * 10.5;
+          camera.position.lerp(dropCamPos, 1 - Math.exp(-4.5 * dt));
+          camera.lookAt(dropTarget);
+          return;
+        }
         const revealFocus = THREE.MathUtils.smoothstep(titleRevealTime, .35, 3.25);
         const targetPos = new THREE.Vector3(isMobileViewport() ? -4.0 : -3.0, THREE.MathUtils.lerp(-1.45, 4.25, revealFocus), 0);
         const orbitOffset = new THREE.Vector3(6.4 + drift, 10.8 + titleCameraPitch * 8.5, -19.6)
@@ -17743,14 +18652,14 @@ if (!wasGrounded && grounded) {
       }
       const health = THREE.MathUtils.clamp(playerHealth, 0, PLAYER_MAX_HEALTH);
       const shield = THREE.MathUtils.clamp(playerShield, 0, PLAYER_MAX_SHIELD);
-      const energy = THREE.MathUtils.clamp(boostEnergy, 0, PLAYER_MAX_ENERGY);
+      const energy = THREE.MathUtils.clamp(boostEnergy, 0, boostEnergyCapacity);
       document.getElementById('playerHealthHudText').textContent = Math.ceil(health);
       document.getElementById('playerShieldHudText').textContent = Math.ceil(shield);
       document.getElementById('boostHudText').textContent = Math.ceil(energy);
       document.getElementById('playerHealthBar').style.width = `${health / PLAYER_MAX_HEALTH * 100}%`;
       document.getElementById('playerShieldBar').style.width = `${shield / PLAYER_MAX_SHIELD * 100}%`;
-      document.getElementById('boostBar').style.width = `${energy / PLAYER_MAX_ENERGY * 100}%`;
-      document.getElementById('playerStatusHud').classList.toggle('energy-low', energy <= PLAYER_MAX_ENERGY * .25);
+      document.getElementById('boostBar').style.width = `${energy / boostEnergyCapacity * 100}%`;
+      document.getElementById('playerStatusHud').classList.toggle('energy-low', energy <= boostEnergyCapacity * .25);
       const criticalPart = partHealth.head <= 20 || partHealth.torso <= 20 ||
         partHealth.leftArm <= 20 || partHealth.rightArm <= 20 || partHealth.legs <= 20;
       const criticalAlert = document.getElementById('criticalDangerAlert');
@@ -18327,7 +19236,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         lockOnActive = false;
         autoLockProgress = 0;
         verticalVelocity = 0;
+        destroyDroneCompanionsForOwner();
         player.visible = false;
+        scatterPlayerMechParts(player.position);
         spawnMechDeathExplosion(player.position, 0x57e9ff, 'player');
         showMessage('PLAYER UNIT DESTROYED');
         updateHUD();
@@ -18366,6 +19277,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         return;
       }
 
+      restoreScatteredMechParts();
       const deathData = pendingPlayerDeathData;
       player.position.copy(getFormationSpawn('player'));
       player.rotation.y = yaw;
@@ -18424,7 +19336,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       reloadTimer = 0;
       jetpackEquipped = false;
       jetpackTimeRemaining = 0;
-      boostEnergy = PLAYER_MAX_ENERGY;
+      boostEnergyCapacity = PLAYER_MAX_ENERGY;
+      boostEnergy = boostEnergyCapacity;
       homingMissileAmmo = 0;
       homingSalvos.fill(null);
       missileRack.visible = false;
@@ -18537,8 +19450,57 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       showMessage(paused ? 'PAUSED' : 'RESUME');
     }
 
+    function returnToTitleFromPause(event) {
+      event?.stopPropagation();
+      if (!paused) return;
+      if (freeCamActive) toggleFreeCamera();
+      if (typeof releaseMobileInputs === 'function') releaseMobileInputs();
+      paused = false;
+      document.getElementById('pauseOverlay').classList.remove('active');
+      document.getElementById('pauseButton').textContent = '일시정지 (P)';
+      if (document.pointerLockElement) document.exitPointerLock();
+
+      // Set the title state before resetGame(), because resetGame() itself
+      // calls enterHangar() and must initialize the elevator as a title lift.
+      titleActive = true;
+      titleIntroPlayed = true;
+      // Match the normal ENTER HANGAR return state: the platform is already
+      // at the hangar deck instead of waiting below the camera for the intro.
+      titleRevealTime = 4.8;
+      titleReturnElevatorDrop = false;
+      titleCameraYaw = 0;
+      titleCameraPitch = 0;
+      hangarCameraYaw = 0;
+      hangarCameraPitch = 0;
+      resetGame();
+      enterHangar();
+      document.getElementById('titleScreen').classList.remove('hidden');
+      document.getElementById('hangarOverlay').classList.add('hidden');
+      document.getElementById('modeSelectModal').classList.add('hidden');
+      startTitleHangarBgm();
+      showMessage('RETURNED TO TITLE');
+    }
+
     function resetGame() {
       if (freeCamActive) toggleFreeCamera();
+      const resetCompanions = [
+        ...playerDroneCompanions,
+        ...(enemyAI?.droneCompanions || []),
+        ...(enemyAI2?.droneCompanions || [])
+      ];
+      for (const companion of resetCompanions) {
+        if (companion?.group) {
+          scene.remove(companion.group);
+          companion.group.visible = false;
+          companion.active = false;
+        }
+      }
+      playerDroneCompanions.length = 0;
+      if (enemyAI) enemyAI.droneCompanions = [];
+      if (enemyAI2) enemyAI2.droneCompanions = [];
+      for (const projectile of droneCompanionProjectiles) releaseDroneCompanionProjectile(projectile);
+      droneCompanionProjectiles.length = 0;
+      restoreScatteredMechParts();
       currentLevel = 1;
       arenaHalfSize = 82;
       verticalVelocity = 0;
@@ -18626,7 +19588,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       shieldBubble.reset();
       jetpackEquipped = false;
       jetpackTimeRemaining = 0;
-      boostEnergy = PLAYER_MAX_ENERGY;
+      boostEnergyCapacity = PLAYER_MAX_ENERGY;
+      boostEnergy = boostEnergyCapacity;
       homingMissileAmmo = 0;
       homingSalvos.fill(null);
       missileRack.visible = false;
@@ -18669,10 +19632,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       clearExplosionInstanceParticles();
       for (const effect of mechDeathEffects) {
         scene.remove(effect);
-        effect.traverse(object => {
-          object.geometry?.dispose();
-          object.material?.dispose();
-        });
+        effect.visible = false;
+        mechDeathEffectPool.push(effect);
       }
       mechDeathEffects.length = 0;
       for (const trail of missileTrails) {
@@ -18717,6 +19678,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           playerFlagDroppedPos.copy(position);
           showMessage('🚩 CPU DROPPED YOUR FLAG!');
         }
+        destroyDroneCompanionsForOwner(enemyAI);
         spawnMechDeathExplosion(position, 0xff4964, 'enemy-1');
         spawnEnemyLoot(position);
       },
@@ -18750,6 +19712,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           playerFlagDroppedPos.copy(position);
           showMessage('🚩 CPU DROPPED YOUR FLAG!');
         }
+        destroyDroneCompanionsForOwner(enemyAI2);
         spawnMechDeathExplosion(position, 0xff9a32, 'enemy-2');
         spawnEnemyLoot(position);
       },
@@ -18963,8 +19926,10 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         updateTraffic(dt);
         updateCityAtmosphere(dt);
         updateEvacuees(dt);
+        window.updateFieldDrones?.(dt);
         shieldBubble.update(dt, playerShield / PLAYER_MAX_SHIELD);
         updateMechDeathEffects(dt);
+        updateScatteredMechParts(dt);
         updateHangar(dt);
         if (customizerActive && isCustomizerWalkTesting && mechaGaitController) {
           const testSpeed = (window.mechaGaitParams?.walkSpeed || 1.0) * 10.5;
@@ -19006,6 +19971,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           updateHomingSmokeTrails(dt);
           updateStructuralSupport();
           updatePowerItems(dt);
+          updateDroneCompanions(dt);
           enemyAI.update(dt);
           if (currentLevel >= 2) enemyAI2.update(dt);
           updateEnemyGroundShadows();
