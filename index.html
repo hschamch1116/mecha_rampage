@@ -676,6 +676,17 @@
       <label class="settings-row">FILM GRAIN <input id="filmGrain" type="range" min="0" max="0.3" step="0.005" value="0.3"><output>0.3</output></label>
       <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="0.85"><output>0.85</output></label>
       <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.05"><output>0.05</output></label>
+      <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">BATTLE CAMERA</h3>
+      <label class="settings-row">CAMERA DISTANCE <input id="cameraDistanceOffset" type="range" min="-8" max="8" step="0.1" value="0"><output>0.0m</output></label>
+      <label class="settings-row">CAMERA HEIGHT <input id="cameraHeightOffset" type="range" min="-4" max="6" step="0.1" value="0"><output>0.0m</output></label>
+      <label class="settings-row">CAMERA SIDE <input id="cameraSideOffset" type="range" min="-6" max="6" step="0.1" value="0"><output>0.0m</output></label>
+      <label class="settings-row">CAMERA YAW <input id="cameraYawOffset" type="range" min="-180" max="180" step="1" value="0"><output>0°</output></label>
+      <label class="settings-row">CAMERA PITCH <input id="cameraPitchOffset" type="range" min="-35" max="35" step="1" value="0"><output>0°</output></label>
+      <label class="settings-row">LOCAL PITCH <input id="cameraLocalPitch" type="range" min="-35" max="35" step="1" value="0"><output>0°</output></label>
+      <label class="settings-row">LOCAL YAW <input id="cameraLocalYaw" type="range" min="-35" max="35" step="1" value="0"><output>0°</output></label>
+      <label class="settings-row">CAMERA ROLL <input id="cameraRoll" type="range" min="-25" max="25" step="1" value="0"><output>0°</output></label>
+      <textarea id="cameraPositionConfig" rows="4" placeholder="CAMERA POSITION JSON" style="width:100%;box-sizing:border-box;margin-top:8px;background:#07131b;color:#bff7ff;border:1px solid #2d7180;font:10px monospace;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:6px;"><button id="cameraPositionCopy" type="button" style="flex:1;padding:8px;">COPY CAMERA</button><button id="cameraPositionApply" type="button" style="flex:1;padding:8px;">APPLY CAMERA</button></div>
 
       <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">BATTLEFIELD ATMOSPHERE</h3>
       <label class="settings-row">TIME OF DAY <input id="battlefieldTimeOfDay" type="range" min="0" max="24" step="0.25" value="12"><output id="battlefieldTimeOfDayVal">12:00</output></label>
@@ -1597,7 +1608,15 @@
       layer.mesh = cloud;
     });
 
-    const camera = new THREE.PerspectiveCamera(58, innerWidth / innerHeight, 0.1, 420);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 420);
+    let gameplayCameraDistanceOffset = 0;
+    let gameplayCameraHeightOffset = 0;
+    let gameplayCameraSideOffset = 0;
+    let gameplayCameraYawOffset = 0;
+    let gameplayCameraPitchOffset = 0;
+    let gameplayCameraLocalPitch = 0;
+    let gameplayCameraLocalYaw = 0;
+    let gameplayCameraRoll = 0;
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     const hangarReflectionTarget = new THREE.WebGLCubeRenderTarget(256, {
       generateMipmaps: true,
@@ -1728,13 +1747,52 @@
       return staged;
     }
 
+    function createMechDeathWarmupEffect() {
+      const group = new THREE.Group();
+      const primaryColor = 0x5ee7ff;
+      const sphereLayers = explosionSphereLayerConfig.map((config, index) => {
+        const layer = new THREE.Mesh(explosionSphereGeo, createExplosionSphereMaterial(config));
+        layer.material.uniforms.uColor.value.lerp(new THREE.Color(primaryColor), index === 0 ? .08 : .42);
+        layer.scale.setScalar(.42);
+        return layer;
+      });
+      const damageRadiusRing = new THREE.Mesh(
+        new THREE.RingGeometry(.91, 1, 96),
+        new THREE.MeshBasicMaterial({
+          color: primaryColor,
+          transparent: true,
+          opacity: .22,
+          side: THREE.DoubleSide,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          toneMapped: false
+        })
+      );
+      damageRadiusRing.rotation.x = -Math.PI / 2;
+      damageRadiusRing.position.y = -2.1;
+      damageRadiusRing.scale.setScalar(MECH_DEATH_SPLASH_RADIUS);
+      group.add(...sphereLayers, damageRadiusRing, new THREE.PointLight(primaryColor, 28, 42, 2));
+
+      const metalMats = [
+        new THREE.MeshStandardMaterial({ color: 0x17212d, roughness: .3, metalness: .9 }),
+        new THREE.MeshStandardMaterial({ color: 0x48677f, roughness: .34, metalness: .78 }),
+        new THREE.MeshStandardMaterial({ color: primaryColor, emissive: primaryColor, emissiveIntensity: .75, roughness: .24, metalness: .58 })
+      ];
+      for (let index = 0; index < 12; index++) {
+        const piece = new THREE.Mesh(new THREE.TetrahedronGeometry(.38, 0), metalMats[index % metalMats.length]);
+        piece.position.set((index - 5.5) * .12, .4 + (index % 4) * .18, (index % 3 - 1) * .16);
+        group.add(piece);
+      }
+      return group;
+    }
+
     function prewarmBattleRendering() {
       if (battleRenderPrewarmed) return;
       battleRenderPrewarmed = true;
       const previousEnvironmentVisibility = envGroup.visible;
       const previousHangarVisibility = hangarGroup.visible;
       const previousFractureVisibility = fractureBatches.map(batch => ({ mesh: batch.mesh, visible: batch.mesh.visible }));
-      const transientWarmupEffects = createTransientWarmupEffects();
+      const transientWarmupEffects = [createMechDeathWarmupEffect(), ...createTransientWarmupEffects()];
       const stagedEffects = [
         explosionPool?.[0], burningEffectPool?.[0], missileTrailPool?.[0],
         playerShellPool?.[0], laserBeamPool?.[0],
@@ -3228,11 +3286,15 @@
     body.add(mechaSearchlight, mechaSearchlightLeft);
 
     // Dual Tac-Comm Signal Antennae on Back Dorsal Spine
+    const antennaMasts = [];
     for (const antX of [-.24, .24]) {
+      const antennaPivot = new THREE.Group();
+      antennaPivot.position.set(antX, 1.655, -1.2);
       const antenna = mechCylinder(.03, .015, 1.25, gunmetalMat, 8);
-      antenna.position.set(antX, 2.28, -1.2);
-      antenna.rotation.x = -.18;
-      body.add(antenna);
+      antenna.position.y = .625;
+      antennaPivot.add(antenna);
+      body.add(antennaPivot);
+      antennaMasts.push({ pivot: antennaPivot, phase: antX > 0 ? .8 : 0 });
     }
 
     const centerKeel = mechBox(.72, 1.34, .3, gunmetalMat, .07);
@@ -4324,6 +4386,18 @@
     const jetFlameHaloMat = new THREE.MeshBasicMaterial({ color: 0x238dff, transparent: true, opacity: .34, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
     const jetFlameMiddleMat = new THREE.MeshBasicMaterial({ color: 0x42d9ff, transparent: true, opacity: .62, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
     const jetFlameOuterMat = new THREE.MeshBasicMaterial({ color: 0x1c9dff, transparent: true, opacity: .42, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const applyJetFlameTipFade = material => {
+      material.onBeforeCompile = shader => {
+        shader.fragmentShader = shader.fragmentShader.replace(
+          '#include <alphamap_fragment>',
+          '#include <alphamap_fragment>\n          // Fade the exhaust tip instead of ending on a hard geometric edge.\n          diffuseColor.a *= smoothstep(0.04, 0.34, vAlphaMapUv.y);'
+        );
+      };
+      material.customProgramCacheKey = () => 'jet-flame-tip-fade-v1';
+    };
+    for (const material of [jetFlameMat, jetFlameCoreMat, jetFlameHaloMat, jetFlameMiddleMat, jetFlameOuterMat]) {
+      applyJetFlameTipFade(material);
+    }
     const applyJetFlameVertexNoise = (geometry, amount, seed) => {
       const position = geometry.attributes.position;
       for (let index = 0; index < position.count; index++) {
@@ -4353,6 +4427,8 @@
     const dashTrailLocal = new THREE.Vector3();
     const dashTrailLocalTarget = new THREE.Vector3(0, -1, 0);
     const dashExhaustDown = new THREE.Vector3(0, -1, 0);
+    const flameExhaustAxis = new THREE.Vector3(0, -1, 0);
+    const flameDirectionQuaternion = new THREE.Quaternion();
     const jetpackWorldQuaternion = new THREE.Quaternion();
     const normalFlameTargetPosition = new THREE.Vector3();
     const dashFlameTargetPosition = new THREE.Vector3();
@@ -4421,13 +4497,13 @@
       const nozzle = mechCylinder(.5, .31, .58, boosterAccentMat, 14);
       nozzle.position.set(side * 1.12, 3.3, -2.08);
       jetpack.add(nozzle);
-      const flame = new THREE.Mesh(new THREE.ConeGeometry(.63, JET_FLAME_BASE_LENGTH, 12), jetFlameMat);
+      const flame = new THREE.Mesh(new THREE.ConeGeometry(.63, JET_FLAME_BASE_LENGTH, 12, 1, true), jetFlameMat);
       flame.rotation.z = Math.PI;
       flame.position.set(side * 1.12, 1.4, -2.08);
       flame.visible = false;
       flame.userData.side = side;
       flame.userData.nozzleOrigin = new THREE.Vector3(side * 1.12, 3.05, -2.08);
-      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(.27, JET_FLAME_BASE_LENGTH * .72, 10), jetFlameCoreMat);
+      const flameCore = new THREE.Mesh(new THREE.ConeGeometry(.27, JET_FLAME_BASE_LENGTH * .72, 10, 1, true), jetFlameCoreMat);
       flameCore.position.y = .18;
       flame.add(flameCore);
       const flameHalo = new THREE.Mesh(new THREE.ConeGeometry(.88, JET_FLAME_BASE_LENGTH * 1.12, 12, 1, true), jetFlameHaloMat);
@@ -4497,11 +4573,11 @@
       const soleNozzle = mechCylinder(.28, .18, .34, gunmetalMat, 12);
       soleNozzle.position.set(0, -.47, .18);
       foot.add(soleNozzle);
-      const footFlame = new THREE.Mesh(new THREE.ConeGeometry(.27, 1.55, 12), jetFlameMat);
+      const footFlame = new THREE.Mesh(new THREE.ConeGeometry(.27, 1.55, 12, 1, true), jetFlameMat);
       footFlame.rotation.z = Math.PI;
       footFlame.position.set(0, -1.28, .18);
       footFlame.visible = false;
-      const footCore = new THREE.Mesh(new THREE.ConeGeometry(.11, 1.05, 8), jetFlameCoreMat);
+      const footCore = new THREE.Mesh(new THREE.ConeGeometry(.11, 1.05, 8, 1, true), jetFlameCoreMat);
       footCore.position.y = .08;
       footFlame.add(footCore);
       foot.add(footFlame);
@@ -8668,19 +8744,71 @@ let landingRecoveryTimer = 0;
     const laserBeams = [];
     const playerShellPool = [];
     const laserBeamPool = [];
+    const projectileFlameTrailPool = [];
+    const projectileFlameTrails = [];
     const playerShellGeometry = new THREE.SphereGeometry(1, 12, 9);
     const playerShellMaterialBase = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.8, metalness: .45 });
     const laserBeamGeometry = new THREE.CylinderGeometry(1, 1, 1, 8);
     const laserBeamMaterialBase = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .95, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    const projectileFlameTrailGeometry = new THREE.ConeGeometry(.14, 2.2, 10, 5, true);
+    const projectileFlameTrailMaterialBase = new THREE.MeshBasicMaterial({ color: 0x55e7ff, transparent: true, opacity: .46, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    applyJetFlameTipFade(projectileFlameTrailMaterialBase);
+    const projectileFlameCoreGeometry = new THREE.ConeGeometry(.075, 1.42, 8, 4, true);
+    const projectileFlameCoreMaterialBase = new THREE.MeshBasicMaterial({ color: 0xeafff0, transparent: true, opacity: .86, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    applyJetFlameTipFade(projectileFlameCoreMaterialBase);
+    const homingMissileBodyMaterialBase = new THREE.MeshStandardMaterial({ color: 0x58646d, emissive: 0x0d4b27, emissiveIntensity: .72, metalness: .72, roughness: .3 });
+    const homingMissileAccentMaterialBase = new THREE.MeshStandardMaterial({ color: 0x6cff68, emissive: 0x1a9c35, emissiveIntensity: 1.55, metalness: .5, roughness: .24 });
+    const homingMissileBodyGeometry = new THREE.CylinderGeometry(.22, .26, .86, 10);
+    const homingMissileNoseGeometry = new THREE.ConeGeometry(.26, .42, 10);
+    const homingMissileFinGeometry = new THREE.BoxGeometry(.08, .28, .34);
+    const homingMissileNozzleGeometry = new THREE.TorusGeometry(.19, .035, 8, 16);
     const playerLaunchDirection = new THREE.Vector3();
     const playerSpreadRight = new THREE.Vector3();
     const playerSpreadUp = new THREE.Vector3();
     const playerWorldUp = new THREE.Vector3(0, 1, 0);
+    const projectileTrailAxis = new THREE.Vector3(0, 1, 0);
+    const projectileTrailBackward = new THREE.Vector3();
+    const projectileTrailDirection = new THREE.Vector3();
+    const homingMissileOrientationRight = new THREE.Vector3();
+    const homingMissileOrientationZ = new THREE.Vector3();
+    const homingMissileOrientationReference = new THREE.Vector3(0, 0, 1);
+    const homingMissileOrientationMatrix = new THREE.Matrix4();
     for (let index = 0; index < 192; index++) {
       const shell = new THREE.Mesh(playerShellGeometry, playerShellMaterialBase.clone());
       shell.visible = false;
       shell.userData.origin = new THREE.Vector3();
       shell.userData.velocity = new THREE.Vector3();
+      shell.userData.homingTargetPoint = new THREE.Vector3();
+      const boosterTrail = new THREE.Mesh(projectileFlameTrailGeometry, projectileFlameTrailMaterialBase.clone());
+      boosterTrail.visible = false;
+      boosterTrail.position.set(0, 1.08, 0);
+      shell.add(boosterTrail);
+      shell.userData.boosterTrail = boosterTrail;
+      const boosterTrailCore = new THREE.Mesh(projectileFlameCoreGeometry, projectileFlameCoreMaterialBase.clone());
+      boosterTrailCore.visible = false;
+      boosterTrailCore.position.set(0, .7, 0);
+      shell.add(boosterTrailCore);
+      shell.userData.boosterTrailCore = boosterTrailCore;
+      const missileBody = new THREE.Group();
+      const missileCore = new THREE.Mesh(homingMissileBodyGeometry, homingMissileBodyMaterialBase.clone());
+      missileCore.position.y = -.08;
+      const missileNose = new THREE.Mesh(homingMissileNoseGeometry, homingMissileAccentMaterialBase.clone());
+      missileNose.rotation.z = Math.PI;
+      missileNose.position.y = -.66;
+      const missileFinLeft = new THREE.Mesh(homingMissileFinGeometry, homingMissileAccentMaterialBase.clone());
+      missileFinLeft.position.set(-.27, .08, 0);
+      missileFinLeft.rotation.z = -.28;
+      const missileFinRight = missileFinLeft.clone();
+      missileFinRight.position.x = .27;
+      missileFinRight.rotation.z = .28;
+      const missileNozzle = new THREE.Mesh(homingMissileNozzleGeometry, homingMissileAccentMaterialBase.clone());
+      missileNozzle.rotation.x = Math.PI / 2;
+      missileNozzle.position.y = .42;
+      missileBody.add(missileCore, missileNose, missileFinLeft, missileFinRight, missileNozzle);
+      missileBody.visible = false;
+      shell.add(missileBody);
+      shell.userData.homingMissileBody = missileBody;
+      shell.userData.homingMissileAccent = missileNose.material;
       playerShellPool.push(shell);
     }
     for (let index = 0; index < 32; index++) {
@@ -8688,20 +8816,34 @@ let landingRecoveryTimer = 0;
       beam.visible = false;
       laserBeamPool.push(beam);
     }
+    for (let index = 0; index < 128; index++) {
+      const trail = new THREE.Mesh(projectileFlameTrailGeometry, projectileFlameTrailMaterialBase.clone());
+      trail.visible = false;
+      trail.userData.life = 0;
+      projectileFlameTrailPool.push(trail);
+    }
     function acquirePlayerShell(stats, radius) {
       const shell = playerShellPool.pop();
       if (!shell) return null;
       shell.visible = true;
       shell.scale.setScalar(radius);
+      shell.quaternion.identity();
       shell.material.color.setHex(stats.color);
       shell.material.emissive.setHex(stats.emissive);
       shell.material.emissiveIntensity = 1.8;
       shell.userData.homingMissed = false;
+      shell.userData.boosterTrail.visible = false;
+      shell.userData.boosterTrailCore.visible = false;
+      shell.userData.homingMissileBody.visible = false;
+      shell.material.visible = true;
       return shell;
     }
     function releasePlayerShell(shell) {
       scene.remove(shell);
       shell.visible = false;
+      shell.userData.boosterTrail.visible = false;
+      shell.userData.boosterTrailCore.visible = false;
+      shell.userData.homingMissileBody.visible = false;
       shell.userData.life = 0;
       playerShellPool.push(shell);
     }
@@ -8729,6 +8871,67 @@ let landingRecoveryTimer = 0;
       beam.visible = false;
       beam.userData.life = 0;
       laserBeamPool.push(beam);
+    }
+    function spawnProjectileFlameTrail(position, velocity, color) {
+      const trail = projectileFlameTrailPool.pop();
+      if (!trail) return;
+      projectileTrailDirection.copy(velocity).normalize();
+      projectileTrailBackward.copy(projectileTrailDirection).negate();
+      trail.visible = true;
+      trail.position.copy(position).addScaledVector(projectileTrailBackward, .42);
+      trail.quaternion.setFromUnitVectors(projectileTrailAxis, projectileTrailBackward);
+      trail.scale.set(.8, .9 + Math.min(1.3, velocity.length() / 90), .8);
+      trail.material.color.setHex(color);
+      trail.material.opacity = .46;
+      trail.userData.life = .18;
+      scene.add(trail);
+      projectileFlameTrails.push(trail);
+    }
+    function updateProjectileFlameTrails(dt) {
+      for (let index = projectileFlameTrails.length - 1; index >= 0; index--) {
+        const trail = projectileFlameTrails[index];
+        trail.userData.life -= dt;
+        const ratio = Math.max(0, trail.userData.life / .18);
+        trail.material.opacity = ratio * .46;
+        trail.scale.multiplyScalar(1 + dt * 1.8);
+        if (trail.userData.life > 0) continue;
+        scene.remove(trail);
+        trail.visible = false;
+        projectileFlameTrails.splice(index, 1);
+        projectileFlameTrailPool.push(trail);
+      }
+    }
+    function updateAttachedHomingBooster(shell) {
+      const trail = shell.userData.boosterTrail;
+      if (!trail) return;
+      projectileTrailDirection.copy(shell.userData.velocity).normalize().negate();
+      const referenceUp = Math.abs(projectileTrailDirection.dot(playerWorldUp)) > .96
+        ? homingMissileOrientationReference
+        : playerWorldUp;
+      homingMissileOrientationRight.crossVectors(referenceUp, projectileTrailDirection).normalize();
+      homingMissileOrientationZ.crossVectors(homingMissileOrientationRight, projectileTrailDirection).normalize();
+      homingMissileOrientationMatrix.makeBasis(
+        homingMissileOrientationRight,
+        projectileTrailDirection,
+        homingMissileOrientationZ
+      );
+      shell.quaternion.setFromRotationMatrix(homingMissileOrientationMatrix);
+      trail.visible = true;
+      const inverseShellScale = 1 / Math.max(.001, shell.scale.x);
+      trail.position.set(0, 1.08 * inverseShellScale, 0);
+      trail.quaternion.identity();
+      trail.scale.setScalar(inverseShellScale);
+      trail.scale.y *= .95 + Math.min(1.35, shell.userData.velocity.length() / 70);
+      trail.material.color.setHex(0x73ff94);
+      trail.material.opacity = .72;
+      const core = shell.userData.boosterTrailCore;
+      core.visible = true;
+      core.position.set(0, .7 * inverseShellScale, 0);
+      core.quaternion.identity();
+      core.scale.setScalar(inverseShellScale);
+      core.scale.y *= .95 + Math.min(1.15, shell.userData.velocity.length() / 78);
+      core.material.color.setHex(0xeafff0);
+      core.material.opacity = .86;
     }
     const powerItems = [];
     const jetpackItems = [];
@@ -8785,7 +8988,34 @@ let landingRecoveryTimer = 0;
     const explosionSparkGeo = new THREE.BoxGeometry(.025, .025, .42);
     const SHOW_EXPLOSION_SPARKS = true;
     const SHOW_RUBBLE_CHUNKS = true;
-    const burningFlameGeo = new THREE.ConeGeometry(.24, 1.15, 10, 2);
+    const createBurningLobeGeometry = (radius, height, seed) => {
+      const geometry = new THREE.IcosahedronGeometry(radius, 2);
+      const position = geometry.attributes.position;
+      for (let index = 0; index < position.count; index++) {
+        const x = position.getX(index);
+        const y = position.getY(index);
+        const z = position.getZ(index);
+        const angle = Math.atan2(z, x);
+        const normalizedY = THREE.MathUtils.clamp(y / radius, -1, 1);
+        const upperPinch = 1 - Math.max(0, normalizedY) * .24;
+        const irregularity = 1 + Math.sin(angle * 3.7 + seed) * .13 + Math.sin(angle * 7.1 - seed * 1.4) * .07;
+        position.setX(index, x * upperPinch * irregularity);
+        position.setZ(index, z * upperPinch * irregularity);
+        position.setY(index, y * height / (radius * 2) + Math.sin(angle * 2.5 + seed) * .035 * (1 - normalizedY));
+      }
+      position.needsUpdate = true;
+      geometry.computeVertexNormals();
+      return geometry;
+    };
+    const burningFlameOuterGeo = createBurningLobeGeometry(.46, 1.48, .8);
+    const burningFlameTongueGeo = createBurningLobeGeometry(.34, 1.82, 2.4);
+    const burningFlameCoreGeo = createBurningLobeGeometry(.22, 1.18, 4.1);
+    const burningEmberGeo = new THREE.SphereGeometry(.045, 6, 4);
+    const burningFlameOuterMatBase = new THREE.MeshBasicMaterial({ color: 0xf04416, transparent: true, opacity: .58, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const burningFlameTongueMatBase = new THREE.MeshBasicMaterial({ color: 0xff8b1f, transparent: true, opacity: .78, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const burningFlameCoreMatBase = new THREE.MeshBasicMaterial({ color: 0xffe8a1, transparent: true, opacity: .92, alphaMap: jetFlameNoiseTexture, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const burningEmberMatBase = new THREE.MeshBasicMaterial({ color: 0xffd36a, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+    for (const material of [burningFlameOuterMatBase, burningFlameTongueMatBase, burningFlameCoreMatBase]) applyJetFlameTipFade(material);
     const explosionSphereLayerConfig = [
       { color: 0xffd05a, scale: .68, opacity: .42, noise: 3.2, displacement: .15 },
       { color: 0xff7b19, scale: .88, opacity: .28, noise: 4.8, displacement: .22 },
@@ -8957,13 +9187,20 @@ let landingRecoveryTimer = 0;
     fractureRubbleBatch.mesh.visible = SHOW_RUBBLE_CHUNKS;
     const fractureGlassBatch = createFractureBatch(
       new THREE.TetrahedronGeometry(1, 0),
-      new THREE.MeshStandardMaterial({ color: 0x9aefff, transparent: true, opacity: .62, roughness: .16, metalness: .08, side: THREE.DoubleSide, vertexColors: true, depthWrite: false }),
+      new THREE.MeshBasicMaterial({ color: 0x82d4dc, transparent: true, opacity: .48, side: THREE.DoubleSide, vertexColors: false, depthWrite: false, toneMapped: false }),
       96
     );
     const fractureGlassColor = new THREE.Color(0x9aefff);
+    const fractureDustMaterial = new THREE.MeshBasicMaterial({
+      color: 0x7c8184,
+      transparent: true,
+      opacity: .46,
+      depthWrite: false,
+      vertexColors: true
+    });
     const fractureDustBatch = createFractureBatch(
       new THREE.IcosahedronGeometry(1, 1),
-      new THREE.MeshBasicMaterial({ color: 0x7c8184, transparent: true, opacity: .46, depthWrite: false, vertexColors: true }),
+      fractureDustMaterial,
       384
     );
     function hideFractureInstance(batch, index) {
@@ -9033,6 +9270,17 @@ let landingRecoveryTimer = 0;
     const missileTrailMatBase = new THREE.MeshBasicMaterial({ color: 0x73ff94, transparent: true, opacity: .8, depthWrite: false, blending: THREE.AdditiveBlending });
     const missileTrailPool = [];
     for (let i = 0; i < 48; i++) missileTrailPool.push(new THREE.Mesh(missileTrailGeo, missileTrailMatBase.clone()));
+    const homingSmokeTrailGeo = new THREE.IcosahedronGeometry(.2, 1);
+    const homingSmokeTrailMatBase = new THREE.MeshBasicMaterial({ color: 0x7f8b8c, transparent: true, opacity: .24, depthWrite: false });
+    const homingSmokeTrailPool = [];
+    const homingSmokeTrails = [];
+    for (let i = 0; i < 96; i++) {
+      const smoke = new THREE.Mesh(homingSmokeTrailGeo, homingSmokeTrailMatBase.clone());
+      smoke.visible = false;
+      smoke.userData.life = 0;
+      smoke.userData.velocity = new THREE.Vector3();
+      homingSmokeTrailPool.push(smoke);
+    }
 
     function spawnFootstepEffect(position) {
       const group = new THREE.Group();
@@ -9216,7 +9464,7 @@ let landingRecoveryTimer = 0;
       if (e.code === 'KeyF' && !e.repeat && !customizerActive && !hangarActive && !titleActive) {
         toggleFreeCamera();
       }
-      if (e.code === 'KeyR') resetGame();
+      if (e.code === 'KeyR' && !e.repeat && battleStarted && !playerDestroyed && !paused) startReload();
       if (e.code === 'KeyP' && !e.repeat) togglePause();
       if (e.code === 'KeyV' && !e.repeat && !playerDestroyed) {
         playerShield = PLAYER_MAX_SHIELD;
@@ -9397,6 +9645,10 @@ let landingRecoveryTimer = 0;
     const collapsingBuildings = new Set();
     const buildingCollapseStates = new Map();
     const pendingSupportChecks = new Set();
+    const collapsedRubbleObstacles = [];
+    const collapsedRubbleBuildingIds = new Set();
+    const collapsedRubbleGeometry = new THREE.DodecahedronGeometry(1, 0);
+    const collapsedRubbleMaterial = new THREE.MeshStandardMaterial({ color: 0x777c7e, roughness: .94, metalness: .03 });
 
     function createFacadeMaterial(frame, glass, warm, cool) {
       const canvas = document.createElement('canvas');
@@ -9708,6 +9960,14 @@ let landingRecoveryTimer = 0;
         chromaticAberration: .008,
         filmGrain: .3,
         rainIntensity: .05,
+        cameraDistanceOffset: 0,
+        cameraHeightOffset: 0,
+        cameraSideOffset: 0,
+        cameraYawOffset: 0,
+        cameraPitchOffset: 0,
+        cameraLocalPitch: 0,
+        cameraLocalYaw: 0,
+        cameraRoll: 0,
         visualTuningRevision: 2
       });
     }
@@ -9723,7 +9983,15 @@ let landingRecoveryTimer = 0;
       chromaticAberration: ['chromaticAberration', .008],
       filmGrain: ['filmGrain', .3],
       toneExposure: ['exposure', .85],
-      rainIntensity: ['rain', .05]
+      rainIntensity: ['rain', .05],
+      cameraDistanceOffset: ['cameraDistance', 0],
+      cameraHeightOffset: ['cameraHeight', 0],
+      cameraSideOffset: ['cameraSide', 0],
+      cameraYawOffset: ['cameraYaw', 0],
+      cameraPitchOffset: ['cameraPitch', 0],
+      cameraLocalPitch: ['cameraLocalPitch', 0],
+      cameraLocalYaw: ['cameraLocalYaw', 0],
+      cameraRoll: ['cameraRoll', 0]
     };
     const applyVisualSetting = (key, value) => {
       const amount = key === 'windowColor' ? String(value) : Number(value);
@@ -9743,6 +10011,27 @@ let landingRecoveryTimer = 0;
       if (key === 'chromaticAberration') chromaticAberrationPass.uniforms.amount.value = amount;
       if (key === 'filmGrain' && filmGrainUniform) filmGrainUniform.value = amount;
       if (key === 'toneExposure') renderer.toneMappingExposure = amount;
+      if (key === 'cameraDistanceOffset') gameplayCameraDistanceOffset = THREE.MathUtils.clamp(amount, -8, 8);
+      if (key === 'cameraHeightOffset') gameplayCameraHeightOffset = THREE.MathUtils.clamp(amount, -4, 6);
+      if (key === 'cameraSideOffset') gameplayCameraSideOffset = THREE.MathUtils.clamp(amount, -6, 6);
+      if (key === 'cameraYawOffset') gameplayCameraYawOffset = THREE.MathUtils.clamp(amount, -180, 180);
+      if (key === 'cameraPitchOffset') gameplayCameraPitchOffset = THREE.MathUtils.clamp(amount, -35, 35);
+      if (key === 'cameraLocalPitch') gameplayCameraLocalPitch = THREE.MathUtils.clamp(amount, -35, 35);
+      if (key === 'cameraLocalYaw') gameplayCameraLocalYaw = THREE.MathUtils.clamp(amount, -35, 35);
+      if (key === 'cameraRoll') gameplayCameraRoll = THREE.MathUtils.clamp(amount, -25, 25);
+      const cameraConfigField = document.getElementById('cameraPositionConfig');
+      if (cameraConfigField && key.startsWith('camera')) {
+        cameraConfigField.value = JSON.stringify({
+          distance: gameplayCameraDistanceOffset,
+          height: gameplayCameraHeightOffset,
+          side: gameplayCameraSideOffset,
+          yaw: gameplayCameraYawOffset,
+          pitch: gameplayCameraPitchOffset,
+          localPitch: gameplayCameraLocalPitch,
+          localYaw: gameplayCameraLocalYaw,
+          roll: gameplayCameraRoll
+        }, null, 2);
+      }
       if (key === 'rainIntensity') {
         rainSystem.setIntensity(amount);
         rainSplashSystem.setIntensity(amount);
@@ -9754,14 +10043,79 @@ let landingRecoveryTimer = 0;
     Object.entries(visualControls).forEach(([id, [, fallback]]) => {
       const control = document.getElementById(id);
       const value = visualSettings[id] ?? fallback;
+      const formatSettingValue = rawValue => id === 'cameraYawOffset' || id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' || id === 'cameraRoll'
+        ? `${Number(rawValue).toFixed(0)}°`
+        : id.startsWith('camera') ? `${Number(rawValue).toFixed(1)}m`
+        : id === 'windowColor' ? rawValue : Number(rawValue).toFixed(id === 'chromaticAberration' ? 4 : id === 'filmGrain' ? 3 : 2);
       control.value = value;
-      control.nextElementSibling.value = id === 'windowColor' ? value : Number(value).toFixed(id === 'chromaticAberration' ? 4 : id === 'filmGrain' ? 3 : 2);
+      control.nextElementSibling.value = formatSettingValue(value);
       applyVisualSetting(id, value);
       control.addEventListener('input', () => {
-        control.nextElementSibling.value = id === 'windowColor' ? control.value : Number(control.value).toFixed(id === 'chromaticAberration' ? 4 : id === 'filmGrain' ? 3 : 2);
+        control.nextElementSibling.value = formatSettingValue(control.value);
         applyVisualSetting(id, control.value);
       });
     });
+    const cameraPositionConfigField = document.getElementById('cameraPositionConfig');
+    const cameraPositionCopyBtn = document.getElementById('cameraPositionCopy');
+    const cameraPositionApplyBtn = document.getElementById('cameraPositionApply');
+    const getCameraPositionConfig = () => ({
+      distance: gameplayCameraDistanceOffset,
+      height: gameplayCameraHeightOffset,
+      side: gameplayCameraSideOffset,
+      yaw: gameplayCameraYawOffset,
+      pitch: gameplayCameraPitchOffset,
+      localPitch: gameplayCameraLocalPitch,
+      localYaw: gameplayCameraLocalYaw,
+      roll: gameplayCameraRoll,
+      format: 'MECHA_CAMERA_POSITION_V2'
+    });
+    const updateCameraPositionConfigField = () => {
+      if (cameraPositionConfigField) cameraPositionConfigField.value = JSON.stringify(getCameraPositionConfig(), null, 2);
+    };
+    const applyCameraPositionConfig = config => {
+      const values = {
+        cameraDistanceOffset: Number(config?.distance),
+        cameraHeightOffset: Number(config?.height),
+        cameraSideOffset: Number(config?.side),
+        cameraYawOffset: Number(config?.yaw ?? 0),
+        cameraPitchOffset: Number(config?.pitch ?? 0),
+        cameraLocalPitch: Number(config?.localPitch ?? 0),
+        cameraLocalYaw: Number(config?.localYaw ?? 0),
+        cameraRoll: Number(config?.roll ?? 0)
+      };
+      if (!Object.values(values).every(Number.isFinite)) throw new Error('Camera position values must be numeric.');
+      Object.entries(values).forEach(([id, value]) => {
+        const control = document.getElementById(id);
+        const minValue = id === 'cameraDistanceOffset' ? -8 : id === 'cameraHeightOffset' ? -4 : id === 'cameraSideOffset' ? -6 : id === 'cameraYawOffset' ? -180 : id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' ? -35 : -25;
+        const maxValue = id === 'cameraDistanceOffset' ? 8 : id === 'cameraHeightOffset' ? 6 : id === 'cameraSideOffset' ? 6 : id === 'cameraYawOffset' ? 180 : id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' ? 35 : 25;
+        const safeValue = THREE.MathUtils.clamp(value, minValue, maxValue);
+        control.value = safeValue;
+        control.nextElementSibling.value = id === 'cameraYawOffset' || id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' || id === 'cameraRoll'
+          ? `${safeValue.toFixed(0)}°`
+          : `${safeValue.toFixed(1)}m`;
+        applyVisualSetting(id, safeValue);
+      });
+      updateCameraPositionConfigField();
+    };
+    updateCameraPositionConfigField();
+    if (cameraPositionCopyBtn) {
+      cameraPositionCopyBtn.addEventListener('click', () => {
+        const jsonStr = JSON.stringify(getCameraPositionConfig(), null, 2);
+        navigator.clipboard.writeText(jsonStr).then(() => {
+          showMessage('CAMERA POSITION COPIED');
+        }).catch(() => prompt('Copy Camera Position JSON:', jsonStr));
+      });
+    }
+    if (cameraPositionApplyBtn) {
+      cameraPositionApplyBtn.addEventListener('click', () => {
+        try {
+          applyCameraPositionConfig(JSON.parse(cameraPositionConfigField.value));
+          showMessage('CAMERA POSITION APPLIED');
+        } catch (error) {
+          showMessage(`CAMERA JSON ERROR: ${error.message}`);
+        }
+      });
+    }
     const battlefieldTimeControl = document.getElementById('battlefieldTimeOfDay');
     const battlefieldColorControl = document.getElementById('battlefieldEnvironmentColor');
     const updateBattlefieldAtmosphere = (syncEnvironmentColor = false) => {
@@ -10091,7 +10445,10 @@ let landingRecoveryTimer = 0;
         Object.entries(visualControls).forEach(([id, [, fallback]]) => {
           const control = document.getElementById(id);
           control.value = fallback;
-          control.nextElementSibling.value = id === 'windowColor' ? fallback : Number(fallback).toFixed(2);
+          control.nextElementSibling.value = id === 'cameraYawOffset' || id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' || id === 'cameraRoll'
+            ? `${Number(fallback).toFixed(0)}°`
+            : id.startsWith('camera') ? `${Number(fallback).toFixed(1)}m`
+            : id === 'windowColor' ? fallback : Number(fallback).toFixed(2);
           applyVisualSetting(id, fallback);
         });
         battlefieldAtmosphere.timeOfDay = 12;
@@ -10429,8 +10786,45 @@ let landingRecoveryTimer = 0;
       return proxy;
     }
 
+    function clearCollapsedRubble() {
+      for (const rubble of collapsedRubbleObstacles) scene.remove(rubble.mesh);
+      collapsedRubbleObstacles.length = 0;
+      collapsedRubbleBuildingIds.clear();
+    }
+
+    function spawnCollapsedRubble(buildingId, centerX, centerZ) {
+      if (collapsedRubbleBuildingIds.has(buildingId)) return;
+      collapsedRubbleBuildingIds.add(buildingId);
+      const pileCount = 5;
+      for (let index = 0; index < pileCount; index++) {
+        const angle = (index / pileCount) * Math.PI * 2 + Math.random() * .45;
+        const distance = 1.3 + Math.random() * 2.7;
+        const width = .85 + Math.random() * .9;
+        const height = .35 + Math.random() * .45;
+        const depth = .75 + Math.random() * .85;
+        const mesh = new THREE.Mesh(collapsedRubbleGeometry, collapsedRubbleMaterial);
+        mesh.position.set(
+          centerX + Math.cos(angle) * distance,
+          height * .5,
+          centerZ + Math.sin(angle) * distance
+        );
+        mesh.scale.set(width, height, depth);
+        mesh.rotation.set(
+          (Math.random() - .5) * .35,
+          Math.random() * Math.PI,
+          (Math.random() - .5) * .35
+        );
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData.isCollapsedRubble = true;
+        scene.add(mesh);
+        collapsedRubbleObstacles.push({ mesh, buildingId });
+      }
+    }
+
     function createBuilding() {
       disposeReplacedBuildingResources(building);
+      clearCollapsedRubble();
       buildingShadowProxies.clear();
       while (building.children.length) building.remove(building.children[0]);
       cannonPhysics.clearDynamics();
@@ -12238,8 +12632,8 @@ let landingRecoveryTimer = 0;
       }
       weaponCooldowns[cooldownIndex] = weaponStats.cooldown;
       attackTimer = gatlingShot ? .08 : .2;
-      const useHoming = (activeWeapon === 'homing' || (lockOnActive && homingMissileAmmo > 0))
-        && enemyAI?.alive && isEnemyVisible();
+      const useHoming = activeWeapon === 'homing' || (lockOnActive && homingMissileAmmo > 0);
+      const hasHomingTarget = lockOnActive && enemyAI?.alive && isEnemyVisible();
       player.updateWorldMatrix(true, true);
       const activePreset = slot === 1 ? activeLeftPreset : activeRightPreset;
       let selectedMuzzle = activePreset <= 2
@@ -12288,13 +12682,26 @@ let landingRecoveryTimer = 0;
       shell.userData.damage = weaponStats.damage;
       shell.userData.level = gatlingShot ? 0 : powerLevel;
       shell.userData.splashRadius = weaponStats.splashRadius;
+      // Without a confirmed lock, the salvo steers back toward this shot's
+      // saved aim point instead of following an unrelated enemy position.
       shell.userData.homing = useHoming;
+      shell.userData.homingToAimPoint = !hasHomingTarget;
+      shell.userData.homingTargetPoint.copy(targetPoint);
       shell.userData.wasHomingMissile = useHoming;
       shell.userData.homingMissed = false;
+      shell.userData.trailTimer = 0;
+      shell.userData.smokeTrailTimer = 0;
+      shell.userData.homingMissileBody.visible = useHoming;
+      shell.material.transparent = useHoming;
+      shell.material.opacity = useHoming ? 0 : 1;
+      shell.material.visible = !useHoming;
+      shell.material.depthWrite = !useHoming;
+      shell.userData.homingMissileAccent.color.setHex(0x6cff68);
+      shell.userData.homingMissileBody.scale.setScalar(useHoming ? 1 / Math.max(.001, shell.scale.x) : 1);
       shell.userData.life = weaponStats.range / shellSpeed + 0.1;
       if (useHoming) {
         shell.userData.life = weaponStats.range / shellSpeed + 0.1;
-        shell.userData.homingTime = 1.05;
+        shell.userData.homingTime = hasHomingTarget ? 1.05 : weaponStats.range / shellSpeed + .1;
         shell.userData.airburstTime = weaponStats.range / weaponStats.speed;
         shell.userData.homingLaunchDelay = .24;
         shell.userData.damage = weaponStats.damage;
@@ -12344,7 +12751,7 @@ let landingRecoveryTimer = 0;
         salvo.timer -= dt;
         if (salvo.timer > 0) continue;
         const slot = slotIndex + 1;
-        if (salvo.remaining <= 0 || ammo <= 0 || (salvo.usesPickup && homingMissileAmmo <= 0) || !enemyAI?.alive || !isEnemyVisible()) {
+        if (salvo.remaining <= 0 || ammo <= 0 || (salvo.usesPickup && homingMissileAmmo <= 0)) {
           homingSalvos[slotIndex] = null;
           if (ammo <= 0) startReload();
           continue;
@@ -12423,22 +12830,29 @@ let landingRecoveryTimer = 0;
     const glassShardOffset = new THREE.Vector3();
     const glassShardKick = new THREE.Vector3();
     function spawnGlassParticles(position, impulseDir) {
-      // Window impacts use the shared fracture pool; avoid allocating 14
+      // Window impacts use the shared fracture pool; avoid allocating many
       // transparent Mesh objects per pane during a building explosion.
-      for (let index = 0; index < 6; index++) {
-        const shardScale = .18 + Math.random() * .24;
+      // Keep fragments bright even when the facade material is darkened for
+      // distant windows or when the impact happens outside a light source.
+      fractureGlassColor.set(0x8fdde4);
+      for (let index = 0; index < 8; index++) {
+        const shardScale = .32 + Math.random() * .34;
         glassShardOffset.set(
           (Math.random() - .5) * .7,
           (Math.random() - .5) * .7,
           (Math.random() - .5) * .7
         );
-        glassShardPosition.copy(position).add(glassShardOffset);
+        glassShardPosition.copy(position)
+          .addScaledVector(impulseDir, .24)
+          .add(glassShardOffset);
         glassShardKick.set(
-          (Math.random() - .5) * 4,
-          2 + Math.random() * 4.5,
-          (Math.random() - .5) * 4
+          (Math.random() - .5) * 4.2,
+          3.2 + Math.random() * 5.4,
+          (Math.random() - .5) * 4.2
         );
-        glassShardVelocity.copy(impulseDir).multiplyScalar(3.5 + Math.random() * 4.5).add(glassShardKick);
+        // Spread the shards in a broad impact cone so the break reads as a
+        // burst instead of a straight line of fragments.
+        glassShardVelocity.copy(impulseDir).multiplyScalar(5.2 + Math.random() * 5.4).add(glassShardKick);
         glassShardAngularVelocity.set(
           (Math.random() - .5) * 18,
           (Math.random() - .5) * 18,
@@ -12447,10 +12861,10 @@ let landingRecoveryTimer = 0;
         spawnFractureInstance(
           fractureGlassBatch,
           glassShardPosition,
-          glassShardVelocity,
-          glassShardAngularVelocity,
+          glassShardVelocity.clone(),
+          glassShardAngularVelocity.clone(),
           shardScale,
-          1.35 + Math.random() * .55,
+          2.0,
           fractureGlassColor
         );
       }
@@ -12498,14 +12912,15 @@ let landingRecoveryTimer = 0;
       return closestIndex >= 0 && shatterWindowInstance(closestSystem, closestIndex, impulseDir);
     }
 
-    function shatterWindowsInRadius(position, impulseDir, radius, maxCount = Infinity) {
+    function shatterWindowsInRadius(position, impulseDir, radius, maxCount = Infinity, buildingId = null) {
       if (radius <= 0 || maxCount <= 0) return 0;
       const candidates = [];
       const radiusSq = radius * radius;
       const instanceMatrix = new THREE.Matrix4();
       const worldMatrix = new THREE.Matrix4();
       const windowWorld = new THREE.Vector3();
-      for (const system of buildingWindowSystems.values()) {
+      for (const [systemBuildingId, system] of buildingWindowSystems) {
+        if (buildingId !== null && systemBuildingId !== buildingId) continue;
         system.mesh.updateWorldMatrix(true, false);
         for (let index = 0; index < system.active.length; index++) {
           if (!system.active[index]) continue;
@@ -13817,7 +14232,7 @@ let landingRecoveryTimer = 0;
       vehicle.userData.respawnTimer = THREE.MathUtils.randFloat(5.5, 8.5);
       vehicle.visible = false;
       const blastPosition = vehicle.position.clone().add(new THREE.Vector3(0, .9, 0));
-      spawnExplosionEffect(blastPosition, 3.1);
+      spawnExplosionEffect(blastPosition, 3.1, vehicle);
       spawnVehicleFragments(vehicle, impulseDirection.lengthSq() > .001 ? impulseDirection.clone().normalize() : new THREE.Vector3(0, 0, 1));
       shake = Math.max(shake, .32);
 
@@ -14421,6 +14836,10 @@ let landingRecoveryTimer = 0;
     const HOMING_MAX_TURN_COS = .5; // 60 degrees: wider corrections miss instead of turning 360 degrees.
     const shellImpulse = new THREE.Vector3();
     const shellGlassImpulse = new THREE.Vector3();
+    const mechBuildingImpactPoint = new THREE.Vector3();
+    const mechBuildingImpactDirection = new THREE.Vector3();
+    let mechBuildingImpactCooldown = 0;
+    let buildingCollisionShakeCooldown = 0;
     let enemyVisibilityCheckedAt = -Infinity;
     let enemyVisibilityCached = false;
     const playerRadius = MECH_RADIUS;
@@ -14527,6 +14946,11 @@ let landingRecoveryTimer = 0;
         blockCollider.setFromObject(panel.mesh);
         if (playerCollider.intersectsBox(blockCollider)) return true;
       }
+      for (const rubble of collapsedRubbleObstacles) {
+        rubble.mesh.updateWorldMatrix(true, false);
+        blockCollider.setFromObject(rubble.mesh);
+        if (playerCollider.intersectsBox(blockCollider)) return true;
+      }
       return false;
     }
 
@@ -14536,7 +14960,61 @@ let landingRecoveryTimer = 0;
         const dz = enemyAI.group.position.z - z;
         if (dx * dx + dz * dz < 11.5) return true;
       }
-      return collidesAtPosition(x, z, player.position.y, playerRadius);
+      const blocked = collidesAtPosition(x, z, player.position.y, playerRadius);
+      if (blocked && buildingCollisionShakeCooldown <= 0) {
+        shake = Math.max(shake, .12);
+        buildingCollisionShakeCooldown = .16;
+      }
+      return blocked;
+    }
+
+    function handleMechaBuildingImpact(movementDirection, impactSpeed) {
+      if (mechBuildingImpactCooldown > 0 || !movementDirection || movementDirection.lengthSq() < .001) return;
+      let closestBuilding = null;
+      let closestDistanceSq = Infinity;
+      for (const bounds of buildingBounds) {
+        if (collapsingBuildings.has(bounds.buildingId)) continue;
+        const closestX = THREE.MathUtils.clamp(player.position.x, bounds.x - bounds.halfX, bounds.x + bounds.halfX);
+        const closestZ = THREE.MathUtils.clamp(player.position.z, bounds.z - bounds.halfZ, bounds.z + bounds.halfZ);
+        const distanceSq = (closestX - player.position.x) ** 2 + (closestZ - player.position.z) ** 2;
+        if (distanceSq < closestDistanceSq) {
+          closestDistanceSq = distanceSq;
+          closestBuilding = { bounds, x: closestX, z: closestZ };
+        }
+      }
+      if (!closestBuilding) return;
+      // Resolve the contact on the building's actual facade, not at the
+      // mech center where the structural core may have stopped the body.
+      mechBuildingImpactPoint.set(
+        closestBuilding.x,
+        player.position.y + MECH_HEIGHT * .52,
+        closestBuilding.z
+      );
+      // Use the building-to-contact normal rather than only reversing the
+      // movement vector. This keeps corner and diagonal impacts outside the
+      // facade instead of sending shards through one side of the building.
+      mechBuildingImpactDirection.set(
+        closestBuilding.x - closestBuilding.bounds.x,
+        0,
+        closestBuilding.z - closestBuilding.bounds.z
+      );
+      if (mechBuildingImpactDirection.lengthSq() < .001) {
+        mechBuildingImpactDirection.copy(movementDirection).setY(0).normalize().multiplyScalar(-1);
+      } else {
+        mechBuildingImpactDirection.normalize();
+      }
+      const shattered = shatterWindowsInRadius(
+        mechBuildingImpactPoint,
+        mechBuildingImpactDirection,
+        2.15,
+        impactSpeed > 18 ? 3 : 2,
+        closestBuilding.bounds.buildingId
+      );
+      // Keep the impact readable even when the nearest authored pane is
+      // already broken or falls just outside the instanced-window radius.
+      if (!shattered) spawnGlassParticles(mechBuildingImpactPoint, mechBuildingImpactDirection);
+      mechBuildingImpactCooldown = impactSpeed > 18 ? .16 : .24;
+      shake = Math.max(shake, shattered ? (impactSpeed > 18 ? .14 : .08) : .055);
     }
 
     function cpuCollidesWithBuilding(x, z, y = 0, radius = 1.85) {
@@ -14878,7 +15356,7 @@ let landingRecoveryTimer = 0;
       // palette so building collapses read as gray cement clouds.
       const dustColors = [0x5f6468, 0x707579, 0x858a8d, 0x999d9e, 0xb0b3b2];
       for (let i = 0; i < count; i++) {
-        const size = (3.2 + Math.random() * 5.5) * scale;
+        const size = (1.3 + Math.random() * 2.4) * scale;
         const angle = Math.random() * Math.PI * 2;
         const radius = Math.random() * (4.5 + scale * 5.8);
         const position = center.clone().add(new THREE.Vector3(
@@ -14930,6 +15408,7 @@ let landingRecoveryTimer = 0;
         duration: 3.15,
         fragmentTimer: 0,
         dustTimer: .05,
+        explosionTimer: .12,
         entries
       });
       shake = Math.max(shake, .35);
@@ -14976,6 +15455,20 @@ let landingRecoveryTimer = 0;
             const randomY = Math.random() * 14 * (1 - progress);
             spawnCollapseDust(new THREE.Vector3(state.centerX, 0.4 + randomY, state.centerZ), 1.1 + progress * 0.9, 14);
           }
+          state.explosionTimer -= dt;
+          if (state.explosionTimer <= 0) {
+            state.explosionTimer = .16 + Math.random() * .18;
+            const angle = Math.random() * Math.PI * 2;
+            const floorCount = Math.max(1, buildingProfiles.get(buildingId)?.floors ?? 6);
+            const floorIndex = Math.floor(Math.random() * floorCount);
+            const radius = 1.5 + Math.random() * 2.0;
+            const baseImpact = new THREE.Vector3(
+              state.centerX + Math.cos(angle) * (2.2 + Math.random() * 3.2),
+              .65 + floorIndex * 1.55 + Math.random() * .55,
+              state.centerZ + Math.sin(angle) * (2.2 + Math.random() * 3.2)
+            );
+            spawnExplosionEffect(baseImpact, radius);
+          }
           shake = Math.max(shake, .15 + Math.sin(progress * Math.PI) * .28);
         }
 
@@ -14990,7 +15483,7 @@ let landingRecoveryTimer = 0;
         stability = 0;
         score += 1500;
 
-        // Massive Ground Impact Explosion & Dust Plume on Collapse End
+        // Massive ground impact explosion and noisy dust on collapse end.
         const impactCenter = new THREE.Vector3(state.centerX, 0.4, state.centerZ);
         spawnExplosionEffect(impactCenter, 5.2);
         spawnExplosionEffect(impactCenter.clone().add(new THREE.Vector3(2.8, 0.6, -2.8)), 3.5);
@@ -14998,6 +15491,7 @@ let landingRecoveryTimer = 0;
         spawnCollapseDust(impactCenter, 2.4, 120);
         shake = Math.max(shake, 0.58);
 
+        spawnCollapsedRubble(buildingId, state.centerX, state.centerZ);
         spawnCollapseLoot(buildingId);
         updateHUD();
       }
@@ -15051,6 +15545,15 @@ let landingRecoveryTimer = 0;
         const scale = .52 + (1 - life) * .72;
         flame.scale.set(scale * .72, scale * (1.15 + life * .7), scale * .72);
         flame.material.opacity = Math.sin(life * Math.PI) * (.64 + (index % 3) * .09);
+      });
+      const antennaTime = performance.now() * .001;
+      const walkSway = THREE.MathUtils.clamp(locomotionSpeed / 12.35, 0, 1);
+      const flightSway = THREE.MathUtils.clamp(Math.abs(verticalVelocity) / 18, 0, 1);
+      antennaMasts.forEach((mast, index) => {
+        const phase = mast.phase + index * .22;
+        const motion = walkSway * .055 + flightSway * .08;
+        mast.pivot.rotation.x = -0.18 + Math.sin(antennaTime * 8.2 + phase) * motion;
+        mast.pivot.rotation.z = Math.cos(antennaTime * 6.7 + phase) * motion * .7;
       });
       if (playerDestroyed) return;
       for (let index = 0; index < laserCooldowns.length; index++) {
@@ -15118,6 +15621,8 @@ let landingRecoveryTimer = 0;
       const requestedSpeed = !legsDisabled && (isMoving || dashing)
         ? (dashing ? 40.3 : airBoosting ? 31.2 : 12.35) * loadoutSpeedFactor * damageSpeedFactor * landingSpeedFactor
         : 0;
+      mechBuildingImpactCooldown = Math.max(0, mechBuildingImpactCooldown - dt);
+      buildingCollisionShakeCooldown = Math.max(0, buildingCollisionShakeCooldown - dt);
       const speedResponse = dashing ? 18 : requestedSpeed > locomotionSpeed ? 3.4 : 5.2;
       const moveStartX = player.position.x;
       const moveStartZ = player.position.z;
@@ -15139,6 +15644,9 @@ let landingRecoveryTimer = 0;
         : 1;
       playerRigidBody.drive(activeMove, requestedSpeed * gaitDrive, speedResponse, dt);
       playerRigidBody.integrateHorizontal(dt, (x, z) => collidesWithBuilding(x, z));
+      if ((playerRigidBody.blockedX || playerRigidBody.blockedZ) && activeMove) {
+        handleMechaBuildingImpact(activeMove, Math.max(requestedSpeed, locomotionSpeed));
+      }
       locomotionSpeed = Math.hypot(playerRigidBody.velocity.x, playerRigidBody.velocity.z);
       const turnRate = Math.abs(angleDelta(rotationBeforeMove, player.rotation.y)) / Math.max(dt, .001);
       const turnStability = THREE.MathUtils.clamp(1 - turnRate / 1.8, 0, 1);
@@ -15303,9 +15811,10 @@ if (!wasGrounded && grounded) {
           outer.rotation.set(-bendZ * .4, 0, bendX * .4);
           if (dashJetsActive || airBoosting) {
             const halfFlameLength = JET_FLAME_BASE_LENGTH * flame.userData.lengthScale * .5;
-            dashFlameTargetPosition.copy(flame.userData.nozzleOrigin).addScaledVector(dashExhaustDown, halfFlameLength);
+            dashFlameTargetPosition.copy(flame.userData.nozzleOrigin).addScaledVector(dashTrailLocal, halfFlameLength);
             flame.position.lerp(dashFlameTargetPosition, 1 - Math.exp(-16 * dt));
-            flame.quaternion.slerp(normalFlameTargetQuaternion, 1 - Math.exp(-18 * dt));
+            flameDirectionQuaternion.setFromUnitVectors(flameExhaustAxis, dashTrailLocal);
+            flame.quaternion.slerp(flameDirectionQuaternion, 1 - Math.exp(-18 * dt));
           } else {
             normalFlameTargetPosition.set(flame.userData.side * .88, 1.4, -1.93);
             flame.position.lerp(normalFlameTargetPosition, 1 - Math.exp(-18 * dt));
@@ -15534,13 +16043,15 @@ if (!wasGrounded && grounded) {
           shell.userData.homingLaunchDelay = Math.max(0, (shell.userData.homingLaunchDelay || 0) - dt);
           if (shell.userData.homingTime <= 0) shell.userData.homing = false;
         }
-        if (shell.userData.homing && !enemyAI?.alive) {
+        if (shell.userData.homing && !shell.userData.homingToAimPoint && !enemyAI?.alive) {
           shell.userData.homing = false;
+          shell.userData.homingMissed = true;
+          shell.userData.life = 0;
           if (lockOnActive) showMessage('LOCK LOST');
           lockOnActive = false;
           autoLockProgress = 0;
         }
-        if (shell.userData.homing && shell.userData.homingLaunchDelay <= 0 && enemyAI?.alive) {
+        if (shell.userData.homing && !shell.userData.homingToAimPoint && shell.userData.homingLaunchDelay <= 0 && enemyAI?.alive) {
           const targetPoint = shellTargetPoint.copy(enemyAI.group.position);
           targetPoint.y += 4.8;
           // Guidance requires a direct missile-to-target path.  A target that
@@ -15554,11 +16065,14 @@ if (!wasGrounded && grounded) {
           if (!shell.userData.homingHasSight) {
             shell.userData.homing = false;
             shell.userData.homingLostInCover = true;
+            shell.userData.homingMissed = true;
+            shell.userData.life = 0;
           }
         }
-        if (shell.userData.homing && shell.userData.homingLaunchDelay <= 0 && enemyAI?.alive) {
-          const targetPoint = shellTargetPoint.copy(enemyAI.group.position);
-          targetPoint.y += 4.8;
+        if (shell.userData.homing && shell.userData.homingLaunchDelay <= 0) {
+          const targetPoint = shell.userData.homingToAimPoint
+            ? shell.userData.homingTargetPoint
+            : shellTargetPoint.copy(enemyAI.group.position).setY(enemyAI.group.position.y + 4.8);
           const speed = Math.max(48, shell.userData.velocity.length());
           const desiredDirection = shellDesiredDirection.copy(targetPoint).sub(shell.position).normalize();
           const currentDirection = shellCurrentDirection.copy(shell.userData.velocity).normalize();
@@ -15577,13 +16091,21 @@ if (!wasGrounded && grounded) {
           shell.userData.life = 0;
         }
         if (shell.userData.homing) {
+          updateAttachedHomingBooster(shell);
+          shell.userData.smokeTrailTimer = (shell.userData.smokeTrailTimer || 0) - dt;
+          if (shell.userData.smokeTrailTimer <= 0) {
+            spawnHomingSmokeTrail(shell.position, shell.userData.velocity);
+            shell.userData.smokeTrailTimer = .055;
+          }
+        } else {
+          shell.userData.boosterTrail.visible = false;
           shell.userData.trailTimer = (shell.userData.trailTimer || 0) - dt;
           if (shell.userData.trailTimer <= 0) {
-            spawnMissileTrail(shell.position);
-            shell.userData.trailTimer = .075;
+            spawnProjectileFlameTrail(shell.position, shell.userData.velocity, shell.material.color.getHex());
+            shell.userData.trailTimer = .045;
           }
         }
-        if (!shell.userData.homingMissed && shell.userData.wasHomingMissile && shell.userData.airburstTime <= 0) {
+        if (shell.userData.wasHomingMissile && (shell.userData.airburstTime <= 0 || shell.userData.homingMissed)) {
           spawnExplosionEffect(shell.position, 3.2);
           for (const targetAI of [enemyAI, enemyAI2]) {
             if (!targetAI?.alive || targetAI.group.position.distanceTo(shell.position) > 6.5) continue;
@@ -15621,7 +16143,7 @@ if (!wasGrounded && grounded) {
           releasePlayerShellAt(i);
           continue;
         }
-        shell.rotation.x += 12 * dt;
+        if (!shell.userData.homing) shell.rotation.x += 12 * dt;
         let hitBlock = null;
         for (const block of blocks) {
           if (block.userData.removed) continue;
@@ -15720,7 +16242,7 @@ if (!wasGrounded && grounded) {
     const barrierImpactPoint = new THREE.Vector3();
     const barrierPanelBox = new THREE.Box3();
     const barrierPanelClosestPoint = new THREE.Vector3();
-    const barrierFractureColor = new THREE.Color(0x73797a);
+    const barrierFractureColor = new THREE.Color(0x85898b);
     function spawnBarrierImpactFragments(origin, direction, count = 5) {
       const outward = direction.lengthSq() > .001
         ? direction.clone().normalize()
@@ -15833,7 +16355,7 @@ if (!wasGrounded && grounded) {
       }
     }
 
-    function spawnExplosionEffect(position, radius) {
+    function spawnExplosionEffect(position, radius, burningAnchor = null) {
       if (radius >= 1.8 && performance.now() - lastExplosionSoundTime > 120) {
         playGameSound('explosion');
         lastExplosionSoundTime = performance.now();
@@ -15870,7 +16392,7 @@ if (!wasGrounded && grounded) {
       damageDangerBarrier(position, radius);
       blastEvacuees(position, radius);
       spawnExplosionInstanceParticles(position, radius);
-      if (radius >= 2.5) spawnBurningEffect(position, radius);
+      if (radius >= 2.5) spawnBurningEffect(position, radius, burningAnchor);
     }
 
     function spawnGroundImpactEffect(position, radius = 1.2) {
@@ -15885,28 +16407,64 @@ if (!wasGrounded && grounded) {
       const group = new THREE.Group();
       const flames = [];
       const smoke = [];
-      for (let i = 0; i < 4; i++) {
-        const flame = new THREE.Mesh(burningFlameGeo, explosionSparkMatBase.clone());
-        flame.material.color.setHex(i ? 0xff5a16 : 0xffd34d);
-        flame.position.set((i - 1.5) * .24, .48 + (i % 2) * .12, (Math.random() - .5) * .35);
+      const embers = [];
+      const flameConfigs = [
+        { geometry: burningFlameOuterGeo, material: burningFlameOuterMatBase, position: [-.34, .68, .03], scale: [.92, .88, .92], opacity: .72 },
+        { geometry: burningFlameOuterGeo, material: burningFlameOuterMatBase, position: [.32, .64, -.04], scale: [.84, 1.02, .84], opacity: .68 },
+        { geometry: burningFlameOuterGeo, material: burningFlameOuterMatBase, position: [.02, .58, -.28], scale: [.72, .72, .7], opacity: .58 },
+        { geometry: burningFlameTongueGeo, material: burningFlameTongueMatBase, position: [-.08, .76, .02], scale: [.86, 1.02, .86], opacity: .86 },
+        { geometry: burningFlameTongueGeo, material: burningFlameTongueMatBase, position: [.16, .82, .08], scale: [.7, .88, .7], opacity: .8 },
+        { geometry: burningFlameTongueGeo, material: burningFlameTongueMatBase, position: [-.22, .73, -.12], scale: [.58, .82, .58], opacity: .72 },
+        { geometry: burningFlameCoreGeo, material: burningFlameCoreMatBase, position: [0, .52, .01], scale: [1, 1, 1], opacity: .96 }
+      ];
+      flameConfigs.forEach((config, index) => {
+        const flame = new THREE.Mesh(config.geometry, config.material.clone());
+        flame.position.set(...config.position);
+        flame.scale.set(...config.scale);
+        flame.userData.basePosition = flame.position.clone();
+        flame.userData.baseScale = flame.scale.clone();
+        flame.userData.opacity = config.opacity;
+        flame.userData.seed = Math.random() * Math.PI * 2 + index * .7;
         flames.push(flame);
-      }
-      for (let i = 0; i < 3; i++) {
+      });
+      for (let i = 0; i < 5; i++) {
         const puff = new THREE.Mesh(explosionSmokeGeo, explosionSmokeMatBase.clone());
-        puff.position.set((i - 1) * .3, 1.1 + i * .18, 0);
+        puff.position.set((Math.random() - .5) * .34, 1.05 + i * .16, (Math.random() - .5) * .24);
+        puff.userData.basePosition = puff.position.clone();
+        puff.userData.speed = .22 + Math.random() * .18;
+        puff.userData.spread = .14 + Math.random() * .16;
+        puff.userData.seed = Math.random() * Math.PI * 2;
+        puff.userData.scale = .72 + Math.random() * .35;
+        puff.rotation.set(Math.random() * .8, Math.random() * .8, Math.random() * .8);
         smoke.push(puff);
       }
-      group.add(...flames, ...smoke);
-      group.userData = { flames, smoke };
+      for (let i = 0; i < 7; i++) {
+        const ember = new THREE.Mesh(burningEmberGeo, burningEmberMatBase.clone());
+        ember.position.set((Math.random() - .5) * .8, .45 + Math.random() * .35, (Math.random() - .5) * .65);
+        ember.userData.basePosition = ember.position.clone();
+        ember.userData.speed = .55 + Math.random() * .8;
+        ember.userData.seed = Math.random() * Math.PI * 2;
+        ember.userData.phase = Math.random();
+        ember.scale.setScalar(.55 + Math.random() * .7);
+        embers.push(ember);
+      }
+      group.add(...flames, ...smoke, ...embers);
+      group.userData = { flames, smoke, embers };
       return group;
     }
     for (let index = 0; index < 8; index++) burningEffectPool.push(createBurningEffectGroup());
 
-    function spawnBurningEffect(position, radius) {
+    function spawnBurningEffect(position, radius, burningAnchor = null) {
       if (burningEffects.length >= 8) return;
       const group = burningEffectPool.pop();
       if (!group) return;
       group.position.copy(position);
+      // Explosions are often emitted from a projectile or an object's visual
+      // center.  Persistent fire must start on the ground/object base, not in
+      // mid-air; callers may provide an anchor when the fire belongs on an object.
+      group.position.y = burningAnchor?.position?.y != null
+        ? burningAnchor.position.y + .04
+        : .14;
       group.scale.setScalar(THREE.MathUtils.clamp(radius * .34, .55, 1.8));
       group.userData.elapsed = 0;
       group.userData.duration = 5 + Math.random() * 3;
@@ -16201,15 +16759,44 @@ if (!wasGrounded && grounded) {
         const life = fire.userData.elapsed / fire.userData.duration;
         const fade = THREE.MathUtils.smoothstep(1 - life, 0, .28);
         fire.userData.flames.forEach((flame, index) => {
-          const flicker = .72 + Math.sin(now * (11 + index * 2) + fire.userData.phase) * .22 + Math.random() * .08;
-          flame.scale.set(.75 + index * .08, flicker, .75 + index * .08);
-          flame.material.opacity = fade * .82;
+          const seed = flame.userData.seed + fire.userData.phase;
+          const flicker = .9 + Math.sin(now * (8.5 + index * 1.7) + seed) * .16 + Math.sin(now * 19 + seed * 1.9) * .07;
+          const sway = Math.sin(now * (4.2 + index * .35) + seed) * (.08 + index * .012);
+          const basePosition = flame.userData.basePosition;
+          const baseScale = flame.userData.baseScale;
+          flame.position.x = basePosition.x + sway;
+          flame.position.z = basePosition.z + Math.cos(now * 3.6 + seed) * .045;
+          flame.rotation.z = Math.sin(now * 5.2 + seed) * .13;
+          flame.rotation.x = Math.cos(now * 4.6 + seed * .8) * .08;
+          flame.scale.set(baseScale.x * (1.02 + flicker * .08), baseScale.y * flicker, baseScale.z * (1.02 + flicker * .08));
+          flame.material.opacity = fade * flame.userData.opacity;
         });
         fire.userData.smoke.forEach((puff, index) => {
-          const cycle = (fire.userData.elapsed * .3 + index * .5) % 1;
-          puff.position.y = 1.1 + cycle * 2.1;
-          puff.scale.setScalar(.8 + cycle * 2.2);
-          puff.material.opacity = fade * Math.sin(cycle * Math.PI) * .28;
+          const cycle = (fire.userData.elapsed * puff.userData.speed + index * .19) % 1;
+          const base = puff.userData.basePosition;
+          const spread = cycle * puff.userData.spread;
+          puff.position.x = base.x + Math.sin(now * .8 + puff.userData.seed) * spread;
+          puff.position.y = base.y + cycle * 2.15;
+          puff.position.z = base.z + Math.cos(now * .65 + puff.userData.seed) * spread * .72;
+          puff.rotation.x += dt * (.35 + index * .04);
+          puff.rotation.y += dt * (.28 + index * .05);
+          puff.rotation.z += dt * (.22 + index * .03);
+          puff.scale.setScalar(puff.userData.scale * (.82 + cycle * 2.1));
+          puff.material.opacity = fade * Math.sin(cycle * Math.PI) * (.18 + (index % 2) * .06);
+        });
+        fire.userData.embers.forEach(ember => {
+          const cycle = (fire.userData.elapsed * ember.userData.speed + ember.userData.phase) % 1;
+          const base = ember.userData.basePosition;
+          const drift = Math.sin(now * 2.8 + ember.userData.seed) * (.08 + cycle * .12);
+          ember.position.set(
+            base.x + drift,
+            base.y + cycle * 1.55,
+            base.z + Math.cos(now * 2.3 + ember.userData.seed) * (.05 + cycle * .1)
+          );
+          const emberFade = Math.sin(cycle * Math.PI);
+          const emberPulse = .72 + Math.sin(now * 14 + ember.userData.seed) * .22;
+          ember.scale.setScalar((.55 + emberPulse * .45) * emberFade);
+          ember.material.opacity = fade * emberFade * .9;
         });
         if (!playerDestroyed && battleStarted && !isInSafeZone(player.position, 'player')) {
           const dx = player.position.x - fire.position.x;
@@ -16467,6 +17054,33 @@ if (!wasGrounded && grounded) {
           pickupSearchDistanceSq = distanceSq;
           pickupSearchNearest = item;
         }
+      }
+    }
+    function spawnHomingSmokeTrail(position, velocity) {
+      const smoke = homingSmokeTrailPool.pop();
+      if (!smoke) return;
+      smoke.visible = true;
+      smoke.position.copy(position).addScaledVector(velocity, -.012);
+      smoke.scale.setScalar(.35 + Math.random() * .22);
+      smoke.userData.velocity.copy(velocity).multiplyScalar(-.012);
+      smoke.userData.life = .6 + Math.random() * .18;
+      smoke.material.opacity = .2 + Math.random() * .08;
+      scene.add(smoke);
+      homingSmokeTrails.push(smoke);
+    }
+    function updateHomingSmokeTrails(dt) {
+      for (let index = homingSmokeTrails.length - 1; index >= 0; index--) {
+        const smoke = homingSmokeTrails[index];
+        smoke.userData.life -= dt;
+        smoke.position.addScaledVector(smoke.userData.velocity, dt);
+        const ratio = Math.max(0, smoke.userData.life / .78);
+        smoke.scale.multiplyScalar(1 + dt * 1.9);
+        smoke.material.opacity = ratio * .26;
+        if (smoke.userData.life > 0) continue;
+        scene.remove(smoke);
+        smoke.visible = false;
+        homingSmokeTrails.splice(index, 1);
+        homingSmokeTrailPool.push(smoke);
       }
     }
 
@@ -16770,14 +17384,26 @@ if (!wasGrounded && grounded) {
       camTarget.copy(player.position);
       const mobileCamera = isMobileViewport();
       camTarget.y += mobileCamera ? 4.55 : 5.35;
-      const maxDistance = mobileCamera ? 15.5 : 18.5;
-      const minDistanceAllowed = mobileCamera ? 7.5 : 8.0;
-      const cp = Math.cos(pitch);
-      const baseOffset = cameraBaseOffset.set(
-        -Math.sin(yaw) * cp * maxDistance,
-        (mobileCamera ? 6.4 : 7.2) - Math.sin(pitch) * maxDistance,
-        -Math.cos(yaw) * cp * maxDistance
+      const maxDistance = THREE.MathUtils.clamp(
+        (mobileCamera ? 15.5 : 18.5) + gameplayCameraDistanceOffset,
+        mobileCamera ? 7.5 : 8.0,
+        26
       );
+      const minDistanceAllowed = mobileCamera ? 7.5 : 8.0;
+      const cameraYaw = yaw + THREE.MathUtils.degToRad(gameplayCameraYawOffset);
+      const cameraPitch = THREE.MathUtils.clamp(
+        pitch + THREE.MathUtils.degToRad(gameplayCameraPitchOffset),
+        -1.35,
+        1.35
+      );
+      const cp = Math.cos(cameraPitch);
+      const baseOffset = cameraBaseOffset.set(
+        -Math.sin(cameraYaw) * cp * maxDistance,
+        (mobileCamera ? 6.4 : 7.2) + gameplayCameraHeightOffset - Math.sin(cameraPitch) * maxDistance,
+        -Math.cos(cameraYaw) * cp * maxDistance
+      );
+      baseOffset.x += -Math.cos(cameraYaw) * gameplayCameraSideOffset;
+      baseOffset.z += Math.sin(cameraYaw) * gameplayCameraSideOffset;
       const rayDir = cameraRayDirection.copy(baseOffset).normalize();
       const currentMaxDist = baseOffset.length();
       
@@ -16821,6 +17447,11 @@ if (!wasGrounded && grounded) {
       }
       updatePlayerCameraFade();
       camera.lookAt(camTarget);
+      // Apply local camera rotation after lookAt so these values rotate the
+      // camera itself instead of changing the point the camera targets.
+      camera.rotateX(THREE.MathUtils.degToRad(gameplayCameraLocalPitch));
+      camera.rotateY(THREE.MathUtils.degToRad(gameplayCameraLocalYaw));
+      camera.rotateZ(THREE.MathUtils.degToRad(gameplayCameraRoll));
     }
 
     let lastHudUpdateTime = -Infinity;
@@ -17329,7 +17960,10 @@ if (!wasGrounded && grounded) {
           result = playerKills > cpuKills ? 'PLAYER WINS' : playerKills < cpuKills ? 'CPU WINS' : 'DRAW';
         }
         if (result === 'PLAYER WINS') playerRoundWins++;
-        if (roundNumber < TOTAL_ROUNDS) {
+        // Two round wins complete the match immediately; never schedule the final round.
+        if (playerRoundWins >= 2) {
+          roundTransitionTimer = 0;
+        } else if (roundNumber < TOTAL_ROUNDS) {
           roundNumber++;
           beginRoundTransition();
           return;
@@ -18368,6 +19002,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           updateShells(dt);
           updateExplosionEffects(dt);
           updateMissileTrails(dt);
+          updateProjectileFlameTrails(dt);
+          updateHomingSmokeTrails(dt);
           updateStructuralSupport();
           updatePowerItems(dt);
           enemyAI.update(dt);
@@ -18380,6 +19016,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           updateDebris(dt);
           updateExplosionEffects(dt);
           updateMissileTrails(dt);
+          updateProjectileFlameTrails(dt);
+          updateHomingSmokeTrails(dt);
           updateLaserBeams(dt);
           updateStructuralSupport();
           updateCamera(dt);
