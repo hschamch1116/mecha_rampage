@@ -5,21 +5,15 @@ cd /d "%~dp0"
 set "PORT=8080"
 set "URL=http://localhost:%PORT%/"
 
-where py >nul 2>nul
+where node >nul 2>nul
 if not errorlevel 1 (
-  set "PYTHON_CMD=py"
-  goto :start
-)
-
-where python >nul 2>nul
-if not errorlevel 1 (
-  set "PYTHON_CMD=python"
+  set "NODE_CMD=node"
   goto :start
 )
 
 echo.
-echo Python was not found.
-echo Install Python from https://www.python.org/downloads/ and run this file again.
+echo Node.js was not found.
+echo Install Node.js and run this file again.
 echo.
 pause
 exit /b 1
@@ -31,6 +25,6 @@ echo URL: %URL%
 echo Press Ctrl+C to stop the server.
 echo.
 start "" "%URL%"
-%PYTHON_CMD% -m http.server %PORT%
+%NODE_CMD% server.js
 
 endlocal

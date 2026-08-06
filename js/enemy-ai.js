@@ -1804,7 +1804,11 @@ class EnemyAI {
     const coverPoint = this.getCoverPoint?.(_tempSelfPos, perceivedTarget);
     const pickupTarget = this.getPickupTarget?.(_tempSelfPos);
     const pickupDist = pickupTarget ? pickupTarget.position.distanceTo(_tempSelfPos) : Infinity;
-    const wantsResupply = pickupTarget && pickupDist < 44 && this.resupplyTimer > 0 && distanceToPlayer > 18;
+    const wantsDronePickup = pickupTarget?.userData?.pickupKind === 'drone-companion'
+      && pickupDist < 44
+      && (this.droneCompanions?.length || 0) < 2
+      && distanceToPlayer > 18;
+    const wantsResupply = pickupTarget && pickupDist < 44 && (this.resupplyTimer > 0 || wantsDronePickup) && distanceToPlayer > 18;
     const recentlyDamaged = this.time - this.lastDamageTime < 1.35;
     const needsCover = coverPoint && distanceToPlayer > 14 && (this.state !== 'RETREAT' || this.retreatTimer > 0) && (
       healthRatio < AI_CONFIG.HEALTH.RETREAT_LOW_HEALTH ||

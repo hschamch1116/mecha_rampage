@@ -44,6 +44,22 @@ if [ ! -f "$PROJECT_DIR/server.js" ]; then
     exit 1
 fi
 
+REQUIRED_VENDOR_FILES=(
+    "$PROJECT_DIR/vendor/three/build/three.module.js"
+    "$PROJECT_DIR/vendor/three/examples/jsm/geometries/RoundedBoxGeometry.js"
+    "$PROJECT_DIR/vendor/three/examples/jsm/utils/BufferGeometryUtils.js"
+    "$PROJECT_DIR/vendor/three/examples/jsm/postprocessing/EffectComposer.js"
+    "$PROJECT_DIR/vendor/three/examples/jsm/postprocessing/RenderPass.js"
+    "$PROJECT_DIR/vendor/cannon-es/dist/cannon-es.js"
+)
+for required_file in "${REQUIRED_VENDOR_FILES[@]}"; do
+    if [ ! -f "$required_file" ]; then
+        echo "=== [ERROR] Required local module is missing: $required_file ===" >> "$LOG_FILE"
+        echo "Copy the complete vendor directory before starting the NAS server." >> "$LOG_FILE"
+        exit 1
+    fi
+done
+
 if [ -f "$PID_FILE" ]; then
     OLD_PID="$(cat "$PID_FILE")"
     if kill -0 "$OLD_PID" 2>/dev/null; then

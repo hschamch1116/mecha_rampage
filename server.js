@@ -12,12 +12,14 @@ const MIME_TYPES = {
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
   '.ico': 'image/x-icon',
-  '.js': 'text/javascript; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
   '.mp3': 'audio/mpeg',
   '.ogg': 'audio/ogg',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
+  '.ttf': 'font/ttf',
   '.wav': 'audio/wav',
   '.webp': 'image/webp'
 };
@@ -25,9 +27,20 @@ const MIME_TYPES = {
 function sendText(response, statusCode, message) {
   response.writeHead(statusCode, {
     'Content-Type': 'text/plain; charset=utf-8',
-    'Cache-Control': 'no-store'
+    'Cache-Control': 'no-cache'
   });
   response.end(message);
+}
+
+function getCachePolicy(relativePath) {
+  // Version-pinned vendor/assets never change during a deployment and can be
+  // reused by the browser without another NAS transfer.
+  if (/^(vendor|assets)(\\|\/)/i.test(relativePath)) {
+    return 'public, max-age=31536000, immutable';
+  }
+  // App files are revalidated, but ETag/304 prevents downloading them again
+  // when they have not changed.
+  return 'no-cache';
 }
 
 function getSafeFilePath(requestUrl) {
@@ -57,11 +70,22 @@ const server = http.createServer((request, response) => {
     if (statError || !stats.isFile()) return sendText(response, 404, 'Not Found');
 
     const extension = path.extname(filePath).toLowerCase();
-    response.writeHead(200, {
+    const relativePath = path.relative(root, filePath);
+    const etag = `"${stats.size.toString(16)}-${Math.floor(stats.mtimeMs).toString(16)}"`;
+    const headers = {
       'Content-Length': stats.size,
       'Content-Type': MIME_TYPES[extension] || 'application/octet-stream',
-      'Cache-Control': 'no-store'
-    });
+      'Cache-Control': getCachePolicy(relativePath),
+      'ETag': etag,
+      'Last-Modified': stats.mtime.toUTCString()
+    };
+
+    if (request.headers['if-none-match'] === etag) {
+      response.writeHead(304, headers);
+      return response.end();
+    }
+
+    response.writeHead(200, headers);
 
     if (request.method === 'HEAD') return response.end();
 

@@ -24,6 +24,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
   let enabled = true;
   let walkCycle = 0;
   let lastActiveStride = 0;
+  let smoothedPelvisStepYaw = 0;
   const gaitCycles = [0, 0.5];
 
   // Foot Lock Hysteresis State
@@ -414,9 +415,17 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
 
       // 3. Pelvic Yaw & Torso Counter-rotation
       const strideForwardDiff = gaitStates[0].forward - gaitStates[1].forward;
-      const pelvisStepYaw = THREE.MathUtils.clamp(-strideForwardDiff * 0.35, -0.48, 0.48);
-      pelvis.rotation.y = THREE.MathUtils.lerp(pelvis.rotation.y, pelvisStepYaw, 1 - Math.exp(-5 * dt));
-      pelvisVisualRig.rotation.y = THREE.MathUtils.lerp(pelvisVisualRig.rotation.y, pelvisStepYaw * 0.45, 1 - Math.exp(-6 * dt));
+      const pelvisStepYawTarget = THREE.MathUtils.clamp(-strideForwardDiff * 0.35, -0.48, 0.48);
+      // A sharp turn can flip the alternating stride target in one frame.
+      // Smooth that target first so the torso never receives a sudden yaw
+      // reversal from the leg phase.
+      smoothedPelvisStepYaw = THREE.MathUtils.lerp(
+        smoothedPelvisStepYaw,
+        pelvisStepYawTarget,
+        1 - Math.exp(-7 * dt)
+      );
+      pelvis.rotation.y = THREE.MathUtils.lerp(pelvis.rotation.y, smoothedPelvisStepYaw, 1 - Math.exp(-5 * dt));
+      pelvisVisualRig.rotation.y = THREE.MathUtils.lerp(pelvisVisualRig.rotation.y, smoothedPelvisStepYaw * 0.45, 1 - Math.exp(-6 * dt));
 
       // Upper Body (waistRig) sway & counter-tilt & vertical bounce coordination
       if (waistRig) {
@@ -425,7 +434,8 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
           baseWaistY + baseFootHeight + verticalBounce * 0.65 - jumpCrouch * .24,
           1 - Math.exp(-9 * dt)
         );
-        waistRig.rotation.y = THREE.MathUtils.lerp(waistRig.rotation.y, -pelvis.rotation.y * 0.85, 1 - Math.exp(-8 * dt));
+        const waistYawTarget = THREE.MathUtils.clamp(-pelvis.rotation.y * 0.72, -0.34, 0.34);
+        waistRig.rotation.y = THREE.MathUtils.lerp(waistRig.rotation.y, waistYawTarget, 1 - Math.exp(-6 * dt));
         // Upper body COG side shift + counter roll
         waistRig.position.x = THREE.MathUtils.lerp(waistRig.position.x, lateralShiftX * 0.45, 1 - Math.exp(-6 * dt));
         waistRig.rotation.z = THREE.MathUtils.lerp(waistRig.rotation.z, -lateralPhase * rollAmount * 1.8 * weightFeel * walkBlend, 1 - Math.exp(-5 * dt));
@@ -509,6 +519,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
   function reset() {
     walkCycle = 0;
     lastActiveStride = 0;
+    smoothedPelvisStepYaw = 0;
     footLocked[0] = false;
     footLocked[1] = false;
     footPlantWorld[0] = null;

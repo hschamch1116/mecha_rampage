@@ -7,7 +7,8 @@
   <title>Mecha Rampage - Siege Walker V5</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');
+    @font-face { font-family: 'Orbitron'; font-style: normal; font-weight: 700; font-display: swap; src: url('./assets/fonts/orbitron-700.ttf') format('truetype'); }
+    @font-face { font-family: 'Orbitron'; font-style: normal; font-weight: 900; font-display: swap; src: url('./assets/fonts/orbitron-900.ttf') format('truetype'); }
     * { box-sizing: border-box; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-user-drag: none; }
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #0b1020; font-family: 'Segoe UI', Arial, sans-serif; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
     canvas { display: block; }
@@ -108,6 +109,8 @@
     .loading-countdown { margin-top:17px; color:#8bf0fa; font-size:14px; font-weight:900; letter-spacing:.08em; text-align:center; }
     @keyframes loadingGrid { to { transform:perspective(460px) rotateX(62deg) translateY(23%); } }
     .title-camera-hint { position:absolute; left:28px; bottom:24px; padding:9px 13px; border-left:2px solid #63e8f4; background:rgba(3,10,15,.64); color:#bdeff5; font:800 9px Orbitron,sans-serif; letter-spacing:.12em; pointer-events:none; }
+    #titleScreen .title-version { position:fixed; right:24px; bottom:20px; z-index:40; display:block; min-width:108px; padding:8px 11px; border:1px solid rgba(99,232,244,.72); border-right:3px solid #63e8f4; background:rgba(3,10,15,.9); color:#d9fbff; font:900 10px Orbitron,sans-serif; letter-spacing:.12em; line-height:1; text-align:center; text-shadow:0 0 9px rgba(99,232,244,.72); box-shadow:0 0 14px rgba(54,213,234,.2), inset 0 0 10px rgba(54,213,234,.08); pointer-events:none; }
+    @media (max-width:720px) { #titleScreen .title-version { right:12px; bottom:10px; min-width:86px; padding:6px 7px; font-size:8px; } }
     .title-panel { grid-column:2; padding:8vw 7vw 8vw 3vw; animation:titlePanelEnter 1s cubic-bezier(.16,.8,.2,1) both; }
     .title-kicker { color:#70e7f5; font:800 12px Orbitron,sans-serif; letter-spacing:.42em; }
     .game-logo { margin:18px 0 8px; font:900 clamp(52px,7.8vw,118px)/.78 Orbitron,sans-serif; letter-spacing:-.08em; transform:perspective(700px) rotateY(-8deg); color:#dffaff; text-shadow:2px 2px 0 #3b8394,5px 5px 0 #173846,9px 9px 0 #08151c,0 0 28px rgba(63,225,247,.52); }
@@ -327,6 +330,10 @@
     #aimMarker { position: absolute; width: 22px; height: 22px; border: 2px solid #ffb020; border-radius: 50%; transform: translate(-50%,-50%); box-shadow: 0 0 12px rgba(255,107,0,.9); transition: left .04s linear, top .04s linear; }
     #aimMarker::after { content: ""; position: absolute; width: 5px; height: 5px; left: 6.5px; top: 6.5px; border-radius: 50%; background: #fff3c4; }
     #message { position: absolute; left: 50%; bottom: 50px; transform: translateX(-50%); font-weight: 800; font-size: 22px; text-shadow: 0 3px 10px black; opacity: 0; transition: opacity .2s ease; }
+    #ctfScoreAnnouncement { position: absolute; left: 50%; top: 22%; z-index: 80; min-width: 280px; padding: 14px 24px 16px; transform: translate(-50%, -12px) scale(.94); border: 1px solid rgba(33,207,255,.8); border-top: 3px solid #21cfff; border-radius: 6px; background: rgba(4,16,27,.9); color: #e9fcff; font: 900 18px/1.25 Orbitron, sans-serif; letter-spacing: .08em; text-align: center; text-shadow: 0 0 12px rgba(33,207,255,.75); box-shadow: 0 0 28px rgba(33,207,255,.3), inset 0 0 16px rgba(33,207,255,.08); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+    #ctfScoreAnnouncement.visible { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    #ctfScoreAnnouncement.enemy-score { border-color: rgba(255,67,91,.86); border-top-color: #ff435b; color: #fff0f2; text-shadow: 0 0 12px rgba(255,67,91,.72); box-shadow: 0 0 28px rgba(255,67,91,.3), inset 0 0 16px rgba(255,67,91,.08); }
+    @media (max-width:720px) { #ctfScoreAnnouncement { top: 17%; min-width: 210px; padding: 10px 14px 12px; font-size: 11px; } }
     #pauseButton { position: absolute; right: 18px; top: 18px; pointer-events: auto; border: 1px solid rgba(255,255,255,.24); border-radius: 10px; padding: 10px 16px; color: white; background: rgba(6,10,22,.78); font-weight: 800; cursor: pointer; }
     #freeCamButton { position: absolute; right: 132px; top: 18px; pointer-events: auto; border: 1px solid rgba(113,219,232,.45); border-radius: 10px; padding: 10px 14px; color: #8ff3ff; background: rgba(6,10,22,.85); font: 800 11px Orbitron, sans-serif; letter-spacing: .08em; cursor: pointer; backdrop-filter: blur(6px); transition: all .16s ease; }
     #freeCamButton:hover, #freeCamButton.active, #cockpitCameraButton:hover, #cockpitCameraButton.active { border-color: #ffe36a; color: #fff3a1; background: rgba(35,27,3,.92); box-shadow: 0 0 16px rgba(255,203,39,.5); }
@@ -575,6 +582,7 @@
   </section>
   <section id="titleScreen" aria-label="Mecha Rampage title screen">
     <div class="title-camera-hint">DRAG LEFT / RIGHT · MECHA ORBIT</div>
+    <div class="title-version" aria-label="Game version">VERSION V5.3</div>
     <div class="title-panel">
       <div class="title-kicker">SIEGE WALKER PROTOCOL</div>
       <h1 class="game-logo" aria-label="MECHA RAMPAGE"><span class="title-word"><i class="title-letter" style="--letter-delay:.16s">M</i><i class="title-letter" style="--letter-delay:.30s">E</i><i class="title-letter" style="--letter-delay:.44s">C</i><i class="title-letter" style="--letter-delay:.58s">H</i><i class="title-letter" style="--letter-delay:.72s">A</i></span><span class="title-rampage">RAMPAGE</span></h1>
@@ -893,6 +901,7 @@
     <div id="lockReticle"></div>
     <div id="battleIntro">READY</div>
     <div id="message"></div>
+    <div id="ctfScoreAnnouncement" aria-live="assertive"></div>
     <div id="pauseOverlay" aria-live="polite"><div class="pause-card">PAUSED<small>PRESS P TO RESUME</small><button id="pauseReturnTitleButton" type="button">RETURN TO TITLE</button></div></div>
     <div id="mobileControls" aria-label="Mobile controls">
       <div class="mobile-pad" id="mobileJoystick" aria-label="Movement joystick">
@@ -934,9 +943,9 @@
   <script type="importmap">
   {
     "imports": {
-      "three": "https://unpkg.com/three@0.169.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.169.0/examples/jsm/",
-      "cannon-es": "https://unpkg.com/cannon-es@0.20.0/dist/cannon-es.js"
+      "three": "./vendor/three/build/three.module.js",
+      "three/addons/": "./vendor/three/examples/jsm/",
+      "cannon-es": "./vendor/cannon-es/dist/cannon-es.js"
     }
   }
   </script>
@@ -951,6 +960,7 @@
     import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
     import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
     import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+    import { CSM } from 'three/addons/csm/CSM.js';
     const bootLoadingIndicator = document.getElementById('bootLoadingIndicator');
     // AudioManager is loaded as a classic script above so file:// launches also work.
     const LEVEL1_MAP = Object.freeze({
@@ -1296,6 +1306,7 @@
             enemyFlagState = 'base';
             score += 1000;
             showMessage('🏆 FLAG CAPTURED! +1 POINT!');
+            showCTFScoreAnnouncement('PLAYER', ctfPlayerFlagScore, ctfCpuFlagScore);
           }
         }
         // 3. Return Dropped Player Flag by touching it
@@ -1325,6 +1336,7 @@
             ctfCpuFlagScore++;
             playerFlagState = 'base';
             showMessage('❌ CPU SCORED A POINT!');
+            showCTFScoreAnnouncement('CPU', ctfPlayerFlagScore, ctfCpuFlagScore);
           }
         }
         // 3. CPU Return Dropped Enemy Flag by touching it
@@ -1399,6 +1411,17 @@
     let playerRespawnGateTimer = 0;
     let battleGateSynchronized = false;
     function beginLevelArrival() {
+      if (!battleRenderPrewarmed || !battleGarbageCollectorReady) {
+        loadingScreen?.classList.remove('hidden');
+        bootLoadingIndicator?.classList.remove('hidden');
+        setStartupLoading(99, 'WAITING FOR BATTLE PREWARM');
+        if (loadingCountdown) loadingCountdown.textContent = '전투 리소스 준비 중';
+        prepareBattleGarbageCollector(() => beginLevelArrival());
+        return;
+      }
+      setStartupLoading(100, 'PREWARM READY');
+      loadingScreen?.classList.add('hidden');
+      bootLoadingIndicator?.classList.add('hidden');
       envGroup.visible = true;
       scene.background = gameplayBackground;
       scene.fog = gameplayFog;
@@ -1652,8 +1675,7 @@
 
     const cloudLayers = [
       { height: 72, opacity: .34, speedX: .004, speedY: .0012, texture: createCloudNoiseTexture(137, 54) },
-      { height: 84, opacity: .24, speedX: -.0022, speedY: .003, texture: createCloudNoiseTexture(733, 42) },
-      { height: 98, opacity: .18, speedX: .0014, speedY: -.0018, texture: createCloudNoiseTexture(1907, 32) }
+      { height: 88, opacity: .22, speedX: -.0022, speedY: .003, texture: createCloudNoiseTexture(733, 42) }
     ];
     cloudLayers.forEach((layer, index) => {
       const cloud = new THREE.Mesh(
@@ -1684,6 +1706,7 @@
     let gameplayCameraLocalYaw = 0;
     let gameplayCameraRoll = 0;
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    let battlefieldShadowCsm = null;
     const hangarReflectionTarget = new THREE.WebGLCubeRenderTarget(256, {
       generateMipmaps: true,
       minFilter: THREE.LinearMipmapLinearFilter
@@ -1729,8 +1752,12 @@
     const loadingTitle = document.querySelector('.loading-title');
     const loadingCountdown = document.getElementById('loadingCountdown');
     let battleRenderPrewarmed = false;
+    let battleRenderPrewarming = false;
+    let battleCorePrewarmed = false;
+    let battleCorePrewarming = false;
     let battleGarbageCollectorReady = false;
     let battleGarbageCollectorPreparing = false;
+    let battleGarbageCollectorRetryScheduled = false;
     const battleGarbageCollectorWaiters = [];
     function setStartupLoading(progress, status) {
       const value = Math.round(THREE.MathUtils.clamp(progress, 0, 100));
@@ -1748,14 +1775,42 @@
       if (onReady) battleGarbageCollectorWaiters.push(onReady);
       if (battleGarbageCollectorPreparing) return;
       battleGarbageCollectorPreparing = true;
-      setStartupLoading(99, 'PREPARING GC COLLECTOR');
-      prewarmBattleRendering();
+      setStartupLoading(98, 'PREWARMING BATTLE EFFECTS');
+      try {
+        prewarmBattleRendering();
+      } catch (error) {
+        battleGarbageCollectorPreparing = false;
+        battleGarbageCollectorReady = false;
+        setStartupLoading(98, 'PREWARM RETRY REQUIRED');
+        if (loadingCountdown) loadingCountdown.textContent = '전투 리소스 재준비 중';
+        console.error('Battle prewarm failed; retrying before deployment.', error);
+        if (!battleGarbageCollectorRetryScheduled) {
+          battleGarbageCollectorRetryScheduled = true;
+          requestAnimationFrame(() => {
+            battleGarbageCollectorRetryScheduled = false;
+            prepareBattleGarbageCollector();
+          });
+        }
+        return;
+      }
       const settle = () => {
         // Chrome exposes this only with the devtools --js-flags hook. In a
         // normal browser build, two idle/stable frames are our safe handoff
         // after pooled allocations and renderer compilation have settled.
         if (typeof window.gc === 'function') window.gc();
         requestAnimationFrame(() => requestAnimationFrame(() => {
+          if (!battleRenderPrewarmed) {
+            battleGarbageCollectorPreparing = false;
+            setStartupLoading(98, 'PREWARM RETRY REQUIRED');
+            if (!battleGarbageCollectorRetryScheduled) {
+              battleGarbageCollectorRetryScheduled = true;
+              requestAnimationFrame(() => {
+                battleGarbageCollectorRetryScheduled = false;
+                prepareBattleGarbageCollector();
+              });
+            }
+            return;
+          }
           battleGarbageCollectorReady = true;
           battleGarbageCollectorPreparing = false;
           const waiters = battleGarbageCollectorWaiters.splice(0);
@@ -1852,22 +1907,92 @@
       return group;
     }
 
-    function prewarmBattleRendering() {
-      if (battleRenderPrewarmed) return;
-      battleRenderPrewarmed = true;
+    function prewarmCoreBattleRendering() {
+      if (battleCorePrewarmed || battleCorePrewarming) return;
+      battleCorePrewarming = true;
+      let prewarmSucceeded = false;
       const previousEnvironmentVisibility = envGroup.visible;
       const previousHangarVisibility = hangarGroup.visible;
-      const previousFractureVisibility = fractureBatches.map(batch => ({ mesh: batch.mesh, visible: batch.mesh.visible }));
-      const transientWarmupEffects = [createMechDeathWarmupEffect(), ...createTransientWarmupEffects()];
+      const transientWarmupEffects = [createMechDeathWarmupEffect()];
       const stagedEffects = [
-        explosionPool?.[0], burningEffectPool?.[0], missileTrailPool?.[0],
-        mechDeathEffectPool?.[0], mechDeathDebrisPool?.[0],
+        explosionPool?.[0], mechDeathEffectPool?.[0],
         playerShellPool?.[0], laserBeamPool?.[0],
-        enemyAI?.shellPool?.[0], enemyAI?.laserBeamPool?.[0], enemyAI?.missileTrailPool?.[0],
-        enemyAI2?.shellPool?.[0], enemyAI2?.laserBeamPool?.[0], enemyAI2?.missileTrailPool?.[0],
-        casingPools?.cannon?.[0], casingPools?.gatling?.[0], casingPools?.missile?.[0]
+        projectileFlameTrailPool?.[0], homingSmokeTrailPool?.[0],
+        droneCompanionProjectilePool?.[0],
+        enemyAI?.shellPool?.[0], enemyAI?.laserBeamPool?.[0],
+        enemyAI2?.shellPool?.[0], enemyAI2?.laserBeamPool?.[0]
       ].filter(Boolean);
       try {
+        setStartupLoading(88, 'PREWARMING CORE COMBAT');
+        envGroup.visible = true;
+        hangarGroup.visible = false;
+        for (const effect of [...stagedEffects, ...transientWarmupEffects]) {
+          effect.visible = true;
+          effect.position.copy(camera.position);
+          scene.add(effect);
+        }
+        renderer.compile(scene, camera);
+        composer.render();
+        prewarmSucceeded = true;
+      } finally {
+        for (const effect of stagedEffects) {
+          scene.remove(effect);
+          effect.visible = false;
+        }
+        for (const effect of transientWarmupEffects) {
+          scene.remove(effect);
+          effect.traverse(object => {
+            if (object.geometry && object.geometry !== explosionSphereGeo) object.geometry.dispose();
+            if (object.material) object.material.dispose();
+          });
+        }
+        envGroup.visible = previousEnvironmentVisibility;
+        hangarGroup.visible = previousHangarVisibility;
+        battleCorePrewarming = false;
+        if (prewarmSucceeded) battleCorePrewarmed = true;
+      }
+    }
+
+    function prepareInitialBattlePrewarm() {
+      if (battleCorePrewarmed || battleCorePrewarming) return;
+      const run = () => {
+        try {
+          prewarmCoreBattleRendering();
+        } catch (error) {
+          battleCorePrewarming = false;
+          console.error('Initial core battle prewarm failed; retrying.', error);
+          requestAnimationFrame(run);
+        }
+      };
+      if (typeof window.requestIdleCallback === 'function') {
+        window.requestIdleCallback(run, { timeout: 900 });
+      } else {
+        requestAnimationFrame(run);
+      }
+    }
+
+    function prewarmBattleRendering() {
+      if (battleRenderPrewarmed || battleRenderPrewarming) return;
+      battleRenderPrewarming = true;
+      let prewarmSucceeded = false;
+      let previousEnvironmentVisibility = envGroup.visible;
+      let previousHangarVisibility = hangarGroup.visible;
+      let previousFractureVisibility = [];
+      let transientWarmupEffects = [];
+      let stagedEffects = [];
+      try {
+        previousFractureVisibility = fractureBatches.map(batch => ({ mesh: batch.mesh, visible: batch.mesh.visible }));
+        transientWarmupEffects = [createMechDeathWarmupEffect(), ...createTransientWarmupEffects()];
+        stagedEffects = [
+          explosionPool?.[0], burningEffectPool?.[0], missileTrailPool?.[0],
+          mechDeathEffectPool?.[0], mechDeathDebrisPool?.[0],
+          playerShellPool?.[0], laserBeamPool?.[0],
+          projectileFlameTrailPool?.[0], homingSmokeTrailPool?.[0],
+          droneCompanionProjectilePool?.[0],
+          enemyAI?.shellPool?.[0], enemyAI?.laserBeamPool?.[0], enemyAI?.missileTrailPool?.[0],
+          enemyAI2?.shellPool?.[0], enemyAI2?.laserBeamPool?.[0], enemyAI2?.missileTrailPool?.[0],
+          casingPools?.cannon?.[0], casingPools?.gatling?.[0], casingPools?.missile?.[0]
+        ].filter(Boolean);
         envGroup.visible = true;
         hangarGroup.visible = false;
         // Fracture batches are already attached to the scene; force every
@@ -1881,21 +2006,27 @@
         }
         renderer.compile(scene, camera);
         composer.render();
+        prewarmSucceeded = true;
       } finally {
-        for (const effect of stagedEffects) {
-          scene.remove(effect);
-          effect.visible = false;
+        try {
+          for (const effect of stagedEffects) {
+            scene.remove(effect);
+            effect.visible = false;
+          }
+          for (const effect of transientWarmupEffects) {
+            scene.remove(effect);
+            effect.traverse(object => {
+              if (object.geometry && object.geometry !== footstepRingGeometry && object.geometry !== footstepDustGeometry && object.geometry !== explosionSphereGeo) object.geometry.dispose();
+              if (object.material) object.material.dispose();
+            });
+          }
+          envGroup.visible = previousEnvironmentVisibility;
+          hangarGroup.visible = previousHangarVisibility;
+          for (const entry of previousFractureVisibility) entry.mesh.visible = entry.visible;
+        } finally {
+          battleRenderPrewarming = false;
+          if (prewarmSucceeded) battleRenderPrewarmed = true;
         }
-        for (const effect of transientWarmupEffects) {
-          scene.remove(effect);
-          effect.traverse(object => {
-            if (object.geometry && object.geometry !== footstepRingGeometry && object.geometry !== footstepDustGeometry && object.geometry !== explosionSphereGeo) object.geometry.dispose();
-            if (object.material) object.material.dispose();
-          });
-        }
-        envGroup.visible = previousEnvironmentVisibility;
-        hangarGroup.visible = previousHangarVisibility;
-        for (const entry of previousFractureVisibility) entry.mesh.visible = entry.visible;
       }
     }
 
@@ -1904,8 +2035,7 @@
       if (bootLoadingIndicator) bootLoadingIndicator.classList.remove('hidden');
       if (loadingTitle) loadingTitle.textContent = 'DEPLOYMENT READY';
       setStartupLoading(98, 'PREWARMING BATTLE EFFECTS');
-      prewarmBattleRendering();
-      setStartupLoading(100, 'KEYBOARD CONTROLS');
+      prepareBattleGarbageCollector();
       const loadingStartedAt = performance.now();
       const loadingDuration = isMobileViewport() ? 3000 : 2000;
       const updateBattleLoading = () => {
@@ -1917,8 +2047,6 @@
           setStartupLoading(99, 'PREPARING GC COLLECTOR');
           if (loadingCountdown) loadingCountdown.textContent = '메모리 정리 준비 중';
           prepareBattleGarbageCollector(() => {
-            loadingScreen.classList.add('hidden');
-            if (bootLoadingIndicator) bootLoadingIndicator.classList.add('hidden');
             if (loadingTitle) loadingTitle.textContent = 'INITIALIZING';
             beginLevelArrival();
           });
@@ -2137,8 +2265,10 @@
     // 색온도를 약간 따뜻하게(0xfffae6) 설정하고 그림자 각도(Position)를 조정
     const sun = new THREE.DirectionalLight(0xfffae6, 3.0);
     sun.position.set(45, 60, -35); 
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
+    // CSM owns the sunlight shadow passes. The original sun remains the
+    // daylight source, while its shadow pass is disabled to avoid rendering
+    // one full-size shadow map in addition to the cascades.
+    sun.castShadow = false;
     // Cover the full road/sidewalk evacuation area, including the outer
     // escape lanes where the old 164m shadow box left visible gaps.
     // Keep the full playable area, including the shifted right-side spawn,
@@ -2193,14 +2323,17 @@
       hemi.groundColor.copy(environmentColor).lerp(new THREE.Color(0x172334), .3);
       hemi.intensity = .22 + profile.daylight * .58;
       sun.color.copy(profile.sun).lerp(environmentColor, .1);
-      sun.intensity = sunPower;
+      sun.intensity = battlefieldShadowCsm ? 0 : sunPower;
       const sunAngle = (battlefieldAtmosphere.timeOfDay - 6) / 12 * Math.PI;
       sun.position.set(Math.cos(sunAngle) * 55, Math.max(8, Math.sin(sunAngle) * 65), -35);
-      // Rebuild the directional shadow view whenever time-of-day moves the
-      // sun; low afternoon angles otherwise leave stale gaps at map edges.
-      sun.shadow.camera.updateMatrixWorld(true);
-      sun.shadow.camera.updateProjectionMatrix();
-      sun.shadow.needsUpdate = true;
+      if (battlefieldShadowCsm) {
+        battlefieldShadowCsm.lightDirection.copy(sun.target.position).sub(sun.position).normalize();
+        battlefieldShadowCsm.lights.forEach(light => {
+          light.color.copy(sun.color);
+          light.intensity = sunPower;
+        });
+        battlefieldShadowCsm.updateFrustums();
+      }
       rimLight.color.copy(environmentColor).lerp(new THREE.Color(profile.sun), .35);
       rimLight.intensity = rimPower;
       gameplayFog.color.copy(environmentColor);
@@ -8780,6 +8913,9 @@
 
     const keys = {};
     let yaw = Math.PI;
+    // Upper-body aim is tracked in world yaw so a chassis turn cannot drag
+    // the torso along with it for a frame before the aim correction catches up.
+    let upperBodyAimWorldYaw = Math.PI;
     let pitch = -0.18;
     let verticalVelocity = 0;
     let grounded = true;
@@ -8813,6 +8949,7 @@
     }
     let locomotionSpeed = 0;
     let dashTimer = 0;
+    let dashBaseY = 0;
     let dashCooldown = 0;
     let dashInputReady = true;
     const DASH_DURATION = .34;
@@ -8844,6 +8981,7 @@ let landingRecoveryTimer = 0;
     let battleCountdown = 3;
     let battleCountdownActive = false;
     let roundTransitionTimer = 0;
+    let lastRoundWinner = 'NONE';
     let vsStateActive = false;
 
     function startVictoryCelebration() {
@@ -9177,6 +9315,16 @@ let landingRecoveryTimer = 0;
     const shieldItems = [];
     const droneItems = [];
     const MAX_DRONE_COMPANIONS = 2;
+    // Companion drones are small targets in the battle view. Use one shared
+    // multiplier for every projectile path so their hit volume is visibly
+    // forgiving without changing the drone mesh or damage values.
+    const DRONE_HIT_RADIUS_MULTIPLIER = 3;
+    const DRONE_HIT_RADIUS_SQ = 2.8 * DRONE_HIT_RADIUS_MULTIPLIER * DRONE_HIT_RADIUS_MULTIPLIER;
+    const DRONE_OWNER_CLEARANCE = 8.6;
+    const DRONE_FORMATION_SIDE = 8.6;
+    const DRONE_FORMATION_HEIGHT = 8.8;
+    const DRONE_FORMATION_BACK = -2.8;
+    const DRONE_SEPARATION_RADIUS = 5.8;
     const playerDroneCompanions = [];
     const droneCompanionProjectiles = [];
     const droneCompanionProjectilePool = [];
@@ -9185,6 +9333,15 @@ let landingRecoveryTimer = 0;
       color: 0xffb347,
       toneMapped: false
     });
+    // Keep companion fire in a shared pool so the first drone shot does not
+    // allocate a mesh during gameplay.
+    for (let index = 0; index < 32; index++) {
+      const projectile = new THREE.Mesh(droneCompanionProjectileGeometry, droneCompanionProjectileMaterial);
+      projectile.visible = false;
+      projectile.userData.velocity = new THREE.Vector3();
+      projectile.userData.life = 0;
+      droneCompanionProjectilePool.push(projectile);
+    }
     const PICKUP_STAY_MS = 30000;
     const PICKUP_RELOCATE_INTERVAL_MS = 450;
     let pickupRelocationCursor = 0;
@@ -9830,6 +9987,10 @@ let landingRecoveryTimer = 0;
     let trafficRoutes = [];
     const cityFireSources = [];
     const cityPatrolDrones = [];
+    let dreadnoughtSkyShip = null;
+    const DREADNOUGHT_SKY_START_X = -175;
+    const DREADNOUGHT_SKY_END_X = 175;
+    const DREADNOUGHT_SKY_SPEED = 4.6;
     const evacuees = [];
     let evacueeBodies = null;
     let evacueeHeads = null;
@@ -10050,7 +10211,7 @@ let landingRecoveryTimer = 0;
       side: THREE.DoubleSide
     });
     // Static 256px reflection probe, baked once after the battlefield is built.
-    const windowReflectionTarget = new THREE.WebGLCubeRenderTarget(512, {
+    const windowReflectionTarget = new THREE.WebGLCubeRenderTarget(256, {
       generateMipmaps: true,
       minFilter: THREE.LinearMipmapLinearFilter
     });
@@ -11407,6 +11568,33 @@ let landingRecoveryTimer = 0;
       createCityDecor();
       createTraffic();
       createPowerItems();
+      // The battlefield is rebuilt between rounds. Keep one CSM instance and
+      // one stable set of cascade lights; only register the rebuilt materials
+      // so round two cannot append duplicate shadow passes/lights.
+      if (!battlefieldShadowCsm) {
+        battlefieldShadowCsm = new CSM({
+          camera,
+          parent: scene,
+          cascades: 3,
+          maxFar: 260,
+          mode: 'practical',
+          shadowMapSize: 2048,
+          shadowBias: -0.00012,
+          lightDirection: new THREE.Vector3(-.42, -.86, .34).normalize(),
+          lightIntensity: 3,
+          lightMargin: 80
+        });
+        battlefieldShadowCsm.fade = true;
+      }
+      scene.traverse(object => {
+        if (!object.isMesh || !object.material) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => {
+          if (material.isMeshStandardMaterial || material.isMeshPhysicalMaterial) {
+            battlefieldShadowCsm.setupMaterial(material);
+          }
+        });
+      });
       updateWindowReflectionProbe();
       updateHUD();
     }
@@ -12835,6 +13023,14 @@ let landingRecoveryTimer = 0;
         }
       }
       let hitEnemy = null;
+      let hitDrone = null;
+      const laserDroneHit = findPlayerLaserDroneHit(laserOrigin, laserDirection, hitDistance);
+      const laserDroneDistance = laserDroneHit?.distance ?? Infinity;
+      if (laserDroneHit) {
+        hitDistance = laserDroneHit.distance;
+        hitDrone = laserDroneHit.companion;
+        hitBlock = null;
+      }
       for (let candidateIndex = 0; candidateIndex < 2; candidateIndex++) {
         const candidate = candidateIndex === 0 ? enemyAI : enemyAI2;
         if (!candidate?.alive) continue;
@@ -12842,9 +13038,10 @@ let landingRecoveryTimer = 0;
         const along = laserCandidateCenter.sub(laserOrigin).dot(laserDirection);
         if (along <= 0 || along >= hitDistance) continue;
         laserClosestPoint.copy(laserOrigin).addScaledVector(laserDirection, along);
-        if (laserClosestPoint.distanceToSquared(laserCandidateCenter) < 10.5) {
+        if (laserClosestPoint.distanceToSquared(laserCandidateCenter) < 10.5 && along < laserDroneDistance) {
           hitDistance = along;
           hitEnemy = candidate;
+          hitDrone = null;
           hitBlock = null;
         }
       }
@@ -12857,7 +13054,13 @@ let landingRecoveryTimer = 0;
       beam.userData.life = .12;
       scene.add(beam);
       laserBeams.push(beam);
-      if (hitEnemy) {
+      if (hitDrone) {
+        const wasActive = hitDrone.active;
+        damageDroneCompanion(hitDrone, weaponStats.damage);
+        score += wasActive && !hitDrone.active ? 100 : 20;
+        spawnExplosionEffect(laserEnd, .7);
+        showMessage(hitDrone.active ? 'CPU DRONE HIT!' : 'CPU DRONE DESTROYED!');
+      } else if (hitEnemy) {
         const wasAlive = hitEnemy.alive;
         hitEnemy.takeDamage(weaponStats.damage, laserDirection, laserEnd);
         score += wasAlive && !hitEnemy.alive ? 500 : 35;
@@ -13170,6 +13373,7 @@ let landingRecoveryTimer = 0;
       const worldMatrix = new THREE.Matrix4();
       const windowWorld = new THREE.Vector3();
       for (const [systemBuildingId, system] of buildingWindowSystems) {
+        if (collapsingBuildings.has(systemBuildingId)) continue;
         if (buildingId !== null && systemBuildingId !== buildingId) continue;
         system.mesh.updateWorldMatrix(true, false);
         for (let index = 0; index < system.active.length; index++) {
@@ -13196,6 +13400,7 @@ let landingRecoveryTimer = 0;
       const worldMatrix = new THREE.Matrix4();
       const windowWorld = new THREE.Vector3();
       for (const [systemBuildingId, system] of buildingWindowSystems) {
+        if (collapsingBuildings.has(systemBuildingId)) continue;
         if (buildingId !== null && systemBuildingId !== buildingId) continue;
         system.mesh.updateWorldMatrix(true, false);
         for (let index = 0; index < system.active.length; index++) {
@@ -13222,7 +13427,8 @@ let landingRecoveryTimer = 0;
       const instanceMatrix = new THREE.Matrix4();
       const worldMatrix = new THREE.Matrix4();
       const windowWorld = new THREE.Vector3();
-      for (const system of buildingWindowSystems.values()) {
+      for (const [systemBuildingId, system] of buildingWindowSystems) {
+        if (collapsingBuildings.has(systemBuildingId)) continue;
         system.mesh.updateWorldMatrix(true, false);
         for (let index = 0; index < system.active.length; index++) {
           if (!system.active[index]) continue;
@@ -13243,6 +13449,7 @@ let landingRecoveryTimer = 0;
 
     function breakFacadeWindow(block, impulseDir) {
       if (!block.userData.isFacadePanel) return false;
+      if (block.userData.collapsing || block.userData.removed || collapsingBuildings.has(block.userData.buildingId)) return false;
       const blockWorld = block.getWorldPosition(new THREE.Vector3());
       return shatterWindowNear(blockWorld, impulseDir, 2.4, block.userData.buildingId);
     }
@@ -13268,6 +13475,12 @@ let landingRecoveryTimer = 0;
       if (candidates.length) showMessage(`BUILDING ${buildingId + 1} HIT · EVACUATION`);
     }
 
+    function collapseBuildingIfDepleted(buildingId) {
+      const health = buildingHealth.get(buildingId);
+      if (!health || health.current > 0 || collapsingBuildings.has(buildingId)) return;
+      startCollapse(buildingId);
+    }
+
     function damageBlock(block, damage, impulseDir) {
       breakFacadeWindow(block, impulseDir);
       const dealtDamage = Math.min(block.userData.hp, damage);
@@ -13289,6 +13502,7 @@ let landingRecoveryTimer = 0;
       } else {
         flash(block);
       }
+      collapseBuildingIfDepleted(block.userData.buildingId);
     }
 
     function createPowerItems() {
@@ -14181,34 +14395,6 @@ let landingRecoveryTimer = 0;
         cityFireSources.push({ group, flames, smoke, phase: index * 1.7 + Math.random() * 3 });
       });
 
-      // Reuse the detailed hangar repair-drone geometry/materials for the
-      // battle spectators. clone(true) shares GPU resources instead of
-      // rebuilding another set of meshes for every city patrol drone.
-      const hangarDroneSources = window.hangarRepairDrones || [];
-      const dronePositions = currentLevel === 1
-        ? [[-26, 16, -18], [26, 19, -12], [-18, 15, 28], [24, 22, 28]]
-        : [[-28, 17, -20], [28, 20, -14], [-20, 16, 28], [25, 23, 30], [-42, 24, 2], [42, 22, 10]];
-      dronePositions.forEach(([x, y, z], index) => {
-        if (!hangarDroneSources.length) return;
-        const drone = hangarDroneSources[index % hangarDroneSources.length].clone(true);
-        const rotorBlades = [];
-        drone.traverse(node => {
-          if (node.name === 'DroneRotor') rotorBlades.push(node);
-        });
-        drone.name = `BattleSpectatorDrone_${index + 1}`;
-        drone.scale.multiplyScalar(1.35);
-        drone.position.set(x, y, z);
-        drone.userData = {
-          isBattleSpectatorDrone: true,
-          rotorBlades,
-          base: new THREE.Vector3(x, y, z),
-          phase: index * 1.9,
-          orbitRadius: 3.8 + (index % 3) * .9,
-          orbitSpeed: .12 + (index % 2) * .025
-        };
-        cityDecor.add(drone);
-        cityPatrolDrones.push({ drone, rotorBlades, base: drone.userData.base, phase: drone.userData.phase, orbitRadius: drone.userData.orbitRadius, orbitSpeed: drone.userData.orbitSpeed });
-      });
     }
 
     function createFutureCarModel(index) {
@@ -14921,6 +15107,282 @@ let landingRecoveryTimer = 0;
       }
     }
 
+    function createSciFiBattlecruiserModel(options = {}) {
+      const root = new THREE.Group();
+      root.name = 'SciFiBattlecruiser';
+      const castShadow = options.castShadow ?? false;
+      const receiveShadow = options.receiveShadow ?? false;
+      const mat = (color, roughness, metalness, emissive = 0, emissiveIntensity = 0) => new THREE.MeshStandardMaterial({ color, roughness, metalness, emissive, emissiveIntensity, side: THREE.DoubleSide });
+      const hullDarkMat = mat(0x1a1f26, .55, .8);
+      const armorNavyMat = mat(0x2b3e52, .45, .65);
+      const accentRedMat = mat(0xc53030, .5, .3);
+      const accentYellowMat = mat(0xd69e2e, .4, .3);
+      const engineIronMat = mat(0x111317, .7, .9);
+      const glowCyanMat = mat(0x38bdf8, .2, .15, 0x38bdf8, 2.5);
+      const glowOrangeMat = mat(0xf97316, .2, .15, 0xf97316, 3);
+      const glowBlueMat = mat(0x1677ff, .18, .12, 0x1677ff, 3.4);
+      const turrets = [];
+      const radars = [];
+      const add = (geometry, material, parent, position = [0, 0, 0]) => {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(...position);
+        mesh.castShadow = castShadow;
+        mesh.receiveShadow = receiveShadow;
+        parent.add(mesh);
+        return mesh;
+      };
+      const hull = new THREE.Group();
+      const hullShape = new THREE.Shape();
+      hullShape.moveTo(0, 3.2); hullShape.lineTo(.5, 2.5); hullShape.lineTo(1.1, .5); hullShape.lineTo(1.3, -1.8); hullShape.lineTo(.9, -2.5); hullShape.lineTo(-.9, -2.5); hullShape.lineTo(-1.3, -1.8); hullShape.lineTo(-1.1, .5); hullShape.lineTo(-.5, 2.5); hullShape.closePath();
+      const hullGeo = new THREE.ExtrudeGeometry(hullShape, { depth: .5, bevelEnabled: true, bevelSegments: 3, bevelSize: .08, bevelThickness: .1 });
+      hullGeo.rotateX(Math.PI / 2); hullGeo.center();
+      add(hullGeo, hullDarkMat, hull);
+      const deckShape = new THREE.Shape();
+      deckShape.moveTo(0, 2.3); deckShape.lineTo(.7, .6); deckShape.lineTo(.95, -1.6); deckShape.lineTo(-.95, -1.6); deckShape.lineTo(-.7, .6); deckShape.closePath();
+      const deckGeo = new THREE.ExtrudeGeometry(deckShape, { depth: .25, bevelEnabled: true, bevelSegments: 2, bevelSize: .04, bevelThickness: .05 });
+      deckGeo.rotateX(Math.PI / 2); deckGeo.center();
+      add(deckGeo, armorNavyMat, hull, [0, .3, -.2]);
+      [-1, 1].forEach(side => {
+        const wing = add(new THREE.BoxGeometry(.3, .4, 2.6), armorNavyMat, hull, [side * 1.15, .1, -.3]);
+        wing.rotation.z = side * -.15;
+        add(new THREE.BoxGeometry(.04, .42, 1.2), accentRedMat, hull, [side * 1.31, .1, .2]);
+        add(new THREE.BoxGeometry(.04, .15, .6), accentYellowMat, hull, [side * 1.31, .2, -.7]);
+      });
+      const flightDeck = new THREE.Group();
+      add(new THREE.BoxGeometry(.8, .05, 2.2), engineIronMat, flightDeck, [0, .44, .4]);
+      [-.42, .42].forEach(x => add(new THREE.BoxGeometry(.06, .06, 2.2), accentRedMat, flightDeck, [x, .45, .4]));
+      [-.18, .18].forEach(x => [.8, .2, -.4].forEach(z => {
+        add(new THREE.BoxGeometry(.22, .04, .35), armorNavyMat, flightDeck, [x, .47, z]);
+        add(new THREE.BoxGeometry(.24, .02, .37), accentYellowMat, flightDeck, [x, .46, z]);
+      }));
+      hull.add(flightDeck);
+      const bridge = new THREE.Group();
+      add(new THREE.BoxGeometry(1.4, .35, 1.2), armorNavyMat, bridge, [0, .6, -1.4]);
+      add(new THREE.BoxGeometry(1, .3, .8), hullDarkMat, bridge, [0, .9, -1.5]);
+      add(new THREE.BoxGeometry(.6, .25, .5), armorNavyMat, bridge, [0, 1.15, -1.55]);
+      add(new THREE.BoxGeometry(.52, .08, .05), glowCyanMat, bridge, [0, 1.17, -1.29]);
+      [-.2, .2].forEach(x => add(new THREE.CylinderGeometry(.015, .02, .6, 8), engineIronMat, bridge, [x, 1.5, -1.6]));
+      const radar = new THREE.Group();
+      radar.add(add(new THREE.CylinderGeometry(.08, .1, .1, 12), engineIronMat, radar));
+      add(new THREE.BoxGeometry(.3, .06, .08), accentYellowMat, radar, [0, .08, 0]);
+      radar.position.set(0, 1.35, -1.5); bridge.add(radar); radars.push(radar); hull.add(bridge);
+      [[-.45, .45, 1.2], [.45, .45, 1.2], [-.5, .78, -1], [.5, .78, -1]].forEach((position, index) => {
+        const turret = new THREE.Group();
+        turret.add(add(new THREE.CylinderGeometry(.12, .15, .08, 16), hullDarkMat, turret));
+        add(new THREE.BoxGeometry(.16, .1, .2), armorNavyMat, turret, [0, .08, 0]);
+        [-.04, .04].forEach(x => { const barrel = add(new THREE.CylinderGeometry(.02, .02, .25, 8), engineIronMat, turret, [x, .08, .18]); barrel.rotation.x = Math.PI / 2; });
+        turret.scale.setScalar(.62);
+        turret.position.set(position[0], position[1] - .08, position[2]);
+        hull.add(turret); turrets.push(turret);
+      });
+      const engines = new THREE.Group();
+      [-.5, 0, .5].forEach((x, index) => {
+        const radius = index === 1 ? .26 : .22;
+        const nozzle = add(new THREE.CylinderGeometry(radius * .8, radius, .4, 24), engineIronMat, engines, [x, .05, -2.6]); nozzle.rotation.x = Math.PI / 2;
+        // The nozzle opens toward local -Z. Keep a blue core inside the
+        // nozzle and aim both flame layers out through the rear, not into
+        // the hull.
+        const glow = add(new THREE.CylinderGeometry(radius * .7, radius * .7, .12, 24), glowBlueMat, engines, [x, .05, -2.79]); glow.rotation.x = Math.PI / 2;
+        const flame = add(new THREE.ConeGeometry(radius * .78, .78, 20, 2, true), glowBlueMat, engines, [x, .05, -3.05]); flame.rotation.x = -Math.PI / 2;
+        const flameCore = add(new THREE.ConeGeometry(radius * .42, .62, 16, 2, true), glowCyanMat, engines, [x, .05, -3.12]); flameCore.rotation.x = -Math.PI / 2;
+      });
+      [-.9, .9].forEach(x => {
+        const nozzle = add(new THREE.CylinderGeometry(.12, .16, .3, 16), engineIronMat, engines, [x, -.05, -2.45]); nozzle.rotation.x = Math.PI / 2;
+        const glow = add(new THREE.CylinderGeometry(.1, .1, .1, 16), glowCyanMat, engines, [x, -.05, -2.62]); glow.rotation.x = Math.PI / 2;
+        const flame = add(new THREE.ConeGeometry(.12, .48, 14, 2, true), glowBlueMat, engines, [x, -.05, -2.82]); flame.rotation.x = -Math.PI / 2;
+      });
+      // Additional surface and underside detail for the close low-angle view.
+      add(new THREE.BoxGeometry(1.8, .12, 2.7), engineIronMat, hull, [0, -.34, -.2]);
+      add(new THREE.BoxGeometry(.16, .08, 2.4), accentYellowMat, hull, [-.48, .42, .35]);
+      add(new THREE.BoxGeometry(.16, .08, 2.4), accentYellowMat, hull, [.48, .42, .35]);
+      [-.7, 0, .7].forEach(x => add(new THREE.BoxGeometry(.12, .1, 1.25), accentRedMat, hull, [x, .43, -1.05]));
+      [-1, 1].forEach(side => {
+        add(new THREE.BoxGeometry(.34, .18, 2.8), engineIronMat, hull, [side * 1.38, -.28, -.55]);
+        add(new THREE.BoxGeometry(.08, .1, 1.45), glowCyanMat, hull, [side * 1.57, .02, -.35]);
+        for (const z of [-1.45, -.7, .05, .8]) {
+          const rib = add(new THREE.BoxGeometry(.12, .18, .42), armorNavyMat, hull, [side * 1.43, -.42, z]);
+          rib.rotation.y = side * .18;
+        }
+      });
+      add(new THREE.BoxGeometry(.28, .2, 3.8), hullDarkMat, hull, [0, -.48, -.15]);
+      for (const z of [-1.35, -.45, .45, 1.35]) {
+        add(new THREE.BoxGeometry(1.05, .12, .18), armorNavyMat, hull, [0, -.56, z]);
+      }
+      [-.55, -.18, .18, .55].forEach(x => {
+        const mast = add(new THREE.CylinderGeometry(.025, .035, .48, 8), engineIronMat, hull, [x, 1.48, -.95]);
+        mast.rotation.z = x * .16;
+        add(new THREE.SphereGeometry(.055, 8, 6), glowOrangeMat, hull, [x, 1.74, -.95]);
+      });
+      const rearBoosters = new THREE.Group();
+      rearBoosters.name = 'RearBoosterArray';
+      [-.9, -.45, 0, .45, .9].forEach((x, index) => {
+        const radius = index === 2 ? .3 : .23;
+        const nozzle = add(new THREE.CylinderGeometry(radius * .82, radius, .52, 20), engineIronMat, rearBoosters, [x, -.18, -2.82]);
+        nozzle.rotation.x = Math.PI / 2;
+        const core = add(new THREE.CylinderGeometry(radius * .58, radius * .58, .12, 18), glowCyanMat, rearBoosters, [x, -.18, -3.08]);
+        core.rotation.x = Math.PI / 2;
+        const flame = add(new THREE.ConeGeometry(radius * .78, .92, 18, 2, true), glowBlueMat, rearBoosters, [x, -.18, -3.35]);
+        flame.rotation.x = -Math.PI / 2;
+        flame.scale.z = 1.25 + (index === 2 ? .18 : 0);
+        const flameCore = add(new THREE.ConeGeometry(radius * .42, .7, 14, 2, true), glowCyanMat, rearBoosters, [x, -.18, -3.43]);
+        flameCore.rotation.x = -Math.PI / 2;
+      });
+      [-.68, 0, .68].forEach(x => add(new THREE.BoxGeometry(.18, .28, .9), armorNavyMat, rearBoosters, [x, -.7, -2.35]));
+      // Downward-facing defensive turrets visible from the battlefield.
+      [-1.35, -.68, 0, .68, 1.35].forEach((x, index) => {
+        const lowerTurret = new THREE.Group();
+        lowerTurret.name = `LowerTurret_${index}`;
+        add(new THREE.CylinderGeometry(.16, .22, .12, 14), engineIronMat, lowerTurret, [0, 0, 0]);
+        add(new THREE.BoxGeometry(.34, .24, .46), armorNavyMat, lowerTurret, [0, -.16, 0]);
+        [-.09, .09].forEach(z => add(new THREE.CylinderGeometry(.035, .045, .42, 8), engineIronMat, lowerTurret, [0, -.47, z]));
+        add(new THREE.BoxGeometry(.18, .045, .3), glowCyanMat, lowerTurret, [0, -.3, 0]);
+        lowerTurret.scale.setScalar(.62);
+        lowerTurret.position.set(x, -.56, index % 2 ? -.85 : .85);
+        hull.add(lowerTurret);
+        turrets.push(lowerTurret);
+      });
+      hull.add(rearBoosters); root.add(hull);
+      const clock = new THREE.Clock();
+      root.userData.tick = delta => {
+        const time = clock.getElapsedTime();
+        turrets.forEach((turret, index) => { turret.rotation.y = Math.sin(time * .8 + index) * .35; });
+        radars.forEach(item => { item.rotation.y += delta * 1.5; });
+        glowOrangeMat.emissiveIntensity = 2.5 + Math.sin(time * 4) * .8;
+        glowCyanMat.emissiveIntensity = 2 + Math.cos(time * 3) * .5;
+        glowBlueMat.emissiveIntensity = 3.1 + Math.sin(time * 5.5) * .7;
+      };
+      return root;
+    }
+
+    function createDreadnoughtSkyShip() {
+      if (dreadnoughtSkyShip) return dreadnoughtSkyShip;
+      {
+        const ship = createSciFiBattlecruiserModel({ castShadow: false, receiveShadow: false });
+        ship.name = 'DreadnoughtSkyShip';
+        // The source model's local Z axis is the ship length; stretch only
+        // that axis so the cruiser becomes longer without growing taller.
+        ship.scale.set(10, 10, 15);
+        ship.rotation.y = Math.PI / 2;
+        ship.userData.baseY = 86;
+        ship.userData.baseRotationY = ship.rotation.y;
+        ship.userData.phase = Math.random() * Math.PI * 2;
+        ship.position.set(DREADNOUGHT_SKY_START_X, ship.userData.baseY, -24);
+        envGroup.add(ship);
+        dreadnoughtSkyShip = ship;
+        return ship;
+      }
+      const ship = new THREE.Group();
+      ship.name = 'DreadnoughtSkyShip';
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x202a35, roughness: .56, metalness: .84 });
+      const deckMat = new THREE.MeshStandardMaterial({ color: 0x354656, roughness: .48, metalness: .78 });
+      const darkMat = new THREE.MeshStandardMaterial({ color: 0x101820, roughness: .62, metalness: .72 });
+      const accentMat = new THREE.MeshStandardMaterial({ color: 0x8a332c, roughness: .42, metalness: .68 });
+      const glowMat = new THREE.MeshBasicMaterial({ color: 0x62dfff, toneMapped: false });
+      const engineMat = new THREE.MeshBasicMaterial({ color: 0xff9b45, toneMapped: false });
+      const addBox = (geometry, material, position, parent = ship) => {
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(...position);
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+        parent.add(mesh);
+        return mesh;
+      };
+
+      addBox(new RoundedBoxGeometry(42, 2.5, 11.5, 3, .55), hullMat, [0, 0, 0]);
+      addBox(new RoundedBoxGeometry(34, .62, 9.2, 2, .2), deckMat, [2, 1.48, 0]);
+      addBox(new RoundedBoxGeometry(25, .42, 7.2, 2, .16), darkMat, [6, 1.92, 0]);
+      addBox(new RoundedBoxGeometry(17, .55, 5.8, 2, .18), deckMat, [10, 2.36, 0]);
+      addBox(new RoundedBoxGeometry(10, 2.6, 5.5, 2, .28), hullMat, [11, 3.65, 0]);
+      addBox(new RoundedBoxGeometry(6.5, 1.15, 4.2, 2, .18), darkMat, [12, 5.45, 0]);
+
+      for (const side of [-1, 1]) {
+        addBox(new RoundedBoxGeometry(27, .32, 1.25, 2, .1), accentMat, [-1, 1.72, side * 5.1]);
+        addBox(new RoundedBoxGeometry(18, .18, .72, 2, .06), glowMat, [5, 1.93, side * 4.18]);
+        addBox(new RoundedBoxGeometry(7.2, .28, 1.4, 2, .12), deckMat, [13, 2.72, side * 3.25]);
+      }
+
+      const turretPositions = [[-8, 2.15, -3.5], [-8, 2.15, 3.5], [4, 2.75, -2.7], [4, 2.75, 2.7], [15, 4.9, 0]];
+      turretPositions.forEach(([x, y, z], index) => {
+        const turret = new THREE.Group();
+        turret.position.set(x, y, z);
+        turret.add(new THREE.Mesh(new THREE.CylinderGeometry(index === 4 ? .72 : .58, index === 4 ? .9 : .72, .46, 12), darkMat));
+        for (const side of [-1, 1]) {
+          const barrel = new THREE.Mesh(new THREE.CylinderGeometry(.1, .14, index === 4 ? 2.4 : 1.7, 8), hullMat);
+          barrel.rotation.z = Math.PI / 2;
+          barrel.position.set(index === 4 ? 1.15 : .82, 0, side * .18);
+          turret.add(barrel);
+        }
+        ship.add(turret);
+      });
+
+      for (const side of [-1, 1]) {
+        for (const x of [-16, -9, 1, 9]) {
+          const pod = new THREE.Mesh(new THREE.CylinderGeometry(.48, .48, 1.05, 12), darkMat);
+          pod.rotation.z = Math.PI / 2;
+          pod.position.set(x, .2, side * 6.0);
+          ship.add(pod);
+        }
+      }
+
+      for (const side of [-1, 1]) {
+        const engineBank = new THREE.Group();
+        engineBank.position.set(-19, -.18, side * 3.1);
+        const engine = new THREE.Mesh(new THREE.CylinderGeometry(1.05, .72, 2.1, 16), engineMat);
+        engine.rotation.z = Math.PI / 2;
+        engineBank.add(engine);
+        ship.add(engineBank);
+      }
+
+      // Underside silhouette for the low-angle battlefield view: a deep keel,
+      // armored ribs, recessed maintenance bays and multiple engine nozzles.
+      addBox(new RoundedBoxGeometry(31, .7, 1.8, 2, .18), darkMat, [-1, -1.65, 0]);
+      addBox(new RoundedBoxGeometry(18, .42, 3.8, 2, .14), hullMat, [8, -1.38, 0]);
+      addBox(new RoundedBoxGeometry(8, .3, 5.4, 2, .1), deckMat, [-11, -1.42, 0]);
+      for (const x of [-14, -8, -2, 4, 10, 16]) {
+        addBox(new RoundedBoxGeometry(.46, .22, 9.5, 2, .08), deckMat, [x, -1.3, 0]);
+      }
+      for (const side of [-1, 1]) {
+        addBox(new RoundedBoxGeometry(15, .26, .48, 2, .08), glowMat, [3, -1.78, side * 3.25]);
+        for (const x of [-15, -8, 0, 8, 15]) {
+          const bay = new THREE.Mesh(new RoundedBoxGeometry(2.2, .18, 1.15, 2, .1), darkMat);
+          bay.position.set(x, -1.68, side * 2.15);
+          ship.add(bay);
+        }
+      }
+      for (const x of [-18, -12, -6, 0, 6, 12, 18]) {
+        const strut = new THREE.Mesh(new THREE.CylinderGeometry(.16, .22, 1.25, 8), hullMat);
+        strut.position.set(x, -1.82, 0);
+        ship.add(strut);
+      }
+      for (const side of [-1, 1]) {
+        const nozzle = new THREE.Mesh(new THREE.CylinderGeometry(.7, .44, 1.1, 14), engineMat);
+        nozzle.rotation.z = Math.PI / 2;
+        nozzle.position.set(-15, -1.45, side * 2.2);
+        ship.add(nozzle);
+      }
+
+      ship.userData.baseY = 57;
+      ship.userData.phase = Math.random() * Math.PI * 2;
+      ship.position.set(DREADNOUGHT_SKY_START_X, ship.userData.baseY, -24);
+      envGroup.add(ship);
+      dreadnoughtSkyShip = ship;
+      return ship;
+    }
+
+    function updateDreadnoughtSkyShip(dt) {
+      if (!dreadnoughtSkyShip || !envGroup.visible || hangarActive || hangarLaunching) return;
+      const now = performance.now() * .001;
+      dreadnoughtSkyShip.position.x += DREADNOUGHT_SKY_SPEED * dt;
+      dreadnoughtSkyShip.position.y = dreadnoughtSkyShip.userData.baseY + Math.sin(now * .16 + dreadnoughtSkyShip.userData.phase) * .45;
+      dreadnoughtSkyShip.rotation.z = Math.sin(now * .12 + dreadnoughtSkyShip.userData.phase) * .008;
+      dreadnoughtSkyShip.rotation.y = dreadnoughtSkyShip.userData.baseRotationY + Math.sin(now * .07 + dreadnoughtSkyShip.userData.phase) * .025;
+      dreadnoughtSkyShip.userData.tick?.(dt);
+      if (dreadnoughtSkyShip.position.x > DREADNOUGHT_SKY_END_X) {
+        dreadnoughtSkyShip.position.x = DREADNOUGHT_SKY_START_X;
+        dreadnoughtSkyShip.position.z = -18 - Math.random() * 18;
+      }
+    }
+
 
     function updateTreeCollisions() {
       if (!playerDestroyed && player.visible) {
@@ -15298,6 +15760,9 @@ let landingRecoveryTimer = 0;
         if (Math.abs(block.position.x - x) > 7 || Math.abs(block.position.z - z) > 7) continue;
         block.updateWorldMatrix(true, false);
         blockCollider.setFromObject(block);
+        // A mech standing on a roof must be able to move across its top.
+        // Treat only side/underside contact as a blocking volume.
+        if (playerCollider.min.y >= blockCollider.max.y - .06) continue;
         if (playerCollider.intersectsBox(blockCollider)) return true;
       }
       // Concrete barrier panels are solid until their own destructible state
@@ -15314,6 +15779,33 @@ let landingRecoveryTimer = 0;
         if (playerCollider.intersectsBox(blockCollider)) return true;
       }
       return false;
+    }
+
+    function getBuildingVerticalContactY(x, z, currentY, nextY, velocityY, radius = playerRadius) {
+      let contactY = null;
+      for (const block of blocks) {
+        if (block.userData.removed || block.userData.collapsing) continue;
+        if (Math.abs(block.position.x - x) > 7 || Math.abs(block.position.z - z) > 7) continue;
+        block.updateWorldMatrix(true, false);
+        blockCollider.setFromObject(block);
+        const overlapsHorizontally = x + radius > blockCollider.min.x && x - radius < blockCollider.max.x &&
+          z + radius > blockCollider.min.z && z - radius < blockCollider.max.z;
+        if (!overlapsHorizontally) continue;
+        if (velocityY < 0) {
+          const currentBottom = currentY + .2;
+          const nextBottom = nextY + .2;
+          if (currentBottom >= blockCollider.max.y - .08 && nextBottom <= blockCollider.max.y + .08) {
+            contactY = Math.max(contactY ?? -Infinity, blockCollider.max.y - .2);
+          }
+        } else if (velocityY > 0) {
+          const currentTop = currentY + MECH_HEIGHT;
+          const nextTop = nextY + MECH_HEIGHT;
+          if (currentTop <= blockCollider.min.y + .08 && nextTop >= blockCollider.min.y - .08) {
+            contactY = Math.min(contactY ?? Infinity, blockCollider.min.y - MECH_HEIGHT - .2);
+          }
+        }
+      }
+      return contactY;
     }
 
     function collidesWithBuilding(x, z) {
@@ -15345,6 +15837,9 @@ let landingRecoveryTimer = 0;
         }
       }
       if (!closestBuilding) return;
+      // A collapsed footprint is now rubble-only. Do not treat its old
+      // facade bounds as an active wall or emit fallback glass forever.
+      if (collapsingBuildings.has(closestBuilding.bounds.buildingId)) return;
       // Resolve the contact on the building's actual facade, not at the
       // mech center where the structural core may have stopped the body.
       mechBuildingImpactPoint.set(
@@ -15438,6 +15933,7 @@ let landingRecoveryTimer = 0;
       const playerSpawn = getFormationSpawn('player');
       player.position.copy(playerSpawn);
       yaw = Math.PI;
+      upperBodyAimWorldYaw = yaw;
       player.rotation.set(0, yaw, 0);
       if (enemyAI?.group) {
         enemyAI.group.position.copy(getFormationSpawn('enemy', 0));
@@ -15587,6 +16083,19 @@ let landingRecoveryTimer = 0;
     }
 
     function breakBlock(block, impulseDir, pointValue) {
+      const buildingId = block.userData.buildingId;
+      const isStructuralAnchor = block.userData.core || block.userData.isRoof || block.userData.isSupportSlab;
+      // The core, roof and inter-floor slabs keep the building together until
+      // all four yellow support columns are destroyed. Treating these anchors
+      // like ordinary wall blocks made the whole tower fly away prematurely,
+      // leaving only the yellow columns visible.
+      if (isStructuralAnchor && !collapsingBuildings.has(buildingId)) {
+        block.userData.hp = Math.max(1, block.userData.hp);
+        block.userData.velocity.set(0, 0, 0);
+        block.userData.angularVelocity.set(0, 0, 0);
+        flash(block);
+        return;
+      }
       if (block.userData.broken) return;
       block.userData.broken = true;
       if (block.userData.isFacadePanel) {
@@ -15610,11 +16119,10 @@ let landingRecoveryTimer = 0;
       score += pointValue;
       stability = Math.max(0, stability - (block.userData.isColumn ? 22 : 1.6));
       updateHUD();
-      const buildingId = block.userData.buildingId;
       pendingSupportChecks.add(buildingId);
       const destroyedColumns = columns.filter(column => column.userData.buildingId === buildingId && column.userData.broken).length;
       if (block.userData.isColumn) showMessage(`MAIN COLUMNS ${destroyedColumns}/4 DESTROYED`);
-      if (destroyedColumns === 2 && !collapsingBuildings.has(buildingId)) startBuildingTilt(buildingId);
+      if ((destroyedColumns === 2 || destroyedColumns === 3) && !collapsingBuildings.has(buildingId)) startBuildingTilt(buildingId);
       if (destroyedColumns >= 4 && !collapsingBuildings.has(buildingId)) startCollapse(buildingId);
     }
 
@@ -15637,6 +16145,7 @@ let landingRecoveryTimer = 0;
           (Math.random() - .5) * 1.5
         );
       }
+      collapseBuildingIfDepleted(block.userData.buildingId);
     }
 
     function updateStructuralSupport() {
@@ -15729,19 +16238,25 @@ let landingRecoveryTimer = 0;
       spawnFragments(block, impulseDir);
     }
 
-    function spawnCollapseDust(center, scale = 1, count = 24) {
+    function spawnCollapseDust(center, scale = 1, count = 24, buildingArea = null) {
       // Neutral concrete dust: avoid the warm beige tint used by the older
       // palette so building collapses read as gray cement clouds.
-      const dustColors = [0x5f6468, 0x707579, 0x858a8d, 0x999d9e, 0xb0b3b2];
+      const dustColors = [0x707579, 0x7f8487, 0x929698, 0xa5a9aa, 0xb8bbba];
       for (let i = 0; i < count; i++) {
-        const size = (1.3 + Math.random() * 2.4) * scale;
+        const size = (2.6 + Math.random() * 4.8) * scale;
         const angle = Math.random() * Math.PI * 2;
         const radius = Math.random() * (4.5 + scale * 5.8);
-        const position = center.clone().add(new THREE.Vector3(
-          Math.cos(angle) * radius,
-          0.3 + Math.random() * (2.8 * scale),
-          Math.sin(angle) * radius
-        ));
+        const position = buildingArea
+          ? new THREE.Vector3(
+            buildingArea.x + (Math.random() - .5) * buildingArea.halfX * 2,
+            .6 + Math.random() * buildingArea.height,
+            buildingArea.z + (Math.random() - .5) * buildingArea.halfZ * 2
+          )
+          : center.clone().add(new THREE.Vector3(
+            Math.cos(angle) * radius,
+            0.3 + Math.random() * (2.8 * scale),
+            Math.sin(angle) * radius
+          ));
         const velocity = new THREE.Vector3(
           Math.cos(angle) * (0.85 + Math.random() * 2.2),
           0.7 + Math.random() * 1.8,
@@ -15753,13 +16268,14 @@ let landingRecoveryTimer = 0;
     }
 
     function startBuildingTilt(buildingId) {
-      if (buildingTiltStates.has(buildingId) || collapsingBuildings.has(buildingId)) return;
+      if (collapsingBuildings.has(buildingId)) return;
       const bounds = buildingBounds.find(entry => entry.buildingId === buildingId);
       if (!bounds) return;
       const destroyed = columns.filter(column =>
         column.userData.buildingId === buildingId && column.userData.broken
       );
       if (destroyed.length < 2) return;
+      const isDiagonalCorrection = destroyed.length >= 3 && buildingTiltStates.has(buildingId);
 
       const tiltDirection = new THREE.Vector3();
       for (const column of destroyed) {
@@ -15771,8 +16287,24 @@ let landingRecoveryTimer = 0;
       } else {
         tiltDirection.normalize();
       }
-      // Rotation around this horizontal axis makes the upper floors lean
-      // toward the side where the two main yellow supports were lost.
+      const dustOrigin = new THREE.Vector3(
+        bounds.x + tiltDirection.x * 2.4,
+        .35,
+        bounds.z + tiltDirection.z * 2.4
+      );
+      const dustScale = destroyed.length >= 3 ? .82 : .52;
+      const dustCount = destroyed.length >= 3 ? 20 : 8;
+      const buildingHeight = 1.1 + ((buildingHealth.get(buildingId)?.floors || 10) - 1) * 1.55 + 1.35;
+      spawnCollapseDust(dustOrigin, dustScale, dustCount, {
+        x: bounds.x,
+        z: bounds.z,
+        halfX: bounds.halfX,
+        halfZ: bounds.halfZ,
+        height: buildingHeight
+      });
+      // Rebuild the tilt basis from the currently broken supports. When the
+      // third yellow support breaks, this replaces the first two-column lean
+      // with the combined diagonal direction of all three supports.
       const tiltAxis = new THREE.Vector3(tiltDirection.z, 0, -tiltDirection.x).normalize();
       const entries = blocks
         .filter(block => block.userData.buildingId === buildingId && !block.userData.broken && !block.userData.removed)
@@ -15786,9 +16318,9 @@ let landingRecoveryTimer = 0;
         buildingId,
         center: new THREE.Vector3(bounds.x, 0, bounds.z),
         axis: tiltAxis,
-        angle: THREE.MathUtils.degToRad(6.5),
+        angle: THREE.MathUtils.degToRad(isDiagonalCorrection ? 8.5 : 6.5),
         elapsed: 0,
-        duration: 1.1,
+        duration: isDiagonalCorrection ? .9 : 1.1,
         entries
       });
       showMessage('TWO MAIN COLUMNS LOST · STRUCTURE LEANING');
@@ -15852,6 +16384,7 @@ let landingRecoveryTimer = 0;
         fragmentTimer: 0,
         dustTimer: .05,
         explosionTimer: .12,
+        damageTimer: 0,
         entries
       });
       shake = Math.max(shake, .35);
@@ -15867,6 +16400,27 @@ let landingRecoveryTimer = 0;
         const shakeStrength = progress > 0
           ? Math.sin(progress * Math.PI) * .16
           : warningStrength * .07;
+
+        // A collapsing tower is dangerous even when the mech is beside it,
+        // not directly inside the building. Apply pulsed environmental damage
+        // from the building footprint plus a short debris safety margin.
+        state.damageTimer -= dt;
+        if (state.damageTimer <= 0 && !playerDestroyed && player.visible) {
+          const bounds = buildingBounds.find(entry => entry.buildingId === buildingId);
+          const halfX = bounds?.halfX || 8;
+          const halfZ = bounds?.halfZ || 8;
+          const dx = Math.max(Math.abs(player.position.x - state.centerX) - halfX, 0);
+          const dz = Math.max(Math.abs(player.position.z - state.centerZ) - halfZ, 0);
+          const distance = Math.hypot(dx, dz);
+          const damageRadius = 6.5;
+          if (distance < damageRadius) {
+            const falloff = THREE.MathUtils.clamp(1 - distance / damageRadius, 0, 1);
+            damagePlayer(Math.max(2.5, 9 * falloff), null, 'environment');
+            state.damageTimer = .45;
+          } else {
+            state.damageTimer = .12;
+          }
+        }
 
         for (const entry of state.entries) {
           const { block, startPosition, startRotation, phase } = entry;
@@ -16049,6 +16603,9 @@ let landingRecoveryTimer = 0;
         } else if (boostEnergy >= 18) {
           dashDirection.copy(move).normalize();
           dashTimer = DASH_DURATION;
+          // Preserve the current floor/rooftop height while the dash arc is active.
+          // Using a world absolute Y here makes a rooftop dash fall through the building.
+          dashBaseY = player.position.y;
           playGameSound('dash');
           dashCooldown = DASH_COOLDOWN;
           boostEnergy = Math.max(0, boostEnergy - 18);
@@ -16137,7 +16694,18 @@ let landingRecoveryTimer = 0;
       const landingVelocity = verticalVelocity;
       const nextY = player.position.y + verticalVelocity * dt;
       if (nextY > 0 && collidesAtPosition(player.position.x, player.position.z, nextY, playerRadius)) {
-        if (verticalVelocity < 0) grounded = true;
+        const contactY = getBuildingVerticalContactY(
+          player.position.x,
+          player.position.z,
+          player.position.y,
+          nextY,
+          verticalVelocity,
+          playerRadius
+        );
+        if (contactY !== null && verticalVelocity < 0) {
+          player.position.y = Math.max(0, contactY);
+          grounded = true;
+        }
         verticalVelocity = 0;
       } else {
         player.position.y = Math.min(nextY, 70);
@@ -16151,7 +16719,7 @@ let landingRecoveryTimer = 0;
       }
       if (dashing) {
         const dashPhase = THREE.MathUtils.clamp(1 - dashTimer / DASH_DURATION, 0, 1);
-        player.position.y = .12 + Math.sin(dashPhase * Math.PI) * 2.32;
+        player.position.y = dashBaseY + Math.sin(dashPhase * Math.PI) * 2.32;
         verticalVelocity = 0;
         grounded = false;
         boostedSinceTakeoff = true;
@@ -16171,8 +16739,8 @@ if (!wasGrounded && grounded) {
   }
   if (impactSpeed > SAFE_LANDING_SPEED) {
     const fallDamage = Math.min(
-      poweredJumpLanding ? 12 : MAX_FALL_DAMAGE,
-      Math.round(Math.pow(impactSpeed - SAFE_LANDING_SPEED, 1.12) * 1.25 * (poweredJumpLanding ? .18 : 1))
+      poweredJumpLanding ? 0 : MAX_FALL_DAMAGE,
+      poweredJumpLanding ? 0 : Math.round(Math.pow(impactSpeed - SAFE_LANDING_SPEED, 1.12) * 1.25)
     );
     if (fallDamage > 0) damagePlayer(fallDamage, null, 'fall');
   }
@@ -16261,6 +16829,10 @@ if (!wasGrounded && grounded) {
             dashFlameTargetPosition.copy(flame.userData.nozzleOrigin).addScaledVector(dashTrailLocal, halfFlameLength);
             flame.position.lerp(dashFlameTargetPosition, 1 - Math.exp(-16 * dt));
             flameDirectionQuaternion.setFromUnitVectors(flameExhaustAxis, dashTrailLocal);
+            // Keep the nozzle's authored 180-degree cone orientation while
+            // adding the dash/jetpack bend. Without this base rotation the
+            // directional path flips the flame back into the booster.
+            flameDirectionQuaternion.multiply(normalFlameTargetQuaternion);
             flame.quaternion.slerp(flameDirectionQuaternion, 1 - Math.exp(-18 * dt));
           } else {
             normalFlameTargetPosition.set(flame.userData.side * .88, 1.4, -1.93);
@@ -16375,9 +16947,12 @@ if (!wasGrounded && grounded) {
         1 - Math.exp(-9 * dt)
       );
 
-      const visualAimLimit = 2.25;
-      const visualAimYaw = THREE.MathUtils.clamp(angleDelta(player.rotation.y, yaw), -visualAimLimit, visualAimLimit);
-      upperBodyPivot.rotation.y = dampAngle(upperBodyPivot.rotation.y, visualAimYaw, 15, dt);
+      // Track the target independently in world space.  The local yaw below
+      // only cancels the lower-body rotation inherited from `player`, keeping
+      // the torso visually separated during sudden left/right turns.
+      const upperAimResponse = turnRate > 1.2 ? 24 : 16;
+      upperBodyAimWorldYaw = dampAngle(upperBodyAimWorldYaw, yaw, upperAimResponse, dt);
+      upperBodyPivot.rotation.y = angleDelta(player.rotation.y, upperBodyAimWorldYaw);
       upperBodyPivot.rotation.x = THREE.MathUtils.lerp(
         upperBodyPivot.rotation.x,
         THREE.MathUtils.clamp(-launchPitch * .12, -.16, .16),
@@ -16492,6 +17067,41 @@ if (!wasGrounded && grounded) {
         }
       }
       cannonPhysics.step(dt);
+    }
+
+    function getPlayerShellDroneHit(position, previousPosition = null) {
+      const segment = previousPosition ? position.clone().sub(previousPosition) : null;
+      const segmentLengthSq = segment?.lengthSq() || 0;
+      for (const ownerAI of [enemyAI, enemyAI2]) {
+        for (const companion of ownerAI?.droneCompanions || []) {
+          if (!companion?.active || !companion.group.visible) continue;
+          const center = companion.group.position.clone().add(new THREE.Vector3(0, .2, 0));
+          const ratio = segmentLengthSq > .001
+            ? THREE.MathUtils.clamp(center.clone().sub(previousPosition).dot(segment) / segmentLengthSq, 0, 1)
+            : 0;
+          const closest = previousPosition
+            ? previousPosition.clone().addScaledVector(segment, ratio)
+            : position;
+          if (closest.distanceToSquared(center) <= DRONE_HIT_RADIUS_SQ) return companion;
+        }
+      }
+      return null;
+    }
+
+    function findPlayerLaserDroneHit(origin, direction, maxDistance) {
+      let hit = null;
+      for (const ownerAI of [enemyAI, enemyAI2]) {
+        for (const companion of ownerAI?.droneCompanions || []) {
+          if (!companion?.active || !companion.group.visible) continue;
+          const center = companion.group.position.clone().add(new THREE.Vector3(0, .2, 0));
+          const along = center.clone().sub(origin).dot(direction);
+          if (along <= 0 || along >= maxDistance) continue;
+          const closest = origin.clone().addScaledVector(direction, along);
+          if (closest.distanceToSquared(center) > DRONE_HIT_RADIUS_SQ) continue;
+          if (!hit || along < hit.distance) hit = { companion, distance: along, point: closest };
+        }
+      }
+      return hit;
     }
 
     const shellPrevPos = new THREE.Vector3();
@@ -16623,7 +17233,19 @@ if (!wasGrounded && grounded) {
           }
         }
         if (!hitBlock) {
-          for (const targetAI of [enemyAI, enemyAI2]) {
+          const hitDrone = getPlayerShellDroneHit(shell.position, shellPrevPos);
+          if (hitDrone) {
+            const wasActive = hitDrone.active;
+            damageDroneCompanion(hitDrone, shell.userData.damage);
+            spawnExplosionEffect(shell.position, .7);
+            shell.userData.exploded = true;
+            score += wasActive && !hitDrone.active ? 100 : 20;
+            shake = Math.max(shake, .18);
+            showMessage(hitDrone.active ? 'CPU DRONE HIT!' : 'CPU DRONE DESTROYED!');
+            shell.userData.life = 0;
+            updateHUD();
+          }
+          if (!hitDrone) for (const targetAI of [enemyAI, enemyAI2]) {
             if (!targetAI?.alive) continue;
             const impulse = shellImpulse.copy(shell.userData.velocity).normalize();
             const wasAlive = targetAI.alive;
@@ -17061,19 +17683,25 @@ if (!wasGrounded && grounded) {
       ].filter(source => source?.parent);
       const worldOrigin = origin.clone();
       for (const source of sources) {
-        const parent = source.parent;
-        const localPosition = source.position.clone();
-        const localQuaternion = source.quaternion.clone();
-        const localScale = source.scale.clone();
-        scene.attach(source);
-        const away = source.position.clone().sub(worldOrigin).setY(.2);
+        // Keep the authored mech hierarchy intact. Only a visual clone is
+        // detached and scattered, so respawn never has to rebuild the mech.
+        source.updateWorldMatrix(true, true);
+        const debris = source.clone(true);
+        const worldPosition = new THREE.Vector3();
+        const worldQuaternion = new THREE.Quaternion();
+        const worldScale = new THREE.Vector3();
+        source.getWorldPosition(worldPosition);
+        source.getWorldQuaternion(worldQuaternion);
+        source.getWorldScale(worldScale);
+        debris.position.copy(worldPosition);
+        debris.quaternion.copy(worldQuaternion);
+        debris.scale.copy(worldScale);
+        debris.visible = true;
+        scene.add(debris);
+        const away = worldPosition.clone().sub(worldOrigin).setY(.2);
         if (away.lengthSq() < .01) away.set(Math.random() - .5, .2, Math.random() - .5);
         scatteredMechParts.push({
-          source,
-          parent,
-          localPosition,
-          localQuaternion,
-          localScale,
+          source: debris,
           velocity: away.normalize().multiplyScalar(4 + Math.random() * 5).add(new THREE.Vector3(0, 7 + Math.random() * 5, 0)),
           angularVelocity: new THREE.Vector3((Math.random() - .5) * 8, (Math.random() - .5) * 8, (Math.random() - .5) * 8),
           life: 3.8
@@ -17091,21 +17719,15 @@ if (!wasGrounded && grounded) {
         part.source.rotation.z += part.angularVelocity.z * dt;
         part.life -= dt;
         if (part.life > 0) continue;
-        part.parent.attach(part.source);
-        part.source.position.copy(part.localPosition);
-        part.source.quaternion.copy(part.localQuaternion);
-        part.source.scale.copy(part.localScale);
+        scene.remove(part.source);
         scatteredMechParts.splice(index, 1);
       }
     }
 
-    function restoreScatteredMechParts() {
+    function clearScatteredMechParts() {
       for (let index = scatteredMechParts.length - 1; index >= 0; index--) {
         const part = scatteredMechParts[index];
-        part.parent.attach(part.source);
-        part.source.position.copy(part.localPosition);
-        part.source.quaternion.copy(part.localQuaternion);
-        part.source.scale.copy(part.localScale);
+        scene.remove(part.source);
       }
       scatteredMechParts.length = 0;
     }
@@ -17605,14 +18227,14 @@ if (!wasGrounded && grounded) {
         item.rotation.y += pickupSpin * .8;
         item.position.y = item.userData.baseY + Math.sin(performance.now() * .003 + item.userData.phase) * .24;
         if (!playerDestroyed && playerDroneCompanions.length < MAX_DRONE_COMPANIONS && item.position.distanceTo(pickupTargetPosition) < PICKUP_RADIUS) {
-          grantDroneCompanion(null);
+          grantDroneCompanion(null, item.position.clone());
           playGameSound('pickup');
           showMessage('DRONE SUPPORT ONLINE');
           queuePickupRespawn(item, 30);
         } else {
           const cpu = getCpuPickupOwner(item, candidate => (candidate.droneCompanions?.length || 0) < MAX_DRONE_COMPANIONS);
           if (cpu) {
-            grantDroneCompanion(cpu);
+            grantDroneCompanion(cpu, item.position.clone());
             queuePickupRespawn(item, 30);
           }
         }
@@ -17642,7 +18264,33 @@ if (!wasGrounded && grounded) {
       droneCompanionProjectilePool.push(projectile);
     }
 
-    function createDroneCompanion(ownerAI = null) {
+    function updateDroneCompanionHealthBar(companion, force = false) {
+      const bar = companion?.healthBar;
+      if (!bar) return;
+      const ratio = THREE.MathUtils.clamp(companion.health / companion.maxHealth, 0, 1);
+      if (!force && Math.abs(ratio - (companion.lastHealthRatio ?? -1)) < .005) return;
+      const canvas = bar.userData.canvas;
+      const context = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      context.clearRect(0, 0, width, height);
+      context.fillStyle = 'rgba(2, 7, 12, .9)';
+      context.fillRect(2, 2, width - 4, height - 4);
+      context.fillStyle = companion.ownerAI ? '#ff5269' : '#5de7ff';
+      context.fillRect(5, 5, (width - 10) * ratio, height - 10);
+      context.strokeStyle = 'rgba(235, 250, 255, .86)';
+      context.lineWidth = 2;
+      context.strokeRect(2, 2, width - 4, height - 4);
+      context.fillStyle = '#f3fbff';
+      context.font = '900 17px Arial, sans-serif';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(`${Math.ceil(ratio * 100)}%`, width * .5, height * .5 + 1);
+      bar.userData.texture.needsUpdate = true;
+      companion.lastHealthRatio = ratio;
+    }
+
+    function createDroneCompanion(ownerAI = null, spawnPosition = null) {
       const sourceDrone = window.hangarRepairDrones?.[0];
       if (!sourceDrone) return null;
       const existingCompanions = ownerAI ? (ownerAI.droneCompanions || []) : playerDroneCompanions;
@@ -17651,12 +18299,31 @@ if (!wasGrounded && grounded) {
       group.name = ownerAI ? 'EnemyDroneCompanion' : 'PlayerDroneCompanion';
       group.scale.setScalar(.62);
       group.visible = true;
+      if (spawnPosition) group.position.copy(spawnPosition);
       group.traverse(object => {
         if (object.isMesh) object.frustumCulled = true;
         if (object.name === 'DroneScanEmitter') object.visible = false;
       });
+      const healthCanvas = document.createElement('canvas');
+      healthCanvas.width = 192;
+      healthCanvas.height = 28;
+      const healthTexture = new THREE.CanvasTexture(healthCanvas);
+      healthTexture.needsUpdate = true;
+      const healthBar = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: healthTexture,
+        transparent: true,
+        depthTest: true,
+        depthWrite: false
+      }));
+      healthBar.name = 'DroneHealthBar';
+      healthBar.position.set(0, 1.45, 0);
+      healthBar.scale.set(1.15, .17, 1);
+      healthBar.renderOrder = 111;
+      healthBar.userData.canvas = healthCanvas;
+      healthBar.userData.texture = healthTexture;
+      group.add(healthBar);
       scene.add(group);
-      return {
+      const companion = {
         group,
         ownerAI,
         health: 90,
@@ -17665,20 +18332,24 @@ if (!wasGrounded && grounded) {
         orbit: ownerAI ? Math.PI : 0,
         formationSlot,
         phase: Math.random() * Math.PI * 2,
-        active: true
+        active: true,
+        healthBar,
+        lastHealthRatio: -1
       };
+      updateDroneCompanionHealthBar(companion, true);
+      return companion;
     }
 
-    function grantDroneCompanion(ownerAI = null) {
+    function grantDroneCompanion(ownerAI = null, spawnPosition = null) {
       if (ownerAI) {
         ownerAI.droneCompanions ||= [];
         if (ownerAI.droneCompanions.length >= MAX_DRONE_COMPANIONS) return null;
-        const companion = createDroneCompanion(ownerAI);
+        const companion = createDroneCompanion(ownerAI, spawnPosition);
         if (companion) ownerAI.droneCompanions.push(companion);
         return companion;
       }
       if (playerDroneCompanions.length >= MAX_DRONE_COMPANIONS) return null;
-      const companion = createDroneCompanion();
+      const companion = createDroneCompanion(null, spawnPosition);
       if (companion) playerDroneCompanions.push(companion);
       return companion;
     }
@@ -17688,6 +18359,8 @@ if (!wasGrounded && grounded) {
       companion.active = false;
       companion.group.visible = false;
       scene.remove(companion.group);
+      companion.healthBar?.material.map?.dispose();
+      companion.healthBar?.material.dispose();
       if (companion.ownerAI) {
         companion.ownerAI.droneCompanions = (companion.ownerAI.droneCompanions || []).filter(entry => entry !== companion);
       } else {
@@ -17708,6 +18381,7 @@ if (!wasGrounded && grounded) {
     function damageDroneCompanion(companion, damage) {
       if (!companion?.active) return;
       companion.health = Math.max(0, companion.health - damage);
+      updateDroneCompanionHealthBar(companion);
       if (companion.health <= 0) destroyDroneCompanion(companion);
     }
 
@@ -17756,7 +18430,7 @@ if (!wasGrounded && grounded) {
 
     function getDroneAvoidedTarget(position, desired, mechPosition = null) {
       const result = desired.clone();
-      const mechAvoidRadius = 5.4;
+      const mechAvoidRadius = DRONE_OWNER_CLEARANCE;
       if (mechPosition) {
         const awayFromMech = result.clone().sub(mechPosition).setY(0);
         if (awayFromMech.lengthSq() < mechAvoidRadius * mechAvoidRadius) {
@@ -17804,9 +18478,9 @@ if (!wasGrounded && grounded) {
         for (let index = 0; index < 8; index++) {
           const angle = preferredAngle + (index - 3.5) * (Math.PI * 2 / 8);
           candidates.push(new THREE.Vector3(
-            mechPosition.x + Math.cos(angle) * (mechAvoidRadius + 1.8),
+            mechPosition.x + Math.cos(angle) * (mechAvoidRadius + 2.5),
             result.y,
-            mechPosition.z + Math.sin(angle) * (mechAvoidRadius + 1.8)
+            mechPosition.z + Math.sin(angle) * (mechAvoidRadius + 2.5)
           ));
         }
       }
@@ -17885,7 +18559,7 @@ if (!wasGrounded && grounded) {
       for (const attacker of [enemyAI, enemyAI2]) {
         if (!attacker?.alive) continue;
         for (const shell of attacker.shells || []) {
-          if (shell.visible && shell.position.distanceToSquared(companion.group.position) < 2.8) {
+          if (shell.visible && shell.position.distanceToSquared(companion.group.position) < DRONE_HIT_RADIUS_SQ) {
             damageDroneCompanion(companion, Math.max(4, shell.userData.damage * .45));
             // Let EnemyAI remove the shell on its normal update pass; removing
             // it here would leave a stale entry and double-return it to the pool.
@@ -17909,12 +18583,24 @@ if (!wasGrounded && grounded) {
         // Keep the two support drones in a wide left/right formation. Their
         // slots stay stable even when one drone is destroyed and replaced.
         const side = companion.formationSlot === 0 ? -1 : 1;
-        const offset = new THREE.Vector3(side * 6.8, 8.2 + Math.sin(performance.now() * .002 + companion.phase) * .45, -1.4)
+        const offset = new THREE.Vector3(side * DRONE_FORMATION_SIDE, DRONE_FORMATION_HEIGHT + Math.sin(performance.now() * .002 + companion.phase) * .45, DRONE_FORMATION_BACK)
           .applyAxisAngle(new THREE.Vector3(0, 1, 0), ownerYaw);
         const desired = getDroneAvoidedTarget(companion.group.position, ownerPosition.clone().add(offset), ownerPosition);
+        const separation = new THREE.Vector3();
+        for (const other of companions) {
+          if (other === companion || !other?.active) continue;
+          const away = companion.group.position.clone().sub(other.group.position).setY(0);
+          const distance = away.length();
+          if (distance > 0 && distance < DRONE_SEPARATION_RADIUS) {
+            separation.addScaledVector(away.normalize(), (DRONE_SEPARATION_RADIUS - distance) / DRONE_SEPARATION_RADIUS);
+          }
+        }
+        if (separation.lengthSq() > .0001) {
+          desired.add(separation.normalize().multiplyScalar(2.4));
+        }
         const previous = companion.group.position.clone();
         const desiredStep = desired.clone().sub(previous);
-        const maxDroneStep = 10.5 * dt;
+        const maxDroneStep = 8.2 * dt;
         if (desiredStep.length() > maxDroneStep) desiredStep.setLength(maxDroneStep);
         companion.group.position.add(desiredStep);
         const movement = companion.group.position.clone().sub(previous);
@@ -17994,6 +18680,9 @@ if (!wasGrounded && grounded) {
       scanNearestPickupItems(jumpItems);
       if (!seekingCpu || seekingCpu.health < 90) scanNearestPickupItems(healthItems);
       if (!seekingCpu || seekingCpu.shield < 90) scanNearestPickupItems(shieldItems);
+      if (!seekingCpu || (seekingCpu.droneCompanions?.length || 0) < MAX_DRONE_COMPANIONS) {
+        scanNearestPickupItems(droneItems);
+      }
       return pickupSearchNearest;
     }
 
@@ -18790,6 +19479,7 @@ if (!wasGrounded && grounded) {
       locomotionSpeed = 0;
       playerRigidBody.stop();
       dashTimer = 0;
+      dashBaseY = 0;
       dashCooldown = 0;
       dashInputReady = true;
       boostedSinceTakeoff = false;
@@ -18841,17 +19531,17 @@ if (!wasGrounded && grounded) {
       roundTransitionTimer = 2.6;
       if (mechaGaitController) mechaGaitController.reset();
       const overlay = document.getElementById('roundTransition');
-      overlay.textContent = `ROUND ${roundNumber} // INCOMING`;
+      overlay.textContent = `ROUND ${roundNumber - 1} // WINNER: ${lastRoundWinner}`;
       overlay.classList.add('active');
       document.getElementById('timeWarning').classList.remove('active');
-      showMessage(`ROUND COMPLETE // NEXT: ${roundNumber}`);
+      showMessage(`ROUND ${roundNumber - 1} WINNER: ${lastRoundWinner}`);
     }
 
     function updateRoundTransition(dt) {
       if (roundTransitionTimer <= 0) return;
       roundTransitionTimer = Math.max(0, roundTransitionTimer - dt);
       const overlay = document.getElementById('roundTransition');
-      overlay.textContent = `ROUND ${roundNumber} // DEPLOY ${roundTransitionTimer.toFixed(1)}`;
+      overlay.textContent = `ROUND ${roundNumber - 1} // ${lastRoundWinner} · NEXT ROUND ${roundNumber} // ${roundTransitionTimer.toFixed(1)}`;
       if (roundTransitionTimer <= 0) {
         overlay.classList.remove('active');
         startLevelTwo();
@@ -18868,19 +19558,22 @@ if (!wasGrounded && grounded) {
         } else {
           result = playerKills > cpuKills ? 'PLAYER WINS' : playerKills < cpuKills ? 'CPU WINS' : 'DRAW';
         }
+        const completedRound = roundNumber;
+        lastRoundWinner = result;
         if (result === 'PLAYER WINS') playerRoundWins++;
         // Two round wins complete the match immediately; never schedule the final round.
         if (playerRoundWins >= 2) {
           roundTransitionTimer = 0;
         } else if (roundNumber < TOTAL_ROUNDS) {
           roundNumber++;
+          document.getElementById('matchStateText').textContent = `ROUND ${completedRound} WINNER: ${result}`;
           beginRoundTransition();
           return;
         }
         matchOver = true;
         const displayResult = currentLevel === 2 && result === 'PLAYER WINS' ? 'LEVEL 2 CLEAR · GAME COMPLETE' : result;
         const finalResult = playerRoundWins >= 2 ? 'VICTORY // 3 ROUND COMPLETE' : 'DEFEAT // 3 ROUND COMPLETE';
-        document.getElementById('matchStateText').textContent = finalResult;
+        document.getElementById('matchStateText').textContent = `ROUND ${completedRound} WINNER: ${result} // ${finalResult}`;
         document.getElementById('matchTimer').style.color = '#ff657a';
         clearPlayerShells();
         if (enemyAI) {
@@ -19277,7 +19970,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         return;
       }
 
-      restoreScatteredMechParts();
+      clearScatteredMechParts();
       const deathData = pendingPlayerDeathData;
       player.position.copy(getFormationSpawn('player'));
       player.rotation.y = yaw;
@@ -19289,6 +19982,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       locomotionSpeed = 0;
       playerRigidBody.stop();
       dashTimer = 0;
+      dashBaseY = 0;
       dashCooldown = 0;
       dashInputReady = true;
       boostedSinceTakeoff = false;
@@ -19388,6 +20082,17 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       el.style.opacity = 1;
       clearTimeout(messageTimer);
       messageTimer = setTimeout(() => el.style.opacity = 0, 700);
+    }
+
+    let ctfScoreAnnouncementTimer = null;
+    function showCTFScoreAnnouncement(scoringTeam, playerScore, cpuScore) {
+      const el = document.getElementById('ctfScoreAnnouncement');
+      if (!el) return;
+      el.classList.toggle('enemy-score', scoringTeam === 'CPU');
+      el.innerHTML = `${scoringTeam === 'PLAYER' ? '🏆 PLAYER SCORED' : '⚠ CPU SCORED'}<br><small>FLAG SCORE&nbsp;&nbsp;${playerScore} : ${cpuScore}</small>`;
+      el.classList.add('visible');
+      clearTimeout(ctfScoreAnnouncementTimer);
+      ctfScoreAnnouncementTimer = setTimeout(() => el.classList.remove('visible'), 2400);
     }
 
     function toggleFreeCamera() {
@@ -19500,7 +20205,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       if (enemyAI2) enemyAI2.droneCompanions = [];
       for (const projectile of droneCompanionProjectiles) releaseDroneCompanionProjectile(projectile);
       droneCompanionProjectiles.length = 0;
-      restoreScatteredMechParts();
+      clearScatteredMechParts();
       currentLevel = 1;
       arenaHalfSize = 82;
       verticalVelocity = 0;
@@ -19509,6 +20214,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       locomotionSpeed = 0;
       playerRigidBody.stop();
       dashTimer = 0;
+      dashBaseY = 0;
       dashCooldown = 0;
       dashInputReady = true;
       boostedSinceTakeoff = false;
@@ -19657,6 +20363,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
 
     createBuilding();
+    createDreadnoughtSkyShip();
     setStartupLoading(76, 'BUILDING CITY DEFENSE GRID');
     player.position.copy(getFormationSpawn('player'));
     enemyAI = new EnemyAI({
@@ -19907,6 +20614,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       }
       if (freeCamActive) {
         updateFreeCamera(dt);
+        battlefieldShadowCsm?.update();
         composer.render();
         return;
       }
@@ -19925,6 +20633,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         updateFutureBackdrop(dt);
         updateTraffic(dt);
         updateCityAtmosphere(dt);
+        updateDreadnoughtSkyShip(dt);
         updateEvacuees(dt);
         window.updateFieldDrones?.(dt);
         shieldBubble.update(dt, playerShield / PLAYER_MAX_SHIELD);
@@ -19995,9 +20704,13 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         updateTacticalMap(dt);
         updateSpawnProtectionHud();
       }
+      battlefieldShadowCsm?.update();
       composer.render();
     }
     animate();
+    // Warm the first-impact resources while the startup loading screen is
+    // still visible. Full battle prewarm remains gated before deployment.
+    prepareInitialBattlePrewarm();
     // The title is only exposed after the initialized scene has produced two
     // real frames, avoiding a blank canvas flash on slower GPUs.
     requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -20008,7 +20721,13 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         const remaining = Math.max(0, loadingDuration - (performance.now() - loadingStartedAt));
         const seconds = Math.ceil(remaining / 1000);
         if (loadingCountdown) loadingCountdown.textContent = seconds > 0 ? `엘리베이터 작동까지 ${seconds}초` : 'ELEVATOR MOVING';
-        if (remaining > 0) requestAnimationFrame(updateLoadingCountdown);
+        if (remaining > 0 || !battleCorePrewarmed) {
+          if (remaining <= 0) {
+            setStartupLoading(96, 'WAITING FOR CORE PREWARM');
+            if (loadingCountdown) loadingCountdown.textContent = '핵심 전투 리소스 준비 중';
+          }
+          requestAnimationFrame(updateLoadingCountdown);
+        }
         else {
           // The first screen after startup is always the mechanic elevator
           // hangar, never the battle scene or a stale transition state.
@@ -20027,6 +20746,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     addEventListener('resize', () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
+      battlefieldShadowCsm?.updateFrustums();
       renderer.setSize(innerWidth, innerHeight);
       composer.setSize(innerWidth, innerHeight);
     });
