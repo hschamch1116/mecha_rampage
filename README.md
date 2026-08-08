@@ -7,7 +7,7 @@ Output:
 [![Physics](https://img.shields.io/badge/Physics-Cannon.js-blue.svg)](https://github.com/schteppe/cannon.js)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#라이선스)
 [![AI Powered](https://img.shields.io/badge/AI-Codex%205.6%20Terra%20%7C%20Gemini%203.6%20Flash-purple.svg)](AI_UTILIZATION_DOC.md)
-[![Version](https://img.shields.io/badge/Version-V5.3_Hangar_GDI_Eagle-gold.svg)](#최근-변경-이력-changelog)
+[![Version](https://img.shields.io/badge/Version-V5.4_Launch_Transition-gold.svg)](#최근-변경-이력-changelog)
 
 **Mecha Rampage: Siege Walker V5**는 브라우저에서 별도의 빌드 도구 설치 없이 즉시 구동되는 **고품질 3D 메카 액션 시뮬레이션 게임**입니다.
 
@@ -155,6 +155,16 @@ mecha_rampage_siege_walker_v5/
 ---
 
 ## 📝 최근 변경 이력 (Changelog)
+
+### 2026-08-08 V5.4 Launch Transition & Performance Update
+
+- `assets/image/72a3b7b9-ed50-40a6-99db-2cc1ed4bf431.png` 기반 초기 런치 화면을 추가했습니다.
+- 클릭 대기 글로우, 이미지 페이드인, 이미지→타이틀 크로스페이드, 클릭 시 타이틀·엘리베이터 애니메이션 시작을 적용했습니다.
+- 런치 이미지 대기 중 WebGL 업데이트를 일시정지해 GPU 사용량을 낮췄습니다.
+- 사용하지 않는 `hangar-industrial-surface.jpg` 텍스처 로딩과 404 요청을 제거했습니다.
+- 구조 분리 블록의 HP 중복 차감을 제거하고, 건물 HP 0 즉시 붕괴 규칙을 유지했습니다.
+- 공중 부스터에서 양쪽 다리를 모으고 이동 방향에 따라 상체가 부드럽게 기울도록 개선했습니다.
+- 타이틀 UI 버전을 `V5.4`로 갱신했습니다.
 
 ### 2026-08-06 드론·날씨 업데이트
 

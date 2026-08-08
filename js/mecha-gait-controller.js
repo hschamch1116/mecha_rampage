@@ -306,6 +306,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       locomotionSpeed = 0,
       grounded = true,
       dashing = false,
+      airBoosting = false,
       isReversing = false,
       turnRate = 0,
       turnStability = 1,
@@ -357,6 +358,27 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       evaluateTyrannoStep(cyclePhase, effectiveStride, stepHeight),
       evaluateTyrannoStep(cyclePhase + Math.PI, effectiveStride, stepHeight)
     ];
+
+    // Air boost is a flight pose, not a paused walking pose. Clear the
+    // alternating stride so a previously leading foot cannot remain extended
+    // while the mech is airborne. Both legs converge to the same compact,
+    // slightly bent configuration through the existing joint blend speeds.
+    if (airBoosting) {
+      const compactKnee = gaitParams.kneeBaseBend + .16;
+      const compactAnkle = -compactKnee * .6 + .08;
+      for (const state of gaitStates) {
+        state.forward = 0;
+        state.lift = 0;
+        state.kneeBend = compactKnee;
+        state.anklePitch = compactAnkle;
+        state.footPitch = compactAnkle * .5;
+        state.toeCurl = 0;
+        state.supportWeight = 0;
+        state.swingProgress = 0;
+        state.hipDrop = 0;
+        state.liftNormalized = 0;
+      }
+    }
 
     // When stopped, smoothly settle any airborne foot down onto the ground while keeping stance
     if (!walking && !turningInPlace) {
