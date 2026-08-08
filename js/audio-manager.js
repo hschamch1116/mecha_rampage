@@ -17,6 +17,7 @@ window.AudioManager = class AudioManager {
     this.previousMasterVolume = 0.82;
     this.bgmStopTimer = null;
     this.sharedNoiseBuffer = null;
+    this.preloadPromise = null;
     this.autoplaySetup = false;
 
     this.volumes = {
@@ -49,8 +50,8 @@ window.AudioManager = class AudioManager {
 
     this.sampleManifest = {
       ui: [
-        "./assets/audio/kenney/computerNoise_000.ogg",
-        "./assets/audio/kenney/computerNoise_001.ogg"
+        "",
+        ""
       ],
 
       jump: [
@@ -163,7 +164,7 @@ window.AudioManager = class AudioManager {
         await this.context.resume().catch(() => {});
       }
 
-      return;
+      return this.preloadPromise || Promise.resolve();
     }
 
     const AudioContextClass =
@@ -260,7 +261,11 @@ window.AudioManager = class AudioManager {
     this.createEngine();
 
     // 백그라운드에서 샘플 로딩
-    this.preloadSamples();
+    // Keep scene transitions blocked until every registered sample has either
+    // decoded or completed its handled failure path. Starting this in the
+    // background caused the first battle to keep allocating AudioBuffers.
+    this.preloadPromise = this.preloadSamples();
+    await this.preloadPromise;
   }
 
   createSaturationCurve(amount = 4) {

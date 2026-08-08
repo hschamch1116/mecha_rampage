@@ -205,7 +205,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
   // Phase E: Direct Joint Drive (from mecha_reverse_joint_walk.html)
   // Instead of IK solver, directly apply kneeBend and anklePitch from gait state
   // Each joint has DIFFERENT response speed = cascading articulated motion
-  function applyDirectJointDrive(joints, gaitState, dt, jumpCrouch = 0) {
+  function applyDirectJointDrive(joints, gaitState, dt, jumpCrouch = 0, grounded = true, jumpPhase = 0) {
     if (!joints || !joints.thigh || !joints.knee || !joints.shin) return;
 
     const {
@@ -274,7 +274,8 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       const groundContact = THREE.MathUtils.clamp(1.0 - (gaitState.liftNormalized || 0) * 3.0, 0, 1);
 
       // Swing pitch: reference anklePitch tilt during airborne phase
-      const swingPitch = reverseFootLevelPitch + gaitState.anklePitch + footAngleOffset;
+      const jumpToeDrop = !grounded && jumpPhase === 2 ? .12 : !grounded && jumpPhase === 4 ? .06 : 0;
+      const swingPitch = reverseFootLevelPitch + gaitState.anklePitch + footAngleOffset + jumpToeDrop;
       // Planted pitch: cancels all parent leg rotations (thigh, knee, shin) to keep sole 100% flat on ground
       const totalParentPitch = joints.thigh.rotation.x + joints.knee.rotation.x + joints.shin.rotation.x;
       const plantedPitch = reverseFootLevelPitch - totalParentPitch + terrainPitch + footAngleOffset;
@@ -287,7 +288,8 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
 
     // Toes: curl trail
     if (joints.toePivots) {
-      const targetToeCurl = gaitState.toeCurl * toeCurlMult + toeCurlOffset;
+      const targetToeCurl = gaitState.toeCurl * toeCurlMult + toeCurlOffset
+        + (!grounded ? (jumpPhase === 2 ? .08 : .04) : 0);
       for (const toePivot of joints.toePivots) {
         toePivot.rotation.x = THREE.MathUtils.lerp(toePivot.rotation.x, targetToeCurl, toeBlend);
       }
@@ -309,6 +311,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       turnStability = 1,
       landingImpact = 0,
       jumpCompression = 0,
+      jumpPhase = 0,
       speedRatio = 0,
       rotationBeforeMove = 0
     } = params;
@@ -473,7 +476,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       const leg = playerLegs[index];
       const joints = leg.userData?.joints;
       if (joints) {
-        applyDirectJointDrive(joints, gaitStates[index], dt, jumpCrouch);
+        applyDirectJointDrive(joints, gaitStates[index], dt, jumpCrouch, grounded, jumpPhase);
       }
     }
 

@@ -104,6 +104,8 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
   material.toneMapped = false;
 
   const sourceMeshes = [];
+  const shieldBoundsCache = new WeakMap();
+  const shieldDetailName = /(antenna|sensor|decal|warning|bolt|screw|cable|wire|grille|vent|trim|emblem|lamp|light|joint|toe|finger|small|detail)/i;
   root.traverse(object => {
     if (!object.isMesh || !object.geometry || object.userData?.energyShieldShell || object.userData?.excludeEnergyShield) return;
     const materials = Array.isArray(object.material) ? object.material : [object.material];
@@ -113,7 +115,27 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
     const additiveFx = materials.some(sourceMaterial =>
       sourceMaterial?.transparent && sourceMaterial?.blending === THREE.AdditiveBlending
     );
-    if (!additiveFx) sourceMeshes.push(object);
+    if (additiveFx) return;
+
+    // The shield should preserve the mech silhouette without duplicating every
+    // antenna, bolt, cable, toe, or other small decorative mesh.  Geometry is
+    // shared with the source mesh; only the per-source shield overlay is added.
+    let bounds = shieldBoundsCache.get(object.geometry);
+    if (!bounds) {
+      if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+      const box = object.geometry.boundingBox;
+      const size = box ? box.getSize(new THREE.Vector3()) : new THREE.Vector3();
+      bounds = {
+        maxDimension: Math.max(size.x, size.y, size.z),
+        vertexCount: object.geometry.attributes?.position?.count || 0
+      };
+      shieldBoundsCache.set(object.geometry, bounds);
+    }
+    const namedDetail = shieldDetailName.test(object.name || '');
+    const tinyPart = bounds.maxDimension <= .42;
+    const finePart = bounds.maxDimension <= .8 && bounds.vertexCount <= 96;
+    if (tinyPart || finePart || (namedDetail && bounds.maxDimension <= 1.2)) return;
+    sourceMeshes.push(object);
   });
 
   const shells = sourceMeshes.map(source => {
@@ -277,7 +299,8 @@ const AI_CONFIG = {
   PATHFINDING: {
     GRID_SIZE: 4,
     ARENA_LIMIT: 78,
-    REPLAN_INTERVAL: .65,
+    REPLAN_INTERVAL: .95,
+    REPLAN_JITTER: .28,
     TARGET_MOVE_THRESHOLD: 6,
     WAYPOINT_RADIUS: 2.2
   }
@@ -291,16 +314,19 @@ const _tempTargetPos = new THREE.Vector3();
 const _tempDir = new THREE.Vector3();
 const _tempPrevPos = new THREE.Vector3();
 const _tempSegment = new THREE.Vector3();
-const enemyProjectileGeometry = new THREE.SphereGeometry(1, 10, 8);
-const enemyMissileTrailGeometry = new THREE.SphereGeometry(.18, 6, 5);
+// Enemy projectile sphere: 10x8 (140 triangles) -> 7x6 (70 triangles).
+const enemyProjectileGeometry = new THREE.SphereGeometry(1, 7, 6);
+// Enemy missile trail sphere: 6x5 (48 triangles) -> 4x4 (24 triangles).
+const enemyMissileTrailGeometry = new THREE.SphereGeometry(.18, 4, 4);
 const enemyLaserBeamGeometry = new THREE.CylinderGeometry(1, 1, 1, 8);
 const enemyFallbackMissilePort = new THREE.Vector3(0, 0, 1.6);
 
 class EnemyAI {
-  constructor({ scene, target, isBlocked, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onProjectileImpact, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null }) {
+  constructor({ scene, target, isBlocked, isNavigationBlocked = null, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onProjectileImpact, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null, visualFactory = null }) {
     this.scene = scene;
     this.target = target;
     this.isBlocked = isBlocked;
+    this.isNavigationBlocked = isNavigationBlocked || isBlocked;
     this.isProjectileBlocked = isProjectileBlocked;
     this.getBuildingTarget = getBuildingTarget;
     this.getPickupTarget = getPickupTarget;
@@ -404,9 +430,48 @@ class EnemyAI {
     this.bestMoveCandidate = new THREE.Vector3();
     this.predictedPlayerAim = new THREE.Vector3();
     this.fireTargetPoint = new THREE.Vector3();
-    this.pathReplanTimer = 0;
+    // Navigation scratch storage is allocated once per CPU.  A path rebuild
+    // only resets these typed arrays instead of allocating a new grid/heap.
+    const navigationWidth = Math.floor(AI_CONFIG.PATHFINDING.ARENA_LIMIT * 2 / AI_CONFIG.PATHFINDING.GRID_SIZE) + 1;
+    const navigationNodeCount = navigationWidth * navigationWidth;
+    this.navigationWidth = navigationWidth;
+    this.navigationNodeCount = navigationNodeCount;
+    this.navigationBlockedCache = new Int8Array(navigationNodeCount);
+    this.navigationScores = new Float64Array(navigationNodeCount);
+    this.navigationCameFrom = new Int32Array(navigationNodeCount);
+    this.navigationClosed = new Uint8Array(navigationNodeCount);
+    this.navigationHeapIds = new Int32Array(navigationNodeCount * 4);
+    this.navigationHeapPriorities = new Float64Array(navigationNodeCount * 4);
+    this.navigationHeapSize = 0;
+    this.navigationHeapPopId = -1;
+    this.navigationHeapPopPriority = Infinity;
+    this.navigationReversedPath = [];
+    this.navigationSmoothedPath = [];
+    this.pathReplanTimer = Math.random() * AI_CONFIG.PATHFINDING.REPLAN_JITTER;
 
-    this.group = this.createModel();
+    const sharedVisual = visualFactory?.();
+    if (sharedVisual?.group) {
+      this.group = sharedVisual.group;
+      this.torso = sharedVisual.torso;
+      this.torsoBaseY = sharedVisual.torsoBaseY ?? this.torso?.position.y ?? 0;
+      this.upperPivot = sharedVisual.upperPivot || this.torso;
+      this.upperPivotBaseY = sharedVisual.upperPivotBaseY ?? this.upperPivot?.position.y ?? 0;
+      this.legs = sharedVisual.legs || [];
+      this.arms = sharedVisual.arms || [];
+      this.weaponMuzzles = sharedVisual.weaponMuzzles || [];
+      this.barrelGroups = sharedVisual.barrelGroups || [];
+      this.missileRack = sharedVisual.missileRack || null;
+      this.missilePorts = sharedVisual.missilePorts || [];
+      this.jetpack = sharedVisual.jetpack || null;
+      this.thrusterFlames = sharedVisual.thrusterFlames || [];
+      this.thrusterLights = sharedVisual.thrusterLights || [];
+      this.headGroup = sharedVisual.headGroup || null;
+      this.cannonMount = this.arms[1] || null;
+      this.shieldBubble = sharedVisual.shieldBubble;
+      this.healthBar = sharedVisual.healthBar;
+    } else {
+      this.group = this.createModel();
+    }
     this.rigidBody = new MechaRigidBody(this.group, { mass: 22000, linearDamping: 5.2 });
     this.gaitPhase = 0;
     this.lastGaitPosition = this.group.position.clone();
@@ -502,7 +567,7 @@ class EnemyAI {
     this.navigationPath.length = 0;
     this.navigationPathIndex = 0;
     this.pathDestination.copy(this.group.position);
-    this.pathReplanTimer = 0;
+    this.pathReplanTimer = Math.random() * AI_CONFIG.PATHFINDING.REPLAN_JITTER;
     this.rigidBody.stop();
     return true;
   }
@@ -797,13 +862,16 @@ class EnemyAI {
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     const bar = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: true, depthWrite: false }));
-    bar.position.y = 9.35;
+    // The walker body was enlarged; keep the CPU bar above the tallest
+    // silhouette so the upper armor and backpack cannot occlude it.
+    const healthBarHeight = 10.35;
+    bar.position.y = healthBarHeight;
     bar.scale.set(7.1, 1.15, 1);
     bar.renderOrder = 110;
     bar.userData.canvas = canvas;
     bar.userData.texture = texture;
     bar.userData.basePositionX = 0;
-    bar.userData.basePositionY = 9.35;
+    bar.userData.basePositionY = healthBarHeight;
     bar.userData.baseScaleX = 7.1;
     bar.userData.baseScaleY = 1.15;
     bar.visible = false;
@@ -968,7 +1036,7 @@ class EnemyAI {
     this.navigationPath.length = 0;
     this.navigationPathIndex = 0;
     this.pathDestination.copy(this.group.position);
-    this.pathReplanTimer = 0;
+    this.pathReplanTimer = Math.random() * AI_CONFIG.PATHFINDING.REPLAN_JITTER;
     this.rigidBody.stop();
     this.gaitPhase = 0;
     this.lastGaitPosition.copy(this.group.position);
@@ -1433,12 +1501,12 @@ class EnemyAI {
     const dz = to.z - from.z;
     const distance = Math.hypot(dx, dz);
     if (distance < .1) return true;
-    const steps = Math.ceil(distance / 1.6);
+    const steps = Math.ceil(distance / 2.4);
     for (let step = 1; step <= steps; step++) {
       const ratio = step / steps;
       const x = from.x + dx * ratio;
       const z = from.z + dz * ratio;
-      if (this.isBlocked?.(x, z, 0, 2.05)) return false;
+      if (this.isNavigationBlocked?.(x, z, 2.05)) return false;
     }
     return true;
   }
@@ -1446,18 +1514,18 @@ class EnemyAI {
   buildNavigationPath(destination) {
     const gridSize = AI_CONFIG.PATHFINDING.GRID_SIZE;
     const limit = AI_CONFIG.PATHFINDING.ARENA_LIMIT;
-    const width = Math.floor(limit * 2 / gridSize) + 1;
-    const nodeCount = width * width;
+    const width = this.navigationWidth;
+    const nodeCount = this.navigationNodeCount;
     const toId = (xIndex, zIndex) => zIndex * width + xIndex;
     const toWorld = (index) => -limit + index * gridSize;
     const clampIndex = value => THREE.MathUtils.clamp(Math.round((value + limit) / gridSize), 0, width - 1);
-    const blockedCache = new Int8Array(nodeCount);
+    const blockedCache = this.navigationBlockedCache;
     blockedCache.fill(-1);
     const isGridBlocked = (xIndex, zIndex) => {
       if (xIndex < 0 || zIndex < 0 || xIndex >= width || zIndex >= width) return true;
       const id = toId(xIndex, zIndex);
       if (blockedCache[id] < 0) {
-        blockedCache[id] = this.isBlocked?.(toWorld(xIndex), toWorld(zIndex), 0, 2.05) ? 1 : 0;
+        blockedCache[id] = this.isNavigationBlocked?.(toWorld(xIndex), toWorld(zIndex), 2.05) ? 1 : 0;
       }
       return blockedCache[id] === 1;
     };
@@ -1492,40 +1560,47 @@ class EnemyAI {
     if (!start || !goal) return [];
     if (start.id === goal.id) return [new THREE.Vector3(toWorld(goal.xIndex), 0, toWorld(goal.zIndex))];
 
-    const scores = new Float64Array(nodeCount);
+    const scores = this.navigationScores;
     scores.fill(Infinity);
-    const cameFrom = new Int32Array(nodeCount);
+    const cameFrom = this.navigationCameFrom;
     cameFrom.fill(-1);
-    const closed = new Uint8Array(nodeCount);
-    const heap = [];
-    const pushHeap = entry => {
-      heap.push(entry);
-      let index = heap.length - 1;
+    const closed = this.navigationClosed;
+    closed.fill(0);
+    const heapIds = this.navigationHeapIds;
+    const heapPriorities = this.navigationHeapPriorities;
+    let heapSize = 0;
+    const pushHeap = (id, priority) => {
+      let index = heapSize++;
       while (index > 0) {
         const parent = (index - 1) >> 1;
-        if (heap[parent].priority <= entry.priority) break;
-        heap[index] = heap[parent];
+        if (heapPriorities[parent] <= priority) break;
+        heapIds[index] = heapIds[parent];
+        heapPriorities[index] = heapPriorities[parent];
         index = parent;
       }
-      heap[index] = entry;
+      heapIds[index] = id;
+      heapPriorities[index] = priority;
     };
     const popHeap = () => {
-      const root = heap[0];
-      const tail = heap.pop();
-      if (heap.length && tail) {
+      const rootId = heapIds[0];
+      const tailId = heapIds[--heapSize];
+      const tailPriority = heapPriorities[heapSize];
+      if (heapSize) {
         let index = 0;
         while (true) {
           const left = index * 2 + 1;
-          if (left >= heap.length) break;
+          if (left >= heapSize) break;
           const right = left + 1;
-          const child = right < heap.length && heap[right].priority < heap[left].priority ? right : left;
-          if (heap[child].priority >= tail.priority) break;
-          heap[index] = heap[child];
+          const child = right < heapSize && heapPriorities[right] < heapPriorities[left] ? right : left;
+          if (heapPriorities[child] >= tailPriority) break;
+          heapIds[index] = heapIds[child];
+          heapPriorities[index] = heapPriorities[child];
           index = child;
         }
-        heap[index] = tail;
+        heapIds[index] = tailId;
+        heapPriorities[index] = tailPriority;
       }
-      return root;
+      return rootId;
     };
     const heuristic = (xIndex, zIndex) => {
       const dx = Math.abs(goal.xIndex - xIndex);
@@ -1534,41 +1609,39 @@ class EnemyAI {
     };
 
     scores[start.id] = 0;
-    pushHeap({ id: start.id, xIndex: start.xIndex, zIndex: start.zIndex, priority: heuristic(start.xIndex, start.zIndex) });
+    pushHeap(start.id, heuristic(start.xIndex, start.zIndex));
     const neighbors = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
     let found = false;
-    while (heap.length) {
-      const current = popHeap();
-      if (closed[current.id]) continue;
-      closed[current.id] = 1;
-      if (current.id === goal.id) {
+    while (heapSize) {
+      const currentId = popHeap();
+      if (closed[currentId]) continue;
+      closed[currentId] = 1;
+      if (currentId === goal.id) {
         found = true;
         break;
       }
+      const currentX = currentId % width;
+      const currentZ = Math.floor(currentId / width);
       for (const [dx, dz] of neighbors) {
-        const nextX = current.xIndex + dx;
-        const nextZ = current.zIndex + dz;
+        const nextX = currentX + dx;
+        const nextZ = currentZ + dz;
         if (isGridBlocked(nextX, nextZ)) continue;
         if (dx !== 0 && dz !== 0 &&
-            (isGridBlocked(current.xIndex + dx, current.zIndex) ||
-             isGridBlocked(current.xIndex, current.zIndex + dz))) continue;
+            (isGridBlocked(currentX + dx, currentZ) ||
+             isGridBlocked(currentX, currentZ + dz))) continue;
         const nextId = toId(nextX, nextZ);
         if (closed[nextId]) continue;
-        const tentativeScore = scores[current.id] + (dx !== 0 && dz !== 0 ? Math.SQRT2 : 1);
+        const tentativeScore = scores[currentId] + (dx !== 0 && dz !== 0 ? Math.SQRT2 : 1);
         if (tentativeScore >= scores[nextId]) continue;
         scores[nextId] = tentativeScore;
-        cameFrom[nextId] = current.id;
-        pushHeap({
-          id: nextId,
-          xIndex: nextX,
-          zIndex: nextZ,
-          priority: tentativeScore + heuristic(nextX, nextZ)
-        });
+        cameFrom[nextId] = currentId;
+        pushHeap(nextId, tentativeScore + heuristic(nextX, nextZ));
       }
     }
     if (!found) return [];
 
-    const reversedPath = [];
+    const reversedPath = this.navigationReversedPath;
+    reversedPath.length = 0;
     let currentId = goal.id;
     while (currentId !== start.id && currentId >= 0) {
       const xIndex = currentId % width;
@@ -1580,7 +1653,8 @@ class EnemyAI {
 
     // String-pull across visible nodes so the walker follows natural broad
     // turns instead of visibly stepping through every grid cell.
-    const smoothedPath = [];
+    const smoothedPath = this.navigationSmoothedPath;
+    smoothedPath.length = 0;
     let anchor = this.group.position;
     let index = 0;
     while (index < reversedPath.length) {
@@ -1616,7 +1690,7 @@ class EnemyAI {
       this.navigationPath = this.buildNavigationPath(destination);
       this.navigationPathIndex = 0;
       this.pathDestination.copy(destination);
-      this.pathReplanTimer = AI_CONFIG.PATHFINDING.REPLAN_INTERVAL + Math.random() * .18;
+      this.pathReplanTimer = AI_CONFIG.PATHFINDING.REPLAN_INTERVAL + Math.random() * AI_CONFIG.PATHFINDING.REPLAN_JITTER;
     }
 
     while (this.navigationPathIndex < this.navigationPath.length - 1) {
@@ -1834,7 +1908,7 @@ class EnemyAI {
         this.strafeBias = Math.random() * Math.PI * 2;
         this.navigationPath.length = 0;
         this.navigationPathIndex = 0;
-        this.pathReplanTimer = 0;
+        this.pathReplanTimer = Math.random() * AI_CONFIG.PATHFINDING.REPLAN_JITTER;
       }
       this.stateDecisionTimer = this.state === 'RETREAT' ? .32 : .5 + Math.random() * .22;
     }
@@ -2062,41 +2136,108 @@ class EnemyAI {
     const gaitDelta = _v1.copy(this.group.position).sub(this.lastGaitPosition).setY(0).length();
     this.lastGaitPosition.copy(this.group.position);
     const groundedMotion = moved && !this.isAirborne && gaitDelta > 0.001;
-    if (groundedMotion) this.gaitPhase += gaitDelta * 1.32;
+    const sharedGait = {
+      walkSpeed: .35,
+      strideScale: .3,
+      bodyLean: .16,
+      weightFeel: 1.05,
+      hipSwingAmount: .5,
+      bounceAmount: .18,
+      stepBounceAmount: 1,
+      sideShiftAmount: .28,
+      rollAmount: .15,
+      baseFootHeight: .6,
+      stepHeightScale: 1.5,
+      thighAngleOffset: -.58,
+      thighAngleScale: 1.05,
+      kneeBaseBend: .42,
+      kneeLiftBend: 1.15,
+      kneeAngleOffset: 0,
+      kneePosOffset: -.22,
+      shinLengthScale: 1,
+      shinAngleMult: .55,
+      calfAngleMult: .3,
+      footAngleOffset: -.8,
+      toeCurlOffset: .08,
+      toeCurlMult: 2,
+      ...(window.mechaGaitParams || {})
+    };
+    const gaitSpeed = dt > 0 ? gaitDelta / dt : 0;
+    const gaitSpeedRatio = THREE.MathUtils.clamp(gaitSpeed / 12.35, 0, 3.3);
+    const gaitWalkSpeed = sharedGait.walkSpeed ?? .35;
+    const gaitRate = THREE.MathUtils.lerp(.18, .28, Math.min(1, gaitSpeedRatio)) * gaitWalkSpeed;
+    if (groundedMotion) this.gaitPhase += gaitSpeed * dt * gaitRate * Math.PI * 1.6;
     const gaitBlend = groundedMotion
       ? THREE.MathUtils.clamp(gaitDelta / Math.max(dt * 5.5, 0.001), 0, 1)
       : 0;
+    const walkBlend = THREE.MathUtils.clamp((gaitSpeed - .25) / 2.2, 0, 1);
+    const strideScale = THREE.MathUtils.lerp(.82, 1, Math.min(1, gaitSpeedRatio)) * (sharedGait.strideScale ?? .3);
+    const strideReach = THREE.MathUtils.lerp(1.2, 3.5, Math.min(1, gaitSpeedRatio));
+    const effectiveStride = strideReach * strideScale * walkBlend;
+    const stepHeight = THREE.MathUtils.lerp(.55, .85, Math.min(1, gaitSpeedRatio)) * (sharedGait.stepHeightScale ?? 1.5);
+    const weightFeel = sharedGait.weightFeel ?? 1.05;
     const blend = 1 - Math.exp(-(groundedMotion ? 12 : 7) * dt);
     if (this.legs?.length === 2) {
       for (let index = 0; index < this.legs.length; index++) {
         const leg = this.legs[index];
         const joints = leg.userData.joints;
         const phase = this.gaitPhase + index * Math.PI;
-        const stride = Math.sin(phase) * gaitBlend;
-        const swingLift = Math.pow(Math.max(0, Math.sin(phase)), 0.75) * gaitBlend;
-        const stanceCompression = Math.pow(Math.max(0, -Math.sin(phase)), 1.35) * gaitBlend;
+        const stride = Math.sin(phase) * effectiveStride;
+        const liftRaw = Math.max(0, Math.sin(phase));
+        const swingLift = Math.pow(liftRaw, 1.6) * stepHeight;
+        const kneeTarget = (sharedGait.kneeBaseBend ?? .42) +
+          (swingLift / Math.max(.01, stepHeight)) * (sharedGait.kneeLiftBend ?? 1.15) +
+          (sharedGait.kneeAngleOffset ?? 0);
+        const forwardStride = Math.sin(phase) * (sharedGait.hipSwingAmount ?? .5) * effectiveStride;
+        const thighTarget = forwardStride * (sharedGait.thighAngleScale ?? 1.05) + (sharedGait.thighAngleOffset ?? -.58);
+        const shinTarget = -kneeTarget * (sharedGait.shinAngleMult ?? .55);
+        const calfTarget = -kneeTarget * (sharedGait.calfAngleMult ?? .30);
+        const anklePitch = -kneeTarget * .6 +
+          (swingLift / Math.max(.01, stepHeight)) * .4;
+        const footTarget = .78 + anklePitch + (sharedGait.footAngleOffset ?? -.8);
+        const toeTarget = (sharedGait.toeCurlOffset ?? .08) +
+          (swingLift / Math.max(.01, stepHeight)) * .35 * (sharedGait.toeCurlMult ?? 2);
         const footAirborne = groundedMotion && Math.sin(phase) > .05;
         if (this.gaitFeetAirborne[index] && !footAirborne) {
           this.bodyBounceVelocity -= .82;
         }
         this.gaitFeetAirborne[index] = footAirborne;
-        leg.rotation.x = THREE.MathUtils.lerp(leg.rotation.x, stride * .38, blend);
+        leg.rotation.x = THREE.MathUtils.lerp(leg.rotation.x, 0, blend);
+        leg.rotation.y = THREE.MathUtils.lerp(leg.rotation.y, 0, blend);
         leg.position.y = THREE.MathUtils.lerp(
           leg.position.y,
-          leg.userData.basePosition.y + swingLift * .25 - stanceCompression * .07,
+          leg.userData.basePosition.y + swingLift * weightFeel * walkBlend,
           blend
         );
         leg.position.z = THREE.MathUtils.lerp(
           leg.position.z,
-          leg.userData.basePosition.z - stride * .2,
+          leg.userData.basePosition.z,
           blend
         );
-        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, -.36 + stride * .18, blend);
-        joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, .18 + swingLift * .48 + stanceCompression * .1, blend);
-        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, .56 - swingLift * .24, blend);
-        joints.calf.rotation.x = THREE.MathUtils.lerp(joints.calf.rotation.x, -.18 - swingLift * .12, blend);
-        joints.foot.rotation.x = THREE.MathUtils.lerp(joints.foot.rotation.x, -swingLift * .2 + stanceCompression * .06, blend);
-        joints.toe.rotation.x = THREE.MathUtils.lerp(joints.toe.rotation.x, -swingLift * .12 + stanceCompression * .16, blend);
+        if (joints.knee.userData.basePosY === undefined) joints.knee.userData.basePosY = joints.knee.position.y;
+        joints.knee.position.y = THREE.MathUtils.lerp(
+          joints.knee.position.y,
+          joints.knee.userData.basePosY - (sharedGait.kneePosOffset ?? -.22),
+          blend
+        );
+        if (joints.ankle) {
+          if (joints.ankle.userData.basePosY === undefined) joints.ankle.userData.basePosY = joints.ankle.position.y;
+          joints.ankle.position.y = THREE.MathUtils.lerp(
+            joints.ankle.position.y,
+            joints.ankle.userData.basePosY * (sharedGait.shinLengthScale ?? 1),
+            blend
+          );
+        }
+        joints.thigh.rotation.x = THREE.MathUtils.lerp(joints.thigh.rotation.x, thighTarget, blend);
+        joints.knee.rotation.x = THREE.MathUtils.lerp(joints.knee.rotation.x, kneeTarget, blend);
+        joints.shin.rotation.x = THREE.MathUtils.lerp(joints.shin.rotation.x, shinTarget, blend);
+        joints.calf.rotation.x = THREE.MathUtils.lerp(joints.calf.rotation.x, calfTarget, blend);
+        joints.foot.rotation.x = THREE.MathUtils.lerp(joints.foot.rotation.x, footTarget, blend);
+        if (joints.toePivots?.length) {
+          for (const toePivot of joints.toePivots) toePivot.rotation.x = THREE.MathUtils.lerp(toePivot.rotation.x, toeTarget, blend);
+        } else if (joints.toe) {
+          joints.toe.rotation.x = THREE.MathUtils.lerp(joints.toe.rotation.x, toeTarget, blend);
+        }
       }
       const bounceAcceleration = -74 * this.bodyBounceOffset - 12 * this.bodyBounceVelocity;
       this.bodyBounceVelocity += bounceAcceleration * dt;
