@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 set "PORT=8080"
-set "URL=http://localhost:%PORT%/"
+set "URL=http://127.0.0.1:%PORT%/"
 
 where node >nul 2>nul
 if not errorlevel 1 (

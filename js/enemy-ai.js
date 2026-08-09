@@ -103,55 +103,82 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
   });
   material.toneMapped = false;
 
-  const sourceMeshes = [];
-  const shieldBoundsCache = new WeakMap();
-  const shieldDetailName = /(antenna|sensor|decal|warning|bolt|screw|cable|wire|grille|vent|trim|emblem|lamp|light|joint|toe|finger|small|detail)/i;
-  root.traverse(object => {
-    if (!object.isMesh || !object.geometry || object.userData?.energyShieldShell || object.userData?.excludeEnergyShield) return;
-    const materials = Array.isArray(object.material) ? object.material : [object.material];
-    const isJoint = object.userData?.isJoint || object.userData?.bodyJointId || object.userData?.gizmoAxis ||
-      materials.some(m => m && (m === window.jointBallMat || m === window.jointGlowMat));
-    if (isJoint) return;
-    const additiveFx = materials.some(sourceMaterial =>
-      sourceMaterial?.transparent && sourceMaterial?.blending === THREE.AdditiveBlending
+  const useSingleShell = options.singleShell === true;
+  let shells;
+  if (useSingleShell) {
+    // Enemy shields use one low-poly shell instead of adding an overlay Mesh
+    // to every armor part.  The geometry is shared by all enemy controllers;
+    // only the small uniform-bearing material is unique per shield.
+    const sharedShellGeometry = window.__enemyShieldShellGeometry ||= new THREE.SphereGeometry(1, 12, 8);
+    root.updateWorldMatrix(true, true);
+    const bounds = new THREE.Box3().setFromObject(root);
+    const centerWorld = bounds.getCenter(new THREE.Vector3());
+    const size = bounds.getSize(new THREE.Vector3());
+    const centerLocal = root.worldToLocal(centerWorld);
+    const shell = new THREE.Mesh(sharedShellGeometry, material);
+    shell.name = 'Enemy_EnergyShield_SingleShell';
+    shell.position.copy(centerLocal);
+    shell.scale.set(
+      Math.max(.8, size.x * .58 * shellScale),
+      Math.max(1.1, size.y * .58 * shellScale),
+      Math.max(.8, size.z * .58 * shellScale)
     );
-    if (additiveFx) return;
-
-    // The shield should preserve the mech silhouette without duplicating every
-    // antenna, bolt, cable, toe, or other small decorative mesh.  Geometry is
-    // shared with the source mesh; only the per-source shield overlay is added.
-    let bounds = shieldBoundsCache.get(object.geometry);
-    if (!bounds) {
-      if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
-      const box = object.geometry.boundingBox;
-      const size = box ? box.getSize(new THREE.Vector3()) : new THREE.Vector3();
-      bounds = {
-        maxDimension: Math.max(size.x, size.y, size.z),
-        vertexCount: object.geometry.attributes?.position?.count || 0
-      };
-      shieldBoundsCache.set(object.geometry, bounds);
-    }
-    const namedDetail = shieldDetailName.test(object.name || '');
-    const tinyPart = bounds.maxDimension <= .42;
-    const finePart = bounds.maxDimension <= .8 && bounds.vertexCount <= 96;
-    if (tinyPart || finePart || (namedDetail && bounds.maxDimension <= 1.2)) return;
-    sourceMeshes.push(object);
-  });
-
-  const shells = sourceMeshes.map(source => {
-    const shell = new THREE.Mesh(source.geometry, material);
-    shell.name = `${source.name || 'MechPart'}_EnergyShield`;
-    shell.scale.setScalar(shellScale);
     shell.renderOrder = 35;
-    shell.frustumCulled = source.frustumCulled;
+    shell.frustumCulled = false;
     shell.castShadow = false;
     shell.receiveShadow = false;
     shell.visible = false;
     shell.userData.energyShieldShell = true;
     shell.raycast = () => {};
-    source.add(shell);
-    return shell;
-  });
+    root.add(shell);
+    shells = [shell];
+  } else {
+    const sourceMeshes = [];
+    const shieldBoundsCache = new WeakMap();
+    const shieldDetailName = /(antenna|sensor|decal|warning|bolt|screw|cable|wire|grille|vent|trim|emblem|lamp|light|joint|toe|finger|small|detail)/i;
+    root.traverse(object => {
+      if (!object.isMesh || !object.geometry || object.userData?.energyShieldShell || object.userData?.excludeEnergyShield) return;
+      const materials = Array.isArray(object.material) ? object.material : [object.material];
+      const isJoint = object.userData?.isJoint || object.userData?.bodyJointId || object.userData?.gizmoAxis ||
+        materials.some(m => m && (m === window.jointBallMat || m === window.jointGlowMat));
+      if (isJoint) return;
+      const additiveFx = materials.some(sourceMaterial =>
+        sourceMaterial?.transparent && sourceMaterial?.blending === THREE.AdditiveBlending
+      );
+      if (additiveFx) return;
+      let bounds = shieldBoundsCache.get(object.geometry);
+      if (!bounds) {
+        if (!object.geometry.boundingBox) object.geometry.computeBoundingBox();
+        const box = object.geometry.boundingBox;
+        const size = box ? box.getSize(new THREE.Vector3()) : new THREE.Vector3();
+        bounds = {
+          maxDimension: Math.max(size.x, size.y, size.z),
+          vertexCount: object.geometry.attributes?.position?.count || 0
+        };
+        shieldBoundsCache.set(object.geometry, bounds);
+      }
+      const namedDetail = shieldDetailName.test(object.name || '');
+      const tinyPart = bounds.maxDimension <= .6;
+      const finePart = bounds.maxDimension <= 1.1 && bounds.vertexCount <= 160;
+      const namedDetailPart = namedDetail && bounds.maxDimension <= 1.8;
+      if (tinyPart || finePart || namedDetailPart) return;
+      sourceMeshes.push(object);
+    });
+    shells = sourceMeshes.map(source => {
+      const shell = new THREE.Mesh(source.geometry, material);
+      shell.name = `${source.name || 'MechPart'}_EnergyShield`;
+      shell.scale.setScalar(shellScale);
+      shell.renderOrder = 35;
+      shell.frustumCulled = source.frustumCulled;
+      shell.castShadow = false;
+      shell.receiveShadow = false;
+      shell.visible = false;
+      shell.userData.energyShieldShell = true;
+      shell.raycast = () => {};
+      source.add(shell);
+      return shell;
+    });
+  }
 
   let energyRatio = 0;
   let visualStrength = 0;
@@ -160,7 +187,7 @@ window.createConformalEnergyShield = window.createConformalEnergyShield || funct
 
   const setShellVisibility = visible => {
     for (const shell of shells) {
-      const source = shell.parent;
+      const source = useSingleShell ? root : shell.parent;
       if (!source) {
         shell.visible = false;
         continue;
@@ -305,6 +332,7 @@ const AI_CONFIG = {
     WAYPOINT_RADIUS: 2.2
   }
 };
+window.MECHA_AI_CONFIG = AI_CONFIG;
 
 const _v1 = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
@@ -322,7 +350,7 @@ const enemyLaserBeamGeometry = new THREE.CylinderGeometry(1, 1, 1, 8);
 const enemyFallbackMissilePort = new THREE.Vector3(0, 0, 1.6);
 
 class EnemyAI {
-  constructor({ scene, target, isBlocked, isNavigationBlocked = null, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onProjectileImpact, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null, visualFactory = null }) {
+  constructor({ scene, target, isBlocked, isNavigationBlocked = null, navigationGrid = null, isProjectileBlocked, getBuildingTarget, getPickupTarget, getCoverPoint, canSeeTarget, getSpawnPosition, onPlayerHit, onProjectileImpact, onStatus, onMessage, onDestroyed, isDamageImmune, weaponSlot1 = 'gatling', weaponSlot2 = 'cannon', getCTFTargetPos = null, visualFactory = null }) {
     this.scene = scene;
     this.target = target;
     this.isBlocked = isBlocked;
@@ -350,6 +378,7 @@ class EnemyAI {
     this.alive = true;
     this.respawnTimer = 0;
     this.deathSequenceTimer = 0;
+    this.deathEffectTriggered = false;
     this.deathPosition = new THREE.Vector3();
     this.fireCooldown = 1.2;
     this.shellSpeed = 33;
@@ -432,11 +461,12 @@ class EnemyAI {
     this.fireTargetPoint = new THREE.Vector3();
     // Navigation scratch storage is allocated once per CPU.  A path rebuild
     // only resets these typed arrays instead of allocating a new grid/heap.
-    const navigationWidth = Math.floor(AI_CONFIG.PATHFINDING.ARENA_LIMIT * 2 / AI_CONFIG.PATHFINDING.GRID_SIZE) + 1;
+    const navigationWidth = navigationGrid?.width ?? Math.floor(AI_CONFIG.PATHFINDING.ARENA_LIMIT * 2 / AI_CONFIG.PATHFINDING.GRID_SIZE) + 1;
     const navigationNodeCount = navigationWidth * navigationWidth;
     this.navigationWidth = navigationWidth;
     this.navigationNodeCount = navigationNodeCount;
-    this.navigationBlockedCache = new Int8Array(navigationNodeCount);
+    this.navigationGrid = navigationGrid;
+    this.navigationBlockedCache = navigationGrid?.blocked || new Int8Array(navigationNodeCount);
     this.navigationScores = new Float64Array(navigationNodeCount);
     this.navigationCameFrom = new Int32Array(navigationNodeCount);
     this.navigationClosed = new Uint8Array(navigationNodeCount);
@@ -853,7 +883,8 @@ class EnemyAI {
       rimColor: 0xffd2dc,
       shellScale: 1.035,
       thickness: .052,
-      waveAmplitude: .032
+      waveAmplitude: .032,
+      singleShell: true
     });
 
     const canvas = document.createElement('canvas');
@@ -980,6 +1011,7 @@ class EnemyAI {
     this.alive = true;
     this.respawnTimer = 0;
     this.deathSequenceTimer = 0;
+    this.deathEffectTriggered = false;
     this.fireCooldown = 1.4;
     this.powerLevel = 0;
     this.shellSpeed = 33;
@@ -1155,10 +1187,21 @@ class EnemyAI {
     if (this.health <= 0) {
       this.alive = false;
       this.deathPosition.copy(this.group.position);
-      this.deathSequenceTimer = .72;
+      // Freeze the intact enemy for a very short anticipation beat. The
+      // callback then hides it and starts the pooled flame/debris effect.
+      this.deathSequenceTimer = .12;
+      this.deathEffectTriggered = false;
       this.respawnTimer = 5.72;
       this.fireCooldown = Number.POSITIVE_INFINITY;
-      
+      this.group.visible = true;
+      this.group.rotation.set(0, 0, 0);
+      this.upperPivot?.rotation.set(0, 0, 0);
+      this.healthBar.visible = false;
+      this.healthBar.position.set(this.healthBar.userData.basePositionX, this.healthBar.userData.basePositionY, 0);
+      this.healthBar.scale.set(this.healthBar.userData.baseScaleX, this.healthBar.userData.baseScaleY, 1);
+      this.onDestroyed?.(this.deathPosition.clone());
+      this.onMessage?.('CPU DESTROYED! +500');
+
       // Clean up active missile trails
       if (this.missileTrails) {
         for (const trail of this.missileTrails) {
@@ -1520,7 +1563,7 @@ class EnemyAI {
     const toWorld = (index) => -limit + index * gridSize;
     const clampIndex = value => THREE.MathUtils.clamp(Math.round((value + limit) / gridSize), 0, width - 1);
     const blockedCache = this.navigationBlockedCache;
-    blockedCache.fill(-1);
+    if (!this.navigationGrid) blockedCache.fill(-1);
     const isGridBlocked = (xIndex, zIndex) => {
       if (xIndex < 0 || zIndex < 0 || xIndex >= width || zIndex >= width) return true;
       const id = toId(xIndex, zIndex);
@@ -1672,6 +1715,15 @@ class EnemyAI {
     return smoothedPath;
   }
 
+  prewarmNavigation(destination, iterations = 12) {
+    if (!destination || !this.navigationGrid?.ready) return;
+    for (let index = 0; index < iterations; index++) {
+      this.buildNavigationPath(destination);
+    }
+    this.navigationPath.length = 0;
+    this.navigationPathIndex = 0;
+  }
+
   resolveNavigationTarget(destination, dt) {
     this.pathReplanTimer = Math.max(0, this.pathReplanTimer - dt);
     if (this.isNavigationLineClear(this.group.position, destination)) {
@@ -1756,30 +1808,11 @@ class EnemyAI {
     }
     if (!this.alive) {
       this.respawnTimer -= dt;
-      if (this.deathSequenceTimer > 0) {
-        this.deathSequenceTimer = Math.max(0, this.deathSequenceTimer - dt);
-        const progress = 1 - this.deathSequenceTimer / .72;
-        const wobble = Math.sin(progress * 44) * (.06 + progress * .32);
-        this.group.rotation.z = wobble;
-        this.group.rotation.x = -wobble * .42;
-        this.upperPivot?.rotation.set(Math.sin(progress * 32) * .14, 0, -wobble * .35);
-        const barWobble = Math.sin(progress * 59) * (.12 + progress * .34);
-        this.healthBar.position.x = this.healthBar.userData.basePositionX + barWobble;
-        this.healthBar.position.y = this.healthBar.userData.basePositionY + Math.abs(barWobble) * .38;
-        this.healthBar.scale.set(
-          this.healthBar.userData.baseScaleX * (1 + Math.abs(barWobble) * .16),
-          this.healthBar.userData.baseScaleY * (1 - Math.abs(barWobble) * .1),
-          1
-        );
-        if (this.deathSequenceTimer <= 0) {
-          this.group.visible = false;
-          this.group.rotation.set(0, 0, 0);
-          this.upperPivot?.rotation.set(0, 0, 0);
-          this.healthBar.position.set(this.healthBar.userData.basePositionX, this.healthBar.userData.basePositionY, 0);
-          this.healthBar.scale.set(this.healthBar.userData.baseScaleX, this.healthBar.userData.baseScaleY, 1);
-          this.onDestroyed?.(this.deathPosition.clone());
-          this.onMessage?.('CPU DESTROYED! +500');
-        }
+      this.deathSequenceTimer = Math.max(0, this.deathSequenceTimer - dt);
+      if (!this.deathEffectTriggered && this.deathSequenceTimer <= 0) {
+        this.deathEffectTriggered = true;
+        this.group.visible = false;
+        this.onDestroyed?.(this.deathPosition.clone());
       }
       if (this.respawnTimer <= 0) {
         this.reset();

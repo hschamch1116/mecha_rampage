@@ -316,6 +316,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       speedRatio = 0,
       rotationBeforeMove = 0
     } = params;
+    const flightPose = dashing || airBoosting;
 
     const { walkSpeed, strideScale: userStride, bodyLean, weightFeel,
       bounceAmount, rollAmount, baseFootHeight = 0.0, stepHeightScale = 1.0 } = gaitParams;
@@ -363,8 +364,10 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
     // alternating stride so a previously leading foot cannot remain extended
     // while the mech is airborne. Both legs converge to the same compact,
     // slightly bent configuration through the existing joint blend speeds.
-    if (airBoosting) {
-      const compactKnee = gaitParams.kneeBaseBend + .16;
+    if (flightPose) {
+      // Keep the normal shoulder-width leg spacing and standing bend. Only
+      // the alternating walk motion is suppressed during flight.
+      const compactKnee = gaitParams.kneeBaseBend;
       const compactAnkle = -compactKnee * .6 + .08;
       for (const state of gaitStates) {
         state.forward = 0;
@@ -381,7 +384,7 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
     }
 
     // When stopped, smoothly settle any airborne foot down onto the ground while keeping stance
-    if (!walking && !turningInPlace) {
+    if (!walking && !turningInPlace && !flightPose) {
       const settleFactor = Math.exp(-10 * dt);
       gaitStates[0].lift *= settleFactor;
       gaitStates[1].lift *= settleFactor;
@@ -484,6 +487,8 @@ window.createMechaGaitController = function createMechaGaitController(THREE, opt
       const leg = playerLegs[index];
 
       // Base leg position
+      // Keep the normal standing width. Flight suppresses gait motion, but it
+      // must not pull both legs into the centre of the chassis.
       leg.position.set(attachment[0], attachment[1] + reverseLegGroundOffset, attachment[2]);
 
       // Swing lift during airborne phase

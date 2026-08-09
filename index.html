@@ -326,6 +326,12 @@
     .victory-title { color:#fff4a6; font-size:clamp(42px,7vw,88px); font-weight:1000; letter-spacing:.16em; text-shadow:0 0 12px #ffc928,0 0 34px rgba(255,176,25,.8); animation:victoryPulse 1.6s ease-in-out infinite alternate; }
     .victory-subtitle { margin-top:12px; color:#fffbd9; font-size:clamp(12px,1.7vw,18px); font-weight:900; letter-spacing:.18em; }
     .victory-caption { margin-top:10px; color:#f2d878; font-size:10px; font-weight:800; letter-spacing:.2em; }
+    .victory-actions { display:flex; justify-content:center; gap:10px; margin-top:22px; pointer-events:auto; }
+    .victory-action { min-width:150px; padding:11px 14px; border:1px solid rgba(255,224,112,.72); background:rgba(53,39,8,.78); color:#fff4b0; font:900 10px Orbitron,sans-serif; letter-spacing:.08em; cursor:pointer; }
+    .victory-action:hover { border-color:#fff8c7; background:rgba(116,82,10,.9); box-shadow:0 0 18px rgba(255,202,47,.35); }
+    .victory-action.secondary { border-color:rgba(183,214,220,.58); background:rgba(18,34,40,.82); color:#d6edf1; }
+    .victory-action.secondary:hover { border-color:#8eeefa; background:rgba(48,93,103,.78); }
+    @media (max-width:720px) { .victory-actions { gap:6px; margin-top:16px; } .victory-action { min-width:116px; padding:9px 7px; font-size:8px; } }
     @keyframes victoryFadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes victoryPulse { to { transform:scale(1.035); filter:brightness(1.16); } }
     #timeWarning { top:27%; color:#fff1e8; font-size:clamp(36px,7vw,84px); letter-spacing:.08em; text-shadow:0 0 10px #ff2f46,0 0 28px #ff1838; }
@@ -356,18 +362,76 @@
     .free-cam-controls { display: flex; gap: 16px; font-size: 11px; color: #d0e8fc; letter-spacing: .06em; }
     .free-cam-controls strong { color: #8ff3ff; font-weight: 800; }
     @keyframes freeCamPulse { from { border-color: #ffe36a; } to { border-color: #ff9d3b; box-shadow: 0 0 34px rgba(255,157,59,.6); } }
+    /* Free camera is a clean spectator view. Keep only its short usage badge. */
+    body.free-camera-mode #hud > *:not(#freeCamBadge),
+    body.free-camera-mode #fpsCounter,
+    body.free-camera-mode #gaitTuningToggle,
+    body.free-camera-mode #gaitTuningPanel,
+    body.free-camera-mode #visualSettings,
+    body.free-camera-mode #pauseOverlay,
+    body.free-camera-mode #message,
+    body.free-camera-mode #centerHint,
+    body.free-camera-mode #titleScreen,
+    body.free-camera-mode #hangarOverlay,
+    body.free-camera-mode #modeSelectModal,
+    body.free-camera-mode #loadingScreen,
+    body.free-camera-mode #victoryCelebration { display:none !important; }
     #visualHudButton { position:absolute; right:18px; top:108px; z-index:4; pointer-events:auto; border:1px solid rgba(169,140,245,.62); border-radius:7px; padding:8px 10px; color:#e8e1ff; background:rgba(24,16,48,.84); font:900 10px Orbitron,sans-serif; letter-spacing:.1em; cursor:pointer; }
     #audioControls { position:absolute; right:18px; top:62px; z-index:4; display:flex; align-items:center; gap:7px; padding:7px 9px; pointer-events:auto; border:1px solid rgba(113,219,232,.38); border-radius:7px; background:rgba(6,10,22,.78); color:#bcebf1; font:800 9px Orbitron,sans-serif; letter-spacing:.08em; }
     #audioControls label { display:flex; align-items:center; gap:4px; }
     #audioControls input { width:54px; accent-color:#65e7f5; }
     #audioMuteButton { border:0; padding:3px 5px; color:#dffbff; background:rgba(92,214,229,.16); cursor:pointer; font:900 10px Orbitron,sans-serif; }
     #audioMuteButton.muted { color:#ff9a9a; background:rgba(255,72,72,.2); }
+    #pauseAudioClose { display:none; border:1px solid rgba(183,214,220,.58); padding:3px 6px; color:#d6edf1; background:rgba(18,34,40,.82); font:900 9px Orbitron,sans-serif; cursor:pointer; }
+    body.gameplay-mode #visualHudButton, body.gameplay-mode #audioControls, body.gameplay-mode #gaitTuningToggle { display:none !important; }
+    /* Gameplay cursor: compact cyan targeting reticle; native UI controls keep their own cursors. */
+    body.gameplay-mode canvas {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%2379f4ff' stroke-width='1.7'%3E%3Cpath d='M16 2v7M16 23v7M2 16h7M23 16h7'/%3E%3Ccircle cx='16' cy='16' r='5.2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.4' fill='%23ffffff'/%3E%3C/svg%3E") 16 16, crosshair;
+    }
+    #titleScreen, #preTitleScreen {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%2379f4ff' stroke-width='1.7'%3E%3Cpath d='M16 2v7M16 23v7M2 16h7M23 16h7'/%3E%3Ccircle cx='16' cy='16' r='5.2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.4' fill='%23ffffff'/%3E%3C/svg%3E") 16 16, crosshair;
+    }
+    #titleScreen button,
+    #preTitleScreen,
+    #hud button,
+    #pauseOverlay button,
+    #visualSettings button,
+    #mechaCustomizer button,
+    #gaitTuningPanel button,
+    #titleScreen .mode-card,
+    #hangarOverlay .weapon-choice,
+    #mechaCustomizer .custom-color-swatch {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%2379f4ff' stroke-width='1.7'%3E%3Cpath d='M16 2v7M16 23v7M2 16h7M23 16h7'/%3E%3Ccircle cx='16' cy='16' r='5.2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.4' fill='%23ffffff'/%3E%3C/svg%3E") 16 16, crosshair !important;
+    }
+    /* Use the same pointer throughout hangar selection and gameplay overlays. */
+    #hangarOverlay,
+    body.gameplay-mode #hud,
+    body.gameplay-mode #pauseOverlay,
+    body.gameplay-mode #visualSettings,
+    body.gameplay-mode #mechaCustomizer {
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cg fill='none' stroke='%2379f4ff' stroke-width='1.7'%3E%3Cpath d='M16 2v7M16 23v7M2 16h7M23 16h7'/%3E%3Ccircle cx='16' cy='16' r='5.2'/%3E%3C/g%3E%3Ccircle cx='16' cy='16' r='1.4' fill='%23ffffff'/%3E%3C/svg%3E") 16 16, crosshair;
+    }
+    #hangarOverlay *,
+    body.gameplay-mode #hud *,
+    body.gameplay-mode #pauseOverlay *,
+    body.gameplay-mode #visualSettings *,
+    body.gameplay-mode #mechaCustomizer * {
+      cursor: inherit !important;
+    }
+    body.gameplay-mode.pause-audio-open #audioControls { display:flex !important; position:fixed; left:50%; right:auto; top:50%; transform:translate(-50%,-50%); z-index:10002; padding:18px; flex-direction:column; align-items:stretch; gap:12px; min-width:270px; background:rgba(6,10,20,.96); box-shadow:0 0 36px rgba(44,202,228,.28); }
+    body.gameplay-mode.pause-audio-open #pauseAudioClose { display:block; }
     #pauseOverlay { position:absolute; inset:0; z-index:12; display:grid; place-items:center; pointer-events:none; opacity:0; visibility:hidden; background:rgba(3,7,14,.42); backdrop-filter:blur(3px); transition:opacity .16s ease, visibility .16s ease; }
     #pauseOverlay.active { opacity:1; visibility:visible; }
-    #pauseOverlay .pause-card { min-width:280px; padding:26px 34px; border:1px solid rgba(114,228,244,.76); background:rgba(5,15,23,.9); color:#e9fcff; text-align:center; box-shadow:0 0 38px rgba(44,202,228,.26), inset 0 0 22px rgba(78,219,239,.08); font:900 28px Orbitron, sans-serif; letter-spacing:.16em; pointer-events:auto; }
+    #pauseOverlay .pause-card { min-width:320px; padding:26px 34px; border:1px solid rgba(114,228,244,.76); background:rgba(5,15,23,.9); color:#e9fcff; text-align:center; box-shadow:0 0 38px rgba(44,202,228,.26), inset 0 0 22px rgba(78,219,239,.08); font:900 28px Orbitron, sans-serif; letter-spacing:.16em; pointer-events:auto; }
     #pauseOverlay small { display:block; margin-top:12px; color:#91bec6; font:800 11px Orbitron, sans-serif; letter-spacing:.11em; }
+    .pause-menu-actions { display:grid; gap:8px; margin-top:20px; }
+    .pause-menu-button { width:100%; padding:11px 14px; border:1px solid rgba(114,228,244,.52); background:rgba(10,34,43,.84); color:#c9f7ff; font:900 10px Orbitron,sans-serif; letter-spacing:.08em; cursor:pointer; }
+    .pause-menu-button:hover { border-color:#bff7ff; background:rgba(25,78,91,.86); box-shadow:0 0 16px rgba(44,202,228,.3); }
+    .pause-menu-button.title { border-color:#ffe36a; background:rgba(82,59,8,.72); color:#fff3a6; }
+    .pause-menu-button.title:hover { background:rgba(132,96,12,.88); box-shadow:0 0 16px rgba(255,203,39,.34); }
     #pauseReturnTitleButton { display:block; width:100%; margin-top:18px; padding:11px 14px; border:1px solid #ffe36a; background:rgba(82,59,8,.72); color:#fff3a6; font:900 11px Orbitron,sans-serif; letter-spacing:.08em; cursor:pointer; }
     #pauseReturnTitleButton:hover { background:rgba(132,96,12,.88); box-shadow:0 0 16px rgba(255,203,39,.34); }
+    @media (max-width:720px) { #pauseOverlay .pause-card { min-width:min(300px,calc(100vw - 32px)); padding:20px 18px; font-size:22px; } }
     #mobileControls { display:none; position:fixed; inset:0; z-index:45; pointer-events:none; touch-action:none; user-select:none; font:900 11px Orbitron, sans-serif; }
     #mobileControls.active { display:block; }
     .mobile-pad, .mobile-actions { position:absolute; bottom:clamp(18px, 7vw, 58px); pointer-events:auto; }
@@ -692,28 +756,47 @@
       <h2>VISUAL SETTINGS</h2>
       <label class="settings-row">REFLECTION <input id="reflectionIntensity" type="range" min="0" max="3" step="0.05" value="3"><output>3.00</output></label>
       <label class="settings-row">WINDOW DARK <input id="windowDarkness" type="range" min="0" max="6" step="0.1" value="0.8"><output>0.80</output></label>
-      <label class="settings-row">WINDOW COLOR <input id="windowColor" type="color" value="#004452"><output>#004452</output></label>
-      <label class="settings-row">WINDOW OPACITY <input id="windowOpacity" type="range" min="0.25" max="1" step="0.05" value="0.7"><output>0.70</output></label>
+      <label class="settings-row">WINDOW COLOR <input id="windowColor" type="color" value="#004147"><output>#004147</output></label>
+      <label class="settings-row">WINDOW OPACITY <input id="windowOpacity" type="range" min="0.25" max="1" step="0.05" value="0.85"><output>0.85</output></label>
       <label class="settings-row">WINDOW ROUGHNESS <input id="windowRoughness" type="range" min="0" max="0.65" step="0.01" value="0"><output>0.00</output></label>
       <label class="settings-row">BLOOM <input id="bloomStrength" type="range" min="0" max="1.5" step="0.05" value="0.5"><output>0.50</output></label>
       <label class="settings-row">CHROMATIC ABERRATION <input id="chromaticAberration" type="range" min="0" max="0.008" step="0.0001" value="0.008"><output>0.008</output></label>
       <label class="settings-row">FILM GRAIN <input id="filmGrain" type="range" min="0" max="0.3" step="0.005" value="0.3"><output>0.3</output></label>
-      <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="1.6" step="0.05" value="0.9"><output>0.90</output></label>
-      <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.05"><output>0.05</output></label>
+      <label class="settings-row">EXPOSURE <input id="toneExposure" type="range" min="0.6" max="3" step="0.05" value="1.6"><output>1.60</output></label>
+      <label class="settings-row">RAIN <input id="rainIntensity" type="range" min="0" max="1" step="0.05" value="0.15"><output>0.15</output></label>
       <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">PERFORMANCE TEST</h3>
+      <label class="settings-row">FPS COUNTER <input type="checkbox" id="fpsCounterVisible" checked><output>ON</output></label>
       <label class="settings-row">SHADOWS <input type="checkbox" id="battlefieldShadowsEnabled" checked><output>ON</output></label>
       <label class="settings-row">SHADOW RESOLUTION <select id="shadowMapResolution" style="width:100%;background:#07131b;color:#bff7ff;border:1px solid #2d7180;padding:3px;"><option value="512">512 x 512</option><option value="1024" selected>1024 x 1024</option><option value="2048">2048 x 2048</option></select><output>1024 x 1024</output></label>
-      <label class="settings-row">SHADOW CASCADE 1 <input id="shadowCascadeDistance1" type="range" min="10" max="80" step="1" value="20"><output>20m</output></label>
-      <label class="settings-row">SHADOW CASCADE 2 <input id="shadowCascadeDistance2" type="range" min="30" max="140" step="1" value="50"><output>50m</output></label>
-      <label class="settings-row">SHADOW FAR <input id="shadowCascadeFar" type="range" min="100" max="360" step="5" value="145"><output>145m</output></label>
+      <label class="settings-row">SHADOW CASCADE 1 <input id="shadowCascadeDistance1" type="range" min="10" max="80" step="1" value="10"><output>10m</output></label>
+      <label class="settings-row">SHADOW CASCADE 2 <input id="shadowCascadeDistance2" type="range" min="30" max="140" step="1" value="30"><output>30m</output></label>
+      <label class="settings-row">SHADOW FAR <input id="shadowCascadeFar" type="range" min="100" max="360" step="5" value="115"><output>115m</output></label>
+      <label class="settings-row">DANGER BARRIER RENDER <input type="checkbox" id="dangerBarrierRenderEnabled" checked><output>ON</output></label>
+      <label class="settings-row">ITEMS RENDER <input type="checkbox" id="itemsRenderEnabled" checked><output>ON</output></label>
+      <label class="settings-row">ITEM SPAWN AMOUNT <input id="itemSpawnMultiplier" type="range" min="0.25" max="2" step="0.25" value="1"><output>1.00x</output></label>
+      <label class="settings-row">BARRIER LOD 1 DISTANCE <input id="barrierLodNearDistance" type="range" min="10" max="80" step="5" value="30"><output>30m</output></label>
+      <label class="settings-row">BARRIER LOD 2 DISTANCE <input id="barrierLodMediumDistance" type="range" min="40" max="200" step="5" value="100"><output>100m</output></label>
+      <label class="settings-row">BARRIER LOD 2 MIN DETAIL <input id="barrierLod2MinSize" type="range" min="1.5" max="4.5" step="0.1" value="2.6"><output>2.6m</output></label>
       <label class="settings-row">DANGER TRANSPARENT WALL <input type="checkbox" id="dangerBarrierTransparencyEnabled" checked><output>ON</output></label>
       <label class="settings-row">TRAFFIC MOVEMENT <input type="checkbox" id="trafficMovementEnabled" checked><output>ON</output></label>
+      <label class="settings-row">TRAFFIC FAR UPDATE DISTANCE <input id="trafficNearUpdateDistance" type="range" min="20" max="160" step="5" value="42"><output>42m</output></label>
+      <label class="settings-row">TRAFFIC FAR UPDATE RATE <input id="trafficFarUpdateHz" type="range" min="1" max="30" step="1" value="10"><output>10Hz</output></label>
       <label class="settings-row">DREADNOUGHT <input type="checkbox" id="dreadnoughtSkyShipEnabled" checked><output>ON</output></label>
+      <label class="settings-row">DREADNOUGHT QUALITY <select id="dreadnoughtModelQuality" style="width:100%;background:#07131b;color:#bff7ff;border:1px solid #2d7180;padding:3px;"><option value="low">LOW POLY</option><option value="high">HIGH POLY</option></select><output>LOW POLY</output></label>
       <label class="settings-row">ENEMY MECHA RENDER <input type="checkbox" id="enemyMechaRenderEnabled" checked><output>ON</output></label>
+      <label class="settings-row">ENEMY MECHA FAR UPDATE DISTANCE <input id="enemyMechaNearUpdateDistance" type="range" min="20" max="160" step="5" value="45"><output>45m</output></label>
+      <label class="settings-row">ENEMY MECHA FAR UPDATE RATE <input id="enemyMechaFarUpdateHz" type="range" min="1" max="30" step="1" value="20"><output>20Hz</output></label>
       <label class="settings-row">EVACUEE RENDER <input type="checkbox" id="evacueeRenderEnabled" checked><output>ON</output></label>
+      <label class="settings-row">EVACUEE CULL DISTANCE <input id="evacueeCullDistance" type="range" min="10" max="250" step="5" value="80"><output>80m</output></label>
+      <label class="settings-row">EVACUEE FAR UPDATE DISTANCE <input id="evacueeNearUpdateDistance" type="range" min="10" max="120" step="5" value="35"><output>35m</output></label>
+      <label class="settings-row">EVACUEE FAR UPDATE RATE <input id="evacueeFarUpdateHz" type="range" min="1" max="30" step="1" value="10"><output>10Hz</output></label>
       <label class="settings-row">BUILDING WINDOWS <input type="checkbox" id="buildingWindowsRenderEnabled" checked><output>ON</output></label>
       <label class="settings-row">BUILDINGS RENDER <input type="checkbox" id="buildingRenderEnabled" checked><output>ON</output></label>
       <label class="settings-row">CITY DECOR RENDER <input type="checkbox" id="cityDecorRenderEnabled" checked><output>ON</output></label>
+      <label class="settings-row">CITY DECOR CULL DISTANCE <input id="cityDecorCullDistance" type="range" min="10" max="200" step="5" value="50"><output>50m</output></label>
+      <label class="settings-row">TREE CULL DISTANCE <input id="treeCullDistance" type="range" min="10" max="250" step="5" value="70"><output>70m</output></label>
+      <label class="settings-row">STREETLIGHT CULL DISTANCE <input id="streetlightCullDistance" type="range" min="10" max="250" step="5" value="100"><output>100m</output></label>
+      <label class="settings-row">ITEM CULL DISTANCE <input id="itemCullDistance" type="range" min="10" max="180" step="5" value="60"><output>60m</output></label>
       <label class="settings-row">DISTANT BG RENDER <input type="checkbox" id="distantBackgroundRenderEnabled" checked><output>ON</output></label>
       <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">BATTLE CAMERA</h3>
       <label class="settings-row">CAMERA DISTANCE <input id="cameraDistanceOffset" type="range" min="-8" max="8" step="0.1" value="3"><output>3.0m</output></label>
@@ -728,8 +811,8 @@
       <div style="display:flex;gap:8px;margin-top:6px;"><button id="cameraPositionCopy" type="button" style="flex:1;padding:8px;">COPY CAMERA</button><button id="cameraPositionApply" type="button" style="flex:1;padding:8px;">APPLY CAMERA</button></div>
 
       <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">BATTLEFIELD ATMOSPHERE</h3>
-      <label class="settings-row">TIME OF DAY <input id="battlefieldTimeOfDay" type="range" min="0" max="24" step="0.25" value="14"><output id="battlefieldTimeOfDayVal">14:00</output></label>
-      <label class="settings-row">ENVIRONMENT COLOR <input id="battlefieldEnvironmentColor" type="color" value="#e4d4d5"><output id="battlefieldEnvironmentColorVal">#e4d4d5</output></label>
+      <label class="settings-row">TIME OF DAY <input id="battlefieldTimeOfDay" type="range" min="0" max="24" step="0.25" value="9.5"><output id="battlefieldTimeOfDayVal">09:30</output></label>
+      <label class="settings-row">ENVIRONMENT COLOR <input id="battlefieldEnvironmentColor" type="color" value="#e5d5ce"><output id="battlefieldEnvironmentColorVal">#e5d5ce</output></label>
 
       <h3 style="margin: 14px 0 8px 0; color: #49dcf0; font-size: 11px; letter-spacing: 0.1em; border-top: 1px solid rgba(73,220,240,0.3); padding-top: 10px;">HANGAR ATMOSPHERE & FOG</h3>
       <label class="settings-row">FOG ENABLED <input type="checkbox" id="fogToggle" checked><output style="font-size:10px;">ON</output></label>
@@ -740,10 +823,10 @@
         </select>
         <output></output>
       </label>
-      <label class="settings-row">FOG COLOR <input type="color" id="fogColorInput" value="#152e47"><output>#152e47</output></label>
-      <label class="settings-row" id="fogDensityRow">FOG DENSITY <input type="range" id="fogDensityInput" min="0.002" max="0.06" step="0.001" value="0.018"><output id="fogDensityVal">0.018</output></label>
-      <label class="settings-row hidden" id="fogNearRow">FOG NEAR <input type="range" id="fogNearInput" min="2" max="30" step="1" value="10"><output id="fogNearVal">10m</output></label>
-      <label class="settings-row hidden" id="fogFarRow">FOG FAR <input type="range" id="fogFarInput" min="30" max="150" step="2" value="78"><output id="fogFarVal">78m</output></label>
+      <label class="settings-row">FOG COLOR <input type="color" id="fogColorInput" value="#5b748f"><output>#5b748f</output></label>
+      <label class="settings-row" id="fogDensityRow">FOG DENSITY <input type="range" id="fogDensityInput" min="0.002" max="0.06" step="0.001" value="0.005"><output id="fogDensityVal">0.005</output></label>
+      <label class="settings-row hidden" id="fogNearRow">FOG NEAR <input type="range" id="fogNearInput" min="2" max="30" step="1" value="11"><output id="fogNearVal">11m</output></label>
+      <label class="settings-row hidden" id="fogFarRow">FOG FAR <input type="range" id="fogFarInput" min="30" max="150" step="2" value="88"><output id="fogFarVal">88m</output></label>
       <label class="settings-row">STEAM VOL <input type="range" id="steamIntensityInput" min="0" max="2" step="0.1" value="2.0"><output id="steamIntensityVal">2.0x</output></label>
       <label class="settings-row">DUST PARTICLES <input type="range" id="dustIntensityInput" min="0" max="2" step="0.1" value="2.0"><output id="dustIntensityVal">2.0x</output></label>
       <h3 style="margin:14px 0 8px;color:#49dcf0;font-size:11px;letter-spacing:.1em;border-top:1px solid rgba(73,220,240,.3);padding-top:10px;">HANGAR LIGHT CONTROL</h3>
@@ -826,6 +909,7 @@
         <label>BGM <input id="bgmVolume" type="range" min="0" max="1" step="0.01" value="0.38"></label>
         <label>SFX <input id="sfxVolume" type="range" min="0" max="1" step="0.01" value="0.80"></label>
         <button id="audioMuteButton" type="button" aria-pressed="false">SOUND</button>
+        <button id="pauseAudioClose" type="button">CLOSE</button>
       </div>
     </div>
     <div id="matchBoard">
@@ -879,6 +963,10 @@
         <div class="victory-title">VICTORY</div>
         <div class="victory-subtitle">3판 2승 달성 · 전투 승리</div>
         <div class="victory-caption">MECHA ACE // OPERATION COMPLETE</div>
+        <div class="victory-actions">
+          <button id="victoryReplayButton" class="victory-action" type="button">한번 더 플레이</button>
+          <button id="victoryTitleButton" class="victory-action secondary" type="button">타이틀로</button>
+        </div>
       </div>
     </div>
     <div id="timeWarning" aria-live="assertive"></div>
@@ -932,7 +1020,18 @@
     <div id="battleIntro">READY</div>
     <div id="message"></div>
     <div id="ctfScoreAnnouncement" aria-live="assertive"></div>
-    <div id="pauseOverlay" aria-live="polite"><div class="pause-card">PAUSED<small>PRESS P TO RESUME</small><button id="pauseReturnTitleButton" type="button">RETURN TO TITLE</button></div></div>
+    <div id="pauseOverlay" aria-live="polite">
+      <div class="pause-card">
+        PAUSED
+        <small>PRESS ESC / P TO RESUME</small>
+        <div class="pause-menu-actions">
+          <button id="pauseAudioSettingsButton" class="pause-menu-button" type="button">SOUND SETTINGS</button>
+          <button id="pauseVisualSettingsButton" class="pause-menu-button" type="button">GRAPHICS SETTINGS</button>
+          <button id="pauseGameSettingsButton" class="pause-menu-button" type="button">GAME SETTINGS · LOWER BODY</button>
+          <button id="pauseReturnTitleButton" class="pause-menu-button title" type="button">RETURN TO TITLE</button>
+        </div>
+      </div>
+    </div>
     <div id="mobileControls" aria-label="Mobile controls">
       <div class="mobile-pad" id="mobileJoystick" aria-label="Movement joystick">
         <div class="mobile-joystick-knob" id="mobileJoystickKnob"></div>
@@ -966,7 +1065,7 @@
   <script src="./js/weapon-system.js"></script>
   <script src="./js/mecha-rigidbody.js"></script>
   <script src="./js/cannon-physics.js"></script>
-  <script src="./js/enemy-ai.js"></script>
+  <script src="./js/enemy-ai.js?v=20260809-nav-prewarm"></script>
   <script src="./js/mecha-character.js"></script>
   <script src="./js/mecha-gait-controller.js"></script>
   <script src="./js/audio-manager.js"></script>
@@ -991,6 +1090,7 @@
     import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
     import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
     import { CSM } from 'three/addons/csm/CSM.js';
+    import { createDreadnoughtHighPolyModel } from './js/dreadnought-high-poly-model.js';
     const bootLoadingIndicator = document.getElementById('bootLoadingIndicator');
     // AudioManager is loaded as a classic script above so file:// launches also work.
     const LEVEL1_MAP = Object.freeze({
@@ -1454,6 +1554,77 @@
     let playerRespawnGateTimer = 0;
     let battleGateSynchronized = false;
     let battleArrivalRevealPending = false;
+    function ensureBattleElevatorOpening() {
+      if (battleElevatorOpening) return battleElevatorOpening;
+      battleElevatorOpening = new THREE.Group();
+      const shaftMat = new THREE.MeshStandardMaterial({ color: 0x050b10, roughness: .92, metalness: .18 });
+      const rimMat = new THREE.MeshStandardMaterial({ color: 0x263b43, roughness: .38, metalness: .8, map: sharedMetalTexture64 });
+      const shaft = new THREE.Mesh(new THREE.CircleGeometry(4.12, 64), shaftMat);
+      shaft.name = 'BattleElevatorHoleCap';
+      shaft.rotation.x = -Math.PI / 2;
+      shaft.position.y = -.09;
+      battleElevatorOpening.add(shaft);
+      const shaftWall = new THREE.Mesh(new THREE.CylinderGeometry(4.12, 4.12, 18.2, 64, 1, true), shaftMat);
+      shaftWall.position.y = -9.1;
+      shaftWall.receiveShadow = true;
+      battleElevatorOpening.add(shaftWall);
+      const shaftLevelLineMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.8, roughness: .24, metalness: .12, toneMapped: false });
+      for (const levelY of [-3.2, -7.4, -11.6, -15.8]) {
+        const levelRing = new THREE.Mesh(new THREE.RingGeometry(3.78, 3.81, 64), shaftLevelLineMat);
+        levelRing.rotation.x = Math.PI / 2;
+        levelRing.position.y = levelY;
+        battleElevatorOpening.add(levelRing);
+      }
+      const topRing = new THREE.Mesh(new THREE.RingGeometry(3.78, 3.81, 64), shaftLevelLineMat);
+      topRing.rotation.x = Math.PI / 2;
+      topRing.position.y = -.24;
+      battleElevatorOpening.add(topRing);
+      const rim = new THREE.Mesh(new THREE.RingGeometry(4.12, 4.34, 64), rimMat);
+      rim.rotation.x = -Math.PI / 2;
+      rim.position.y = .015;
+      rim.receiveShadow = true;
+      battleElevatorOpening.add(rim);
+      const innerRim = new THREE.Mesh(new THREE.TorusGeometry(4.12, .1, 8, 64), new THREE.MeshStandardMaterial({ color: 0x111d23, roughness: .34, metalness: .86 }));
+      innerRim.rotation.x = Math.PI / 2;
+      innerRim.position.y = .04;
+      battleElevatorOpening.add(innerRim);
+
+      const battleGateTrimMat = new THREE.MeshStandardMaterial({ color: 0x60727a, roughness: .28, metalness: .92 });
+      const battleGateInsetMat = new THREE.MeshStandardMaterial({ color: 0x101a20, roughness: .52, metalness: .78 });
+      const battleGateBraceMat = new THREE.MeshStandardMaterial({ color: 0x8b5427, roughness: .38, metalness: .82 });
+      const battleGateBoltGeo = new THREE.CylinderGeometry(.075, .075, .035, 8);
+      for (const [gate, startAngle] of [[arrivalGateLeft, Math.PI / 2], [arrivalGateRight, -Math.PI / 2]]) {
+        gate.clear();
+        for (const [inner, outer, material] of [[3.78, 4.04, battleGateTrimMat], [1.18, 3.42, battleGateInsetMat]]) {
+          const panel = new THREE.Mesh(new THREE.RingGeometry(inner, outer, inner === 3.78 ? 40 : 32, 1, startAngle, Math.PI), material);
+          panel.rotation.x = -Math.PI / 2;
+          panel.position.y = .112;
+          gate.add(panel);
+        }
+        for (const radius of [1.35, 2.35, 3.28]) {
+          const band = new THREE.Mesh(new THREE.RingGeometry(radius - .035, radius + .035, 32, 1, startAngle, Math.PI), battleGateTrimMat);
+          band.rotation.x = -Math.PI / 2;
+          band.position.y = .138;
+          gate.add(band);
+        }
+        for (let boltIndex = 0; boltIndex < 6; boltIndex++) {
+          const angle = startAngle + (boltIndex + .5) / 6 * Math.PI;
+          const bolt = new THREE.Mesh(battleGateBoltGeo, battleGateBraceMat);
+          bolt.position.set(Math.cos(angle) * 3.62, .16, Math.sin(angle) * 3.62);
+          gate.add(bolt);
+        }
+        const centerBrace = new THREE.Mesh(new THREE.BoxGeometry(.12, .09, 7.45), battleGateBraceMat);
+        centerBrace.position.set(gate === arrivalGateLeft ? -2.02 : 2.02, .15, 0);
+        gate.add(centerBrace);
+      }
+      for (const side of [-1, 1]) {
+        const track = new THREE.Mesh(new THREE.BoxGeometry(5.5, .11, .16), rimMat);
+        track.position.set(side * 5.15, -.02, 0);
+        battleElevatorOpening.add(track);
+      }
+      envGroup.add(battleElevatorOpening);
+      return battleElevatorOpening;
+    }
     function beginLevelArrival() {
       if (!battleRenderPrewarmed || !battleGarbageCollectorReady) {
         loadingScreen?.classList.remove('hidden');
@@ -1470,85 +1641,15 @@
       scene.background = gameplayBackground;
       scene.fog = gameplayFog;
       applyBattlefieldAtmosphere();
+      // beginLevelArrival resets the scene to the gameplay fog object above.
+      // Reapply the user's persisted fog profile so battle does not silently
+      // fall back to the hard-coded dceaf5/.0035 defaults.
+      if (window.updateHangarFog) window.updateHangarFog();
       document.body.classList.remove('hangar-mode');
+      document.body.classList.add('gameplay-mode');
       const arrivalSpawn = getFormationSpawn('player');
       resetPlayerMechaPose();
-      if (!battleElevatorOpening) {
-        battleElevatorOpening = new THREE.Group();
-        const shaftMat = new THREE.MeshStandardMaterial({ color: 0x050b10, roughness: .92, metalness: .18 });
-        const rimMat = new THREE.MeshStandardMaterial({ color: 0x263b43, roughness: .38, metalness: .8, map: sharedMetalTexture64 });
-        // Match the hangar hatch: 4.12 inner radius and 4.34 collar radius.
-        const shaft = new THREE.Mesh(new THREE.CircleGeometry(4.12, 64), shaftMat);
-        shaft.name = 'BattleElevatorHoleCap';
-        shaft.rotation.x = -Math.PI / 2;
-        // Keep the dark cap just below the battlefield deck so the opening is
-        // visible even though the arena floor has no physical cutout.
-        shaft.position.y = -.09;
-        battleElevatorOpening.add(shaft);
-        const shaftWall = new THREE.Mesh(new THREE.CylinderGeometry(4.12, 4.12, 18.2, 64, 1, true), shaftMat);
-        shaftWall.position.y = -9.1;
-        shaftWall.receiveShadow = true;
-        battleElevatorOpening.add(shaftWall);
-        const shaftLevelLineMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.8, roughness: .24, metalness: .12, toneMapped: false });
-        for (const levelY of [-3.2, -7.4, -11.6, -15.8]) {
-          const levelRing = new THREE.Mesh(new THREE.RingGeometry(3.78, 3.81, 64), shaftLevelLineMat);
-          levelRing.rotation.x = Math.PI / 2;
-          levelRing.position.y = levelY;
-          battleElevatorOpening.add(levelRing);
-        }
-        const battleTopLevelRing = new THREE.Mesh(new THREE.RingGeometry(3.78, 3.81, 64), shaftLevelLineMat);
-        battleTopLevelRing.rotation.x = Math.PI / 2;
-        battleTopLevelRing.position.y = -.24;
-        battleElevatorOpening.add(battleTopLevelRing);
-        const rim = new THREE.Mesh(new THREE.RingGeometry(4.12, 4.34, 64), rimMat);
-        rim.rotation.x = -Math.PI / 2;
-        rim.position.y = .015;
-        rim.receiveShadow = true;
-        battleElevatorOpening.add(rim);
-        const innerRimMat = new THREE.MeshStandardMaterial({ color: 0x111d23, roughness: .34, metalness: .86 });
-        const innerRim = new THREE.Mesh(new THREE.TorusGeometry(4.12, .1, 8, 64), innerRimMat);
-        innerRim.rotation.x = Math.PI / 2;
-        innerRim.position.y = .04;
-        battleElevatorOpening.add(innerRim);
-
-        // Match the hangar's split hatch: left/right halves, layered steel trim,
-        // recessed panels, radial braces, and service bolts all move as one door.
-        const battleGateTrimMat = new THREE.MeshStandardMaterial({ color: 0x60727a, roughness: .28, metalness: .92 });
-        const battleGateInsetMat = new THREE.MeshStandardMaterial({ color: 0x101a20, roughness: .52, metalness: .78 });
-        const battleGateBraceMat = new THREE.MeshStandardMaterial({ color: 0x8b5427, roughness: .38, metalness: .82 });
-        const battleGateBoltGeo = new THREE.CylinderGeometry(.075, .075, .035, 8);
-        for (const [gate, startAngle] of [[arrivalGateLeft, Math.PI / 2], [arrivalGateRight, -Math.PI / 2]]) {
-          const outerTrim = new THREE.Mesh(new THREE.RingGeometry(3.78, 4.04, 40, 1, startAngle, Math.PI), battleGateTrimMat);
-          outerTrim.rotation.x = -Math.PI / 2;
-          outerTrim.position.y = .115;
-          gate.add(outerTrim);
-          const innerInset = new THREE.Mesh(new THREE.RingGeometry(1.18, 3.42, 32, 1, startAngle, Math.PI), battleGateInsetMat);
-          innerInset.rotation.x = -Math.PI / 2;
-          innerInset.position.y = .112;
-          gate.add(innerInset);
-          for (const radius of [1.35, 2.35, 3.28]) {
-            const panelBand = new THREE.Mesh(new THREE.RingGeometry(radius - .035, radius + .035, 32, 1, startAngle, Math.PI), battleGateTrimMat);
-            panelBand.rotation.x = -Math.PI / 2;
-            panelBand.position.y = .138;
-            gate.add(panelBand);
-          }
-          for (let boltIndex = 0; boltIndex < 6; boltIndex++) {
-            const angle = startAngle + (boltIndex + .5) / 6 * Math.PI;
-            const bolt = new THREE.Mesh(battleGateBoltGeo, battleGateBraceMat);
-            bolt.position.set(Math.cos(angle) * 3.62, .16, Math.sin(angle) * 3.62);
-            gate.add(bolt);
-          }
-          const centerBrace = new THREE.Mesh(new THREE.BoxGeometry(.12, .09, 7.45), battleGateBraceMat);
-          centerBrace.position.set(gate === arrivalGateLeft ? -2.02 : 2.02, .15, 0);
-          gate.add(centerBrace);
-        }
-        for (const side of [-1, 1]) {
-          const track = new THREE.Mesh(new THREE.BoxGeometry(5.5, .11, .16), rimMat);
-          track.position.set(side * 5.15, -.02, 0);
-          battleElevatorOpening.add(track);
-        }
-        envGroup.add(battleElevatorOpening);
-      }
+      ensureBattleElevatorOpening();
       battleElevatorOpening.position.set(arrivalSpawn.x, 0, arrivalSpawn.z);
       battleElevatorOpening.visible = true;
       const arrivalHoleCap = battleElevatorOpening.getObjectByName('BattleElevatorHoleCap');
@@ -1743,8 +1844,8 @@
     const hangarBackground = new THREE.Color(0x08121a);
     const gameplayFog = new THREE.FogExp2(0xdceaf5, .0035);
     const hangarFog = new THREE.FogExp2(0x0c1720, .0095);
-    const battlefieldAtmosphere = { timeOfDay: 10, environmentColor: '#dceaf5' };
-    let currentRainIntensity = .05;
+    const battlefieldAtmosphere = { timeOfDay: 9.5, environmentColor: '#e5d5ce' };
+    let currentRainIntensity = .15;
     scene.background = gameplayBackground;
     scene.fog = gameplayFog;
 
@@ -1814,38 +1915,12 @@
     sharedMetalTexture64.anisotropy = renderer.capabilities.getMaxAnisotropy();
     let battlefieldShadowCsm = null;
     let battlefieldShadowsEnabled = true;
+    let fpsCounterVisible = true;
+    let fpsFrames = 0;
+    let fpsElapsed = 0;
     let shadowCascadeDistance1 = 30;
     let shadowCascadeDistance2 = 60;
     let shadowCascadeFar = 260;
-    const hangarReflectionTarget = new THREE.WebGLCubeRenderTarget(256, {
-      generateMipmaps: true,
-      minFilter: THREE.LinearMipmapLinearFilter
-    });
-    const hangarReflectionProbe = new THREE.CubeCamera(.25, 70, hangarReflectionTarget);
-    hangarReflectionProbe.position.set(0, 7.5, 0);
-    scene.add(hangarReflectionProbe);
-    window.hangarReflectionProbe = hangarReflectionProbe;
-    let hangarReflectionCacheDirty = true;
-    function applyHangarReflectionCache() {
-      hangarGroup.traverse(object => {
-        if (!object.isMesh || !object.material) return;
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        materials.forEach(material => {
-          if ((material.isMeshStandardMaterial || material.isMeshPhysicalMaterial) && !material.transparent) {
-            material.envMap = hangarReflectionTarget.texture;
-            material.envMapIntensity = Math.min(material.envMapIntensity ?? .35, .35);
-            material.needsUpdate = true;
-          }
-        });
-      });
-    }
-    function updateHangarReflectionCache() {
-      if (!hangarReflectionCacheDirty) return;
-      hangarReflectionProbe.position.copy(player.localToWorld(new THREE.Vector3(0, 4.55, 13.05)));
-      hangarReflectionProbe.update(renderer, scene);
-      applyHangarReflectionCache();
-      hangarReflectionCacheDirty = false;
-    }
     renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
     renderer.setSize(innerWidth, innerHeight);
     renderer.shadowMap.enabled = true;
@@ -1998,12 +2073,22 @@
         ...(enemyAI?.shieldBubble?.meshes || []),
         ...(enemyAI2?.shieldBubble?.meshes || []),
         ...muzzleFlashMeshes, ...cannonFlashMeshes, missileFlash, missileFlashLeft,
+        // Explosion instance batches can be disabled by their debug flags at
+        // startup. Include the actual runtime batches so enabling them later
+        // cannot trigger a first-use shader compile during combat.
+        explosionSmokeInstances, explosionSparkInstances,
         // Destructible scenery uses these actual instanced batches at runtime:
         // rubble, glass shards and collapse dust must be compiled before play.
         ...fractureBatches.map(batch => batch.mesh),
         ...powerItems, ...jetpackItems, ...homingItems, ...laserItems,
         ...jumpItems, ...healthItems, ...shieldItems, ...droneItems,
         ...Array.from(salvagePickupPools.values()).flat(),
+        // CTF-only visuals are normally hidden in Deathmatch. Stage their
+        // actual flag and safe-zone objects here so switching modes does not
+        // compile CanvasTexture/Sprite and flag materials on the first frame.
+        safeZoneGroup, playerBaseFlagGroup, enemyBaseFlagGroup,
+        droppedEnemyFlagMesh, droppedPlayerFlagMesh,
+        playerBackpackFlag, enemyBackpackFlag,
         // The armored perimeter and its instanced gate details are part of
         // the battle scene; compile their actual runtime meshes before entry.
         ...getDangerBarrierPrewarmMeshes()
@@ -2059,7 +2144,7 @@
       const transientWarmupEffects = [];
       const attachedPrewarmEffects = getAttachedBattlePrewarmEffects().map(mesh => ({ mesh, visible: mesh.visible }));
       const stagedEffects = [
-        ...(explosionPool || []), ...(mechDeathEffectPool || []),
+        ...(explosionPool || []), ...(mechDeathEffectPool || []), ...(mechDeathDebrisPool || []),
         playerShellPool?.[0], laserBeamPool?.[0],
         projectileFlameTrailPool?.[0], homingSmokeTrailPool?.[0],
         droneCompanionProjectilePool?.[0],
@@ -2071,6 +2156,8 @@
         setStartupLoading(88, 'PREWARMING CORE COMBAT');
         envGroup.visible = true;
         hangarGroup.visible = false;
+        setStartupLoading(89, 'BAKING AI NAVIGATION');
+        prewarmInitialAINavigation(12);
         for (const entry of attachedPrewarmEffects) entry.mesh.visible = true;
         for (const effect of [...stagedEffects, ...transientWarmupEffects]) {
           effect.visible = true;
@@ -2191,13 +2278,29 @@
       let transientWarmupEffects = [];
       let stagedEffects = [];
       let attachedPrewarmEffects = [];
+      const previousEnemyVisibility = [enemyAI?.group, enemyAI2?.group]
+        .filter(Boolean)
+        .map(group => ({ group, visible: group.visible }));
+      const previousHangarActive = hangarActive;
+      const previousHangarLaunching = hangarLaunching;
+      const previousTitleActive = titleActive;
+      const previousBattleElevatorVisibility = battleElevatorOpening?.visible ?? false;
+      const previousArrivalGateVisibility = arrivalGateGroup.visible;
       try {
+        ensureBattleElevatorOpening();
+        if (!battleGateSynchronized && hangarLiftGateLeft && hangarLiftGateRight) {
+          arrivalGateLeft.copy(hangarLiftGateLeft, true);
+          arrivalGateRight.copy(hangarLiftGateRight, true);
+          arrivalGateLeft.scale.setScalar(BATTLE_ELEVATOR_GATE_SCALE);
+          arrivalGateRight.scale.setScalar(BATTLE_ELEVATOR_GATE_SCALE);
+          battleGateSynchronized = true;
+        }
         previousFractureVisibility = fractureBatches.map(batch => ({ mesh: batch.mesh, visible: batch.mesh.visible }));
         transientWarmupEffects = [...createTransientWarmupEffects()];
         attachedPrewarmEffects = getAttachedBattlePrewarmEffects().map(mesh => ({ mesh, visible: mesh.visible }));
-        stagedEffects = [
-          ...(explosionPool || []), burningEffectPool?.[0], missileTrailPool?.[0],
-          ...(mechDeathEffectPool || []), mechDeathDebrisPool?.[0],
+          stagedEffects = [
+            ...(explosionPool || []), burningEffectPool?.[0], missileTrailPool?.[0],
+          ...(mechDeathEffectPool || []), ...(mechDeathDebrisPool || []),
           playerShellPool?.[0], laserBeamPool?.[0],
           projectileFlameTrailPool?.[0], homingSmokeTrailPool?.[0],
           droneCompanionProjectilePool?.[0],
@@ -2208,6 +2311,17 @@
         ].filter(Boolean);
         envGroup.visible = true;
         hangarGroup.visible = false;
+        hangarActive = false;
+        hangarLaunching = false;
+        titleActive = false;
+        // CTF backpack flags are parented to the CPU/player groups. Make the
+        // parents renderable during compilation, then restore their previous
+        // state in the finally block.
+        for (const entry of previousEnemyVisibility) entry.group.visible = true;
+        battleElevatorOpening.visible = true;
+        arrivalGateGroup.visible = true;
+        setStartupLoading(97, 'BAKING AI NAVIGATION');
+        prewarmInitialAINavigation(12);
         // Fracture batches are already attached to the scene; force every
         // material variant through the renderer once without allocating live
         // debris instances.
@@ -2218,7 +2332,11 @@
           effect.position.copy(camera.position);
           scene.add(effect);
         }
+        applyBattlefieldShadowSettings();
+        scene.updateMatrixWorld(true);
+        camera.updateMatrixWorld(true);
         await compileSceneAsync();
+        if (isBattlefieldCsmActive()) battlefieldShadowCsm?.update();
         composer.render();
         prewarmSucceeded = true;
       } finally {
@@ -2237,6 +2355,13 @@
           for (const entry of attachedPrewarmEffects) entry.mesh.visible = entry.visible;
           envGroup.visible = previousEnvironmentVisibility;
           hangarGroup.visible = previousHangarVisibility;
+          for (const entry of previousEnemyVisibility) entry.group.visible = entry.visible;
+          hangarActive = previousHangarActive;
+          hangarLaunching = previousHangarLaunching;
+          titleActive = previousTitleActive;
+          battleElevatorOpening.visible = previousBattleElevatorVisibility;
+          arrivalGateGroup.visible = previousArrivalGateVisibility;
+          applyBattlefieldShadowSettings();
           for (const entry of previousFractureVisibility) entry.mesh.visible = entry.visible;
         } finally {
           battleRenderPrewarming = false;
@@ -2533,20 +2658,32 @@
       const skyTop = profile.top.clone().lerp(environmentColor, .18);
       const skyMid = profile.mid.clone().lerp(environmentColor, .28);
       const skyHorizon = environmentColor.clone();
+      // Even light rain should read as an overcast sky. The previous cloud
+      // tint used the raw 0~1 rain value, so the default .05 rain intensity
+      // barely changed the bright daytime sky.
+      const rainFactor = currentRainIntensity > .001
+        ? THREE.MathUtils.clamp(.38 + currentRainIntensity * .62, 0, 1)
+        : 0;
+      const stormSkyTop = new THREE.Color(0x263642);
+      const stormSkyMid = new THREE.Color(0x354651);
+      const stormSkyHorizon = new THREE.Color(0x566269);
+      skyTop.lerp(stormSkyTop, rainFactor);
+      skyMid.lerp(stormSkyMid, rainFactor);
+      skyHorizon.lerp(stormSkyHorizon, rainFactor);
       const sunPower = .45 + profile.daylight * 2.55;
       const rimPower = .4 + (1 - profile.daylight) * .3;
       hemi.color.copy(skyTop);
       hemi.groundColor.copy(environmentColor).lerp(new THREE.Color(0x172334), .3);
-      hemi.intensity = .22 + profile.daylight * .58;
+      hemi.intensity = (.22 + profile.daylight * .58) * (1 - rainFactor * .28);
       sun.color.copy(profile.sun).lerp(environmentColor, .1);
-      sun.intensity = battlefieldShadowCsm ? 0 : sunPower;
+      sun.intensity = isBattlefieldCsmActive() ? 0 : sunPower * (1 - rainFactor * .22);
       const sunAngle = (battlefieldAtmosphere.timeOfDay - 6) / 12 * Math.PI;
       sun.position.set(Math.cos(sunAngle) * 55, Math.max(8, Math.sin(sunAngle) * 65), -35);
-      if (battlefieldShadowCsm) {
+      if (isBattlefieldCsmActive()) {
         battlefieldShadowCsm.lightDirection.copy(sun.target.position).sub(sun.position).normalize();
         battlefieldShadowCsm.lights.forEach(light => {
           light.color.copy(sun.color);
-          light.intensity = sunPower;
+          light.intensity = sunPower * (1 - rainFactor * .22);
         });
         battlefieldShadowCsm.updateFrustums();
       }
@@ -2561,7 +2698,7 @@
       });
       const cloudTint = profile.top.clone().lerp(environmentColor, .35).lerp(profile.sun, .12);
       const cloudNightColor = new THREE.Color(0x071226);
-      const rainCloudColor = new THREE.Color(0x3b4a5a);
+      const rainCloudColor = new THREE.Color(0x202c36);
       cloudLayers.forEach((layer, index) => {
         const baseCloudColor = new THREE.Color(index === 0 ? 0xf7fbff : 0xdbe9f3);
         // Keep a little neutral cloud volume, but let the TOD/environment
@@ -2569,7 +2706,7 @@
         // layers instead of being washed back to white.
         const timeCloudColor = baseCloudColor.clone().lerp(cloudTint, .78);
         timeCloudColor.lerp(cloudNightColor, (1 - profile.daylight) * .72);
-        const weatherCloudColor = timeCloudColor.clone().lerp(rainCloudColor, currentRainIntensity * .82);
+        const weatherCloudColor = timeCloudColor.clone().lerp(rainCloudColor, rainFactor);
         layer.mesh.material.color.copy(weatherCloudColor);
         layer.mesh.material.opacity = layer.opacity * (.72 + profile.daylight * .28) * (1 + currentRainIntensity * .18);
         layer.mesh.material.needsUpdate = true;
@@ -2608,6 +2745,10 @@
     const dangerBarrierLodScratch = new THREE.Vector3();
     const dangerBarrierLodCameraScratch = new THREE.Vector3();
     let dangerBarrierLodFrame = 0;
+    let dangerBarrierLodNearDistance = 30;
+    let dangerBarrierLodMediumDistance = 100;
+    let dangerBarrierLod2MinSize = 2.6;
+    let dangerBarrierRenderEnabled = true;
     let dangerBarrierTransparencyEnabled = true;
     const destructibleBarrierPanels = [];
 function createDangerZoneBarrier() {
@@ -2837,13 +2978,16 @@ function createDangerZoneBarrier() {
         true,
 
       opacity:
-        .19,
+        .30,
 
       side:
         THREE.DoubleSide,
 
       depthWrite:
         false,
+
+      blending:
+        THREE.AdditiveBlending,
 
       toneMapped:
         false
@@ -2860,13 +3004,16 @@ function createDangerZoneBarrier() {
         true,
 
       opacity:
-        .19,
+        .30,
 
       side:
         THREE.DoubleSide,
 
       depthWrite:
         false,
+
+      blending:
+        THREE.AdditiveBlending,
 
       toneMapped:
         false
@@ -3180,12 +3327,12 @@ function createDangerZoneBarrier() {
     rememberBarrierLodShadowState(object);
     object.geometry?.computeBoundingBox();
     const detailSize = object.geometry?.boundingBox?.getSize(new THREE.Vector3());
-    object.userData.barrierLodKeepAtDistance = detailSize
-      ? Math.max(detailSize.x, detailSize.y, detailSize.z) > 1.1
-      : false;
-    object.userData.barrierLodKeepAtFar = detailSize
-      ? Math.max(detailSize.x, detailSize.y, detailSize.z) > 3.0
-      : false;
+    object.userData.barrierLodDetailSize = detailSize
+      ? Math.max(detailSize.x, detailSize.y, detailSize.z)
+      : 0;
+    object.userData.barrierLodKeepAtDistance = object.userData.barrierLodDetailSize > dangerBarrierLod2MinSize;
+    // Far LOD is silhouette-only; registered detail never survives LOD 3.
+    object.userData.barrierLodKeepAtFar = false;
     dangerBarrierLodDetailMeshes.push(object);
 
     record.details.push(
@@ -5725,10 +5872,12 @@ function createDangerZoneBarrier() {
         object.geometry.computeBoundingBox();
         const size = object.geometry.boundingBox.getSize(new THREE.Vector3());
         const maxDimension = Math.max(size.x, size.y, size.z);
-        if (maxDimension > 1.6) return;
+        if (maxDimension > 3.0) return;
         object.userData.barrierLodDetail = true;
-        object.userData.barrierLodKeepAtDistance = maxDimension > .8;
-        object.userData.barrierLodKeepAtFar = maxDimension > 1.3;
+        object.userData.barrierLodDetailSize = maxDimension;
+        object.userData.barrierLodKeepAtDistance = maxDimension > dangerBarrierLod2MinSize;
+        // Keep only the main gate/tower silhouette in the far LOD.
+        object.userData.barrierLodKeepAtFar = false;
         rememberBarrierLodShadowState(object);
         dangerBarrierLodDetailMeshes.push(object);
       });
@@ -6108,37 +6257,13 @@ function createDangerZoneBarrier() {
     barrierGroup
   );
 
-  dangerBarrierGroup =
-    barrierGroup;
+    dangerBarrierGroup =
+      barrierGroup;
+    applyDangerBarrierRenderVisibility();
 }
     const futureBackdrop = new THREE.Group();
     const aerialPods = [];
     envGroup.add(futureBackdrop);
-
-    function createHologramTexture(label, colorA, colorB) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 256;
-      const ctx = canvas.getContext('2d');
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, colorA);
-      gradient.addColorStop(1, colorB);
-      ctx.fillStyle = 'rgba(3,8,18,.82)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = gradient;
-      ctx.lineWidth = 12;
-      ctx.strokeRect(18, 18, canvas.width - 36, canvas.height - 36);
-      ctx.fillStyle = gradient;
-      ctx.font = '900 76px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(label, canvas.width / 2, canvas.height / 2 - 8);
-      ctx.font = '700 22px Arial';
-      ctx.fillText('METROPOLIS NETWORK', canvas.width / 2, canvas.height / 2 + 58);
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      return texture;
-    }
 
     function createDistantBuildingAtlasTexture(variant = 0) {
       const canvas = document.createElement('canvas');
@@ -6203,6 +6328,8 @@ function createDangerZoneBarrier() {
       const cyanMat = new THREE.MeshBasicMaterial({ color: 0x43e8ff, toneMapped: false });
       const magentaMat = new THREE.MeshBasicMaterial({ color: 0xff4fd3, toneMapped: false });
       const amberMat = new THREE.MeshBasicMaterial({ color: 0xffbd55, toneMapped: false });
+      const distantTowerGeometry = new THREE.BoxGeometry(1, 1, 1);
+      const distantTowerAccentGeometry = new THREE.BoxGeometry(1, 1, 1);
 
       for (let i = 0; i < 46; i++) {
         const angle = i / 46 * Math.PI * 2 + THREE.MathUtils.randFloat(-.045, .045);
@@ -6217,22 +6344,20 @@ function createDangerZoneBarrier() {
         const tower = new THREE.Group();
         tower.position.set(x, 0, z);
         tower.rotation.y = -angle + Math.PI * .5 + THREE.MathUtils.randFloat(-.22, .22);
-        const base = new THREE.Mesh(new RoundedBoxGeometry(width, height, depth, 3, .45), i % 3 ? towerBaseMat : towerMidMat);
+        // Distant towers only need a clean silhouette. A shared unit box and
+        // one accent strip replace the former rounded body plus many floor
+        // bands, greatly reducing geometry and draw calls.
+        const base = new THREE.Mesh(distantTowerGeometry, i % 3 ? towerBaseMat : towerMidMat);
         base.position.y = height * .5;
+        base.scale.set(width, height, depth);
         base.receiveShadow = true;
         tower.add(base);
 
         const lightMaterial = i % 4 === 0 ? magentaMat : i % 5 === 0 ? amberMat : cyanMat;
-        for (const side of [-1, 1]) {
-          const strip = new THREE.Mesh(new THREE.BoxGeometry(.15, height * .78, depth * .7), lightMaterial);
-          strip.position.set(side * (width * .5 + .08), height * .54, 0);
-          tower.add(strip);
-        }
-        for (let floor = 4; floor < height - 4; floor += THREE.MathUtils.randFloat(5, 8)) {
-          const band = new THREE.Mesh(new THREE.BoxGeometry(width + .18, .1, depth + .18), lightMaterial);
-          band.position.y = floor;
-          tower.add(band);
-        }
+        const strip = new THREE.Mesh(distantTowerAccentGeometry, lightMaterial);
+        strip.position.set(width * .5 + .06, height * .55, 0);
+        strip.scale.set(.08, height * .62, depth * .025);
+        tower.add(strip);
         futureBackdrop.add(tower);
       }
 
@@ -6270,30 +6395,6 @@ function createDangerZoneBarrier() {
         ring.position.y = 18 + index * 11;
         futureBackdrop.add(ring);
       });
-
-      const signData = [
-        ['NOVA', 0x44eaff, '#43e8ff', '#596cff', -92, 30, -22, Math.PI / 2],
-        ['ARC', 0xff50d5, '#ff4fd3', '#8e55ff', 92, 24, -48, -Math.PI / 2],
-        ['SECTOR 7', 0xffc45b, '#ffbd55', '#ff5d7d', 35, 34, -104, 0]
-      ];
-      for (const [label, color, colorA, colorB, x, y, z, rotationY] of signData) {
-        const material = new THREE.MeshBasicMaterial({
-          map: createHologramTexture(label, colorA, colorB),
-          transparent: true,
-          opacity: .8,
-          side: THREE.DoubleSide,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          toneMapped: false
-        });
-        const sign = new THREE.Mesh(new THREE.PlaneGeometry(18, 9), material);
-        sign.position.set(x, y, z);
-        sign.rotation.y = rotationY;
-        futureBackdrop.add(sign);
-        const signLight = new THREE.PointLight(color, 5, 34, 2);
-        signLight.position.copy(sign.position);
-        futureBackdrop.add(signLight);
-      }
 
       const podBodyMat = new THREE.MeshStandardMaterial({ color: 0x243a4c, roughness: .24, metalness: .82 });
       const podGlassMat = new THREE.MeshStandardMaterial({ color: 0x61dfff, emissive: 0x000000, emissiveIntensity: 0, roughness: .12, metalness: .45 });
@@ -8127,9 +8228,6 @@ function createDangerZoneBarrier() {
     const normalFlameTargetPosition = new THREE.Vector3();
     const dashFlameTargetPosition = new THREE.Vector3();
     const normalFlameTargetQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI));
-    const dashBoostLight = new THREE.PointLight(0xff2b18, 0, 20, 2);
-    dashBoostLight.position.set(0, 2.8, -2.45);
-    jetpack.add(dashBoostLight);
     const packCore = mechBox(3.5, 1.82, .92, jetpackMat, .2);
     packCore.position.set(0, 5.02, -1.96);
     jetpack.add(packCore);
@@ -10260,7 +10358,8 @@ function createDangerZoneBarrier() {
         hangarGroup.add(particle);
       }
 
-      // Eagle Squadron Wall Logo & Hangar Emblem Signage
+      // Eagle Squadron wall texture panel removed. Keep the 3D emblem panels above.
+      if (false) {
       const logoCanvas = document.createElement('canvas');
       logoCanvas.width = 1024;
       logoCanvas.height = 512;
@@ -10358,6 +10457,7 @@ function createDangerZoneBarrier() {
       hangarGroup.add(backLogoMesh);
       // Side wall logo panels removed: their canvas carried the unwanted
       // rectangular vignette/border. Keep the clean rear-wall signage only.
+      }
 
       // --- ARTICULATED HUMAN JOINT MODELING & NATURAL GAIT PHYSICS HELPERS ---
       const suitMat = new THREE.MeshStandardMaterial({ color: 0x778287, roughness: .86, metalness: .08, emissive: 0x000000, emissiveIntensity: 0 });
@@ -10693,16 +10793,22 @@ function createDangerZoneBarrier() {
       }
 
       // --- ADVANCED REALISTIC HANGAR FOG & PARTICLES CONTROLLER ---
-      window.hangarFogParams = {
+      let savedHangarFogParams = null;
+      try {
+        savedHangarFogParams = JSON.parse(localStorage.getItem('mechaHangarFogParams') || 'null');
+      } catch (error) {
+        savedHangarFogParams = null;
+      }
+      window.hangarFogParams = Object.assign({
         enabled: true,
         mode: 'exp2',
-        color: 0x152e47,
-        density: 0.018,
-        near: 10.0,
-        far: 78.0,
+        color: 6519959,
+        density: 0.005,
+        near: 11.0,
+        far: 88.0,
         steamIntensity: 2.0,
         dustIntensity: 2.0
-      };
+      }, savedHangarFogParams || {}, window.hangarFogParams || {});
 
       scene.fog = new THREE.Fog(window.hangarFogParams.color, window.hangarFogParams.near, window.hangarFogParams.far);
 
@@ -10717,6 +10823,7 @@ function createDangerZoneBarrier() {
           scene.fog = new THREE.FogExp2(window.hangarFogParams.color, window.hangarFogParams.density);
         }
       };
+      window.updateHangarFog();
 
       // Realistic Volumetric Hangar Steam Plumes (Floor vent rising steam)
       const steamParticles = [];
@@ -11284,6 +11391,7 @@ function createDangerZoneBarrier() {
       hangarActive = true;
       hangarLaunching = false;
       hangarLaunchTime = 0;
+      applyBattlefieldShadowSettings();
       if (hangarLiftPlatform && hangarLiftPlatform.parent !== hangarGroup) hangarGroup.attach(hangarLiftPlatform);
       // A battle elevator can temporarily be re-parented to the battlefield
       // during arrival. Restore the complete hangar elevator visibility when
@@ -11326,7 +11434,6 @@ function createDangerZoneBarrier() {
       primaryFireHeld = false;
       secondaryFireHeld = false;
       weaponCooldowns.fill(0);
-      dashBoostLight.intensity = 0;
       jetFlameMat.color.setHex(0x55e7ff);
       for (const flame of jetFlames) {
         flame.position.set(flame.userData.side * .88, 1.4, -1.93);
@@ -11344,6 +11451,7 @@ function createDangerZoneBarrier() {
       if (window.hangarRimSpot) window.hangarRimSpot.intensity = 0;
       envGroup.visible = false;
       hangarGroup.visible = true;
+      document.body.classList.remove('gameplay-mode', 'pause-audio-open');
       hangarGroup.traverse(object => {
         if (object.isLight) {
           if (object === window.hangarMechaKeyLight || object === hangarSparkLight || object === hangarCrewShadowLight || object === hangarShaftAmbientLight) return;
@@ -11354,10 +11462,8 @@ function createDangerZoneBarrier() {
       if (typeof applyHangarLights === 'function') applyHangarLights(hangarLightConfig);
       if (typeof applyWarningLights === 'function') applyWarningLights();
       if (typeof applyMechaKeyLight === 'function') applyMechaKeyLight();
-      // The dirty guard makes the first hangar entry bake the probe once;
-      // later returns reuse the same cube map without a render hitch.
-      updateHangarReflectionCache();
       for (const item of [...powerItems, ...jetpackItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems, ...droneItems]) item.visible = false;
+      playerMechaHidden = false;
       player.visible = true;
       player.position.set(0, titleActive ? TITLE_LIFT_START_Y * hangarGroup.scale.y + HANGAR_STAND_GROUND_OFFSET : HANGAR_STAND_GROUND_OFFSET, 0);
       player.rotation.set(0, Math.PI, 0);
@@ -12299,6 +12405,7 @@ function createDangerZoneBarrier() {
       hangarLaunching = false;
       hangarActive = false;
       hangarGroup.visible = false;
+      applyBattlefieldShadowSettings();
       // Hangar drones stay in the hangar. A field drone is created only after
       // a player or CPU collects the dedicated drone companion pickup.
       for (const item of [...powerItems, ...homingItems, ...laserItems, ...jumpItems, ...healthItems, ...shieldItems, ...droneItems]) item.visible = true;
@@ -12417,6 +12524,10 @@ let landingRecoveryTimer = 0;
     let victoryCelebrationActive = false;
     let victoryCelebrationTime = 0;
     let battleStarted = false;
+    let battlefieldBackgroundTestMode = false;
+    let battlefieldBackgroundTestEnemyVisibility = null;
+    let battlefieldDebugMode = false;
+    let playerMechaHidden = false;
     let battleCountdown = 3;
     let battleCountdownActive = false;
     let roundTransitionTimer = 0;
@@ -12513,6 +12624,8 @@ let landingRecoveryTimer = 0;
     let paused = false;
     let pauseFrameRendered = false;
     let freeCamActive = false;
+    let freeCamPlayActive = false;
+    let freeCamBadgeTimer = null;
     let cockpitCameraActive = false;
     const freeCamPos = new THREE.Vector3();
     let freeCamYaw = 0;
@@ -12779,6 +12892,59 @@ let landingRecoveryTimer = 0;
     const healthItems = [];
     const shieldItems = [];
     const droneItems = [];
+    // Pickup-only drone visual: keep the companion/hangar drone detailed,
+    // but use a small shared low-poly silhouette for the collectible.
+    const dronePickupBodyGeometry = new THREE.OctahedronGeometry(.58, 0);
+    const dronePickupRotorGeometry = new THREE.BoxGeometry(1.25, .05, .09);
+    const dronePickupBodyMaterial = new THREE.MeshStandardMaterial({
+      color: 0x2c8fa3,
+      emissive: 0x073844,
+      emissiveIntensity: .85,
+      roughness: .4,
+      metalness: .62
+    });
+    const dronePickupRotorMaterial = new THREE.MeshStandardMaterial({
+      color: 0x9ff4ff,
+      emissive: 0x176f82,
+      emissiveIntensity: .7,
+      roughness: .32,
+      metalness: .72
+    });
+    function createSimpleDronePickup() {
+      const group = new THREE.Group();
+      const body = new THREE.Mesh(dronePickupBodyGeometry, dronePickupBodyMaterial);
+      const rotorA = new THREE.Mesh(dronePickupRotorGeometry, dronePickupRotorMaterial);
+      const rotorB = new THREE.Mesh(dronePickupRotorGeometry, dronePickupRotorMaterial);
+      rotorA.position.y = .2;
+      rotorB.position.y = .2;
+      rotorB.rotation.y = Math.PI / 2;
+      group.add(body, rotorA, rotorB);
+      return group;
+    }
+    let itemsRenderEnabled = true;
+    let itemSpawnMultiplier = 1;
+    const getItemSpawnCount = baseCount => Math.max(1, Math.round(baseCount * itemSpawnMultiplier));
+    const allPickupArrays = () => [powerItems, jetpackItems, homingItems, laserItems, jumpItems, healthItems, shieldItems, droneItems];
+    function isPickupWithinCullDistance(item) {
+      const dx = item.position.x - camera.position.x;
+      const dz = item.position.z - camera.position.z;
+      return dx * dx + dz * dz <= itemCullDistance * itemCullDistance;
+    }
+    function applyPickupDistanceVisibility(item) {
+      const now = performance.now();
+      const waitingForRespawn = item.userData.respawnAt && item.userData.respawnAt > now;
+      const lockedBoost = item.userData.boostUnlockDelayed && !boostItemsUnlocked;
+      const inRange = isPickupWithinCullDistance(item);
+      item.userData.itemDistanceCulled = !inRange;
+      item.visible = itemsRenderEnabled && !waitingForRespawn && !lockedBoost && inRange;
+    }
+    function applyItemRenderVisibility() {
+      for (const items of allPickupArrays()) {
+        for (const item of items) {
+          applyPickupDistanceVisibility(item);
+        }
+      }
+    }
     const salvagePickupPools = new Map([
       ['repair', []], ['shield', []], ['missile', []], ['jetpack', []], ['overdrive', []]
     ]);
@@ -12795,6 +12961,7 @@ let landingRecoveryTimer = 0;
     const DRONE_FORMATION_BACK = -2.8;
     const DRONE_SEPARATION_RADIUS = 5.8;
     const playerDroneCompanions = [];
+    const droneDestructionEffects = [];
     const droneCompanionProjectiles = [];
     const droneCompanionProjectilePool = [];
     // Companion projectile sphere: 8x6 (80 triangles) -> 6x4 (36 triangles).
@@ -12803,9 +12970,11 @@ let landingRecoveryTimer = 0;
       color: 0xffb347,
       toneMapped: false
     });
-    // Keep companion fire in a shared pool so the first drone shot does not
-    // allocate a mesh during gameplay.
-    for (let index = 0; index < 32; index++) {
+    // Four drone companions can fire at the same time. With a 1.5s lifetime
+    // and .42s fire interval, 128 entries leave substantial headroom for
+    // simultaneous CPU/player fire without a gameplay-time mesh allocation.
+    const DRONE_COMPANION_PROJECTILE_POOL_SIZE = 128;
+    for (let index = 0; index < DRONE_COMPANION_PROJECTILE_POOL_SIZE; index++) {
       const projectile = new THREE.Mesh(droneCompanionProjectileGeometry, droneCompanionProjectileMaterial);
       projectile.visible = false;
       projectile.userData.velocity = new THREE.Vector3();
@@ -12830,9 +12999,16 @@ let landingRecoveryTimer = 0;
       sfx: document.getElementById('sfxVolume')
     };
     let audioMuted = false;
+    let gameplayAudioPaused = false;
+    const setGameplayAudioPaused = pausedState => {
+      gameplayAudioPaused = Boolean(pausedState);
+      if (gameplayAudioPaused) audio.setMuted(true);
+      else if (!audioMuted) audio.setMuted(false);
+    };
     Object.entries(audioSliders).forEach(([group, slider]) => slider.addEventListener('input', () => {
       if (group === 'master') audioMuted = false;
       audio.setVolume(group, slider.value);
+      if (gameplayAudioPaused) audio.setMuted(true);
       const button = document.getElementById('audioMuteButton');
       button.classList.toggle('muted', audioMuted);
       button.setAttribute('aria-pressed', String(audioMuted));
@@ -12840,7 +13016,7 @@ let landingRecoveryTimer = 0;
     }));
     document.getElementById('audioMuteButton').addEventListener('click', () => {
       audioMuted = !audioMuted;
-      audio.setVolume('master', audioMuted ? 0 : audioSliders.master.value);
+      audio.setMuted(audioMuted || gameplayAudioPaused);
       const button = document.getElementById('audioMuteButton');
       button.classList.toggle('muted', audioMuted);
       button.setAttribute('aria-pressed', String(audioMuted));
@@ -12854,6 +13030,7 @@ let landingRecoveryTimer = 0;
     const mechDeathDebrisPool = [];
     const scatteredMechParts = [];
     const scatteredMechPartPool = [];
+    const disabledMechPartPool = [];
     const footstepEffects = [];
     const footstepDecals = [];
     const footstepRingGeometry = new THREE.RingGeometry(.38, .7, 24);
@@ -13425,16 +13602,104 @@ let landingRecoveryTimer = 0;
     });
     addEventListener('pointerdown', requestMobileLandscape, { passive: true });
     renderer.domElement.style.touchAction = 'none';
+    function runEnemyBattlefieldTest() {
+      if (!battleStarted || hangarActive || titleActive || hangarLaunching) {
+        showMessage('ENEMY TEST // ENTER BATTLEFIELD FIRST');
+        return;
+      }
+      if (battlefieldBackgroundTestMode) toggleBattlefieldBackgroundTest();
+      battlefieldDebugMode = true;
+      matchTimeRemaining = Infinity;
+      enemyMechaRenderEnabled = true;
+      applyEnemyMechaRenderVisibility();
+      enemyAI?.reset();
+      enemyAI?.group && (enemyAI.group.visible = true);
+      if (currentLevel >= 2 && enemyAI2) {
+        enemyAI2.reset();
+        enemyAI2.group.visible = true;
+      } else if (enemyAI2?.group) {
+        enemyAI2.alive = false;
+        enemyAI2.group.visible = false;
+      }
+      showMessage('ENEMY TEST // RESET + SPAWN');
+      updateHUD(true);
+    }
+
+    function toggleBattlefieldBackgroundTest() {
+      if (!battleStarted || hangarActive || titleActive || hangarLaunching) {
+        showMessage('BACKGROUND TEST // ENTER BATTLEFIELD FIRST');
+        return;
+      }
+      battlefieldBackgroundTestMode = !battlefieldBackgroundTestMode;
+      if (battlefieldBackgroundTestMode) {
+        battlefieldDebugMode = true;
+        matchTimeRemaining = Infinity;
+        battlefieldBackgroundTestEnemyVisibility = {
+          setting: enemyMechaRenderEnabled,
+          first: enemyAI?.group?.visible ?? false,
+          second: enemyAI2?.group?.visible ?? false
+        };
+        enemyMechaRenderEnabled = false;
+        applyEnemyMechaRenderVisibility();
+        if (enemyAI?.group) enemyAI.group.visible = false;
+        if (enemyAI2?.group) enemyAI2.group.visible = false;
+        primaryFireHeld = false;
+        secondaryFireHeld = false;
+        clearPlayerShells();
+        for (const ai of [enemyAI, enemyAI2]) {
+          if (!ai) continue;
+          for (const shell of ai.shells) scene.remove(shell);
+          ai.shells.length = 0;
+        }
+        showMessage('BACKGROUND TEST // ENEMIES HIDDEN');
+        updateHUD(true);
+      } else {
+        const snapshot = battlefieldBackgroundTestEnemyVisibility;
+        battlefieldBackgroundTestEnemyVisibility = null;
+        enemyMechaRenderEnabled = snapshot?.setting ?? true;
+        applyEnemyMechaRenderVisibility();
+        if (enemyAI?.group) enemyAI.group.visible = snapshot?.first ?? true;
+        if (enemyAI2?.group) enemyAI2.group.visible = snapshot?.second ?? false;
+        showMessage('BACKGROUND TEST // RESTORED');
+        updateHUD(true);
+      }
+    }
+
     addEventListener('keydown', e => {
       keys[e.code] = true;
+      if (e.code === 'Quote' && !e.repeat && battleStarted && !playerDestroyed && !paused && !customizerActive && !hangarActive && !titleActive) {
+        playerMechaHidden = !playerMechaHidden;
+        player.visible = !playerMechaHidden;
+        showMessage(playerMechaHidden ? "PLAYER MECHA // HIDDEN" : "PLAYER MECHA // VISIBLE");
+      }
       if (/^Digit[1-4]$/.test(e.code) && !e.repeat && !customizerActive) {
         activateWeaponPreset(Number(e.code.slice(-1)));
       }
       if (e.code === 'KeyF' && !e.repeat && !customizerActive && !hangarActive && !titleActive) {
-        toggleFreeCamera();
+        if (freeCamActive && freeCamPlayActive) {
+          freeCamPlayActive = false;
+          paused = true;
+          pauseFrameRendered = false;
+          setGameplayAudioPaused(true);
+          showMessage('FREE CAMERA // GAMEPLAY PAUSED');
+        } else {
+          toggleFreeCamera();
+        }
       }
       if (e.code === 'KeyR' && !e.repeat && battleStarted && !playerDestroyed && !paused) startReload();
-      if (e.code === 'KeyP' && !e.repeat) togglePause();
+      if (e.code === 'KeyY' && !e.repeat && freeCamActive) {
+        freeCamPlayActive = true;
+        paused = false;
+        pauseFrameRendered = false;
+        setGameplayAudioPaused(false);
+        closePauseSettings();
+        showMessage('FREE CAMERA // GAMEPLAY RESUMED');
+      }
+      if (e.code === 'Escape' && !e.repeat && !freeCamActive && !customizerActive && !hangarActive && !titleActive) togglePause();
+      if (e.code === 'KeyP' && !e.repeat) {
+        if (freeCamActive) toggleFreeCamera();
+        else togglePause();
+      }
       if (e.code === 'KeyV' && !e.repeat && !playerDestroyed) {
         playerShield = PLAYER_MAX_SHIELD;
         shieldBubble.setStrength(1);
@@ -13442,6 +13707,8 @@ let landingRecoveryTimer = 0;
         showMessage('WATER SHIELD TEST · 100%');
         updateHUD();
       }
+      if (e.code === 'BracketLeft' && !e.repeat) runEnemyBattlefieldTest();
+      if (e.code === 'BracketRight' && !e.repeat) toggleBattlefieldBackgroundTest();
     });
     addEventListener('keyup', e => keys[e.code] = false);
     document.addEventListener('click', e => {
@@ -13455,6 +13722,22 @@ let landingRecoveryTimer = 0;
     });
     document.getElementById('pauseButton').addEventListener('click', togglePause);
     document.getElementById('pauseReturnTitleButton').addEventListener('click', returnToTitleFromPause);
+    document.getElementById('pauseAudioSettingsButton')?.addEventListener('click', event => {
+      event.stopPropagation();
+      document.body.classList.add('pause-audio-open');
+    });
+    document.getElementById('pauseAudioClose')?.addEventListener('click', event => {
+      event.stopPropagation();
+      document.body.classList.remove('pause-audio-open');
+    });
+    document.getElementById('pauseVisualSettingsButton')?.addEventListener('click', event => {
+      event.stopPropagation();
+      openVisualSettings();
+    });
+    document.getElementById('pauseGameSettingsButton')?.addEventListener('click', event => {
+      event.stopPropagation();
+      document.getElementById('gaitTuningToggle')?.click();
+    });
     document.getElementById('freeCamButton').addEventListener('click', toggleFreeCamera);
     document.getElementById('cockpitCameraButton').addEventListener('click', () => {
       cockpitCameraActive = !cockpitCameraActive;
@@ -13489,9 +13772,9 @@ let landingRecoveryTimer = 0;
       }
       yaw -= e.movementX * .0025;
       pitch -= e.movementY * .002;
-      // Allow steep downward aiming for aerial combat while keeping the
-      // camera from flipping over the player.
-      pitch = THREE.MathUtils.clamp(pitch, -.88, .42);
+      // Keep the downward range stable while allowing the mouse aim ray to
+      // reach higher into the sky for aerial targets.
+      pitch = THREE.MathUtils.clamp(pitch, -.88, .75);
     });
     renderer.domElement.addEventListener('pointerdown', event => {
       if (event.pointerType !== 'touch' || titleActive || hangarActive || paused) return;
@@ -13508,7 +13791,7 @@ let landingRecoveryTimer = 0;
       mobileCameraPointerX = event.clientX;
       mobileCameraPointerY = event.clientY;
       yaw -= deltaX * .009;
-      pitch = THREE.MathUtils.clamp(pitch - deltaY * .007, -.88, .42);
+      pitch = THREE.MathUtils.clamp(pitch - deltaY * .007, -.88, .75);
       event.preventDefault();
     }, { passive: false });
     const stopMobileCameraDrag = event => {
@@ -13546,19 +13829,31 @@ let landingRecoveryTimer = 0;
     const trafficGroup = new THREE.Group();
     envGroup.add(trafficGroup);
     const trafficVehicles = [];
+    const delayedVehicleExplosions = [];
     const trafficThreats = [];
     let trafficRoutes = [];
     let trafficMovementEnabled = true;
     let enemyMechaRenderEnabled = true;
     let evacueeRenderEnabled = true;
+    let evacueeCullDistance = 80;
     let buildingWindowsRenderEnabled = true;
     let buildingRenderEnabled = true;
     let cityDecorRenderEnabled = true;
+    let cityDecorCullDistance = 50;
+    let treeCullDistance = 70;
+    let streetlightCullDistance = 100;
+    let itemCullDistance = 60;
+    let cityDecorCullObjects = [];
+    let cityDecorCullInstancedObjects = [];
+    const cityDecorCullPositionScratch = new THREE.Vector3();
+    const cityDecorCullInstancePositionScratch = new THREE.Vector3();
+    const cityDecorCullInstanceMatrixScratch = new THREE.Matrix4();
     let distantBackgroundRenderEnabled = true;
     const cityFireSources = [];
     const cityPatrolDrones = [];
     let dreadnoughtSkyShip = null;
     let dreadnoughtSkyShipEnabled = true;
+    let dreadnoughtSkyShipQuality = 'low';
     const DREADNOUGHT_SKY_START_X = -175;
     const DREADNOUGHT_SKY_END_X = 175;
     const DREADNOUGHT_SKY_SPEED = 4.6;
@@ -13656,10 +13951,15 @@ let landingRecoveryTimer = 0;
       streetlightDebrisPools.lamp.push(lamp);
     }
     let streetlightMeshes = [];
+    let streetlightSourceMatrices = [];
+    let streetlightVisibility = [];
     const missileTrails = [];
     const cameraFadedObjects = new Set();
+    // Camera obstruction variants are prepared once per source material.
+    // Obstruction checks only swap these references; they never clone a
+    // material during gameplay.
+    const cameraFadeMaterialVariants = new WeakMap();
     const buildingHealth = new Map();
-    const healthSprites = [];
     const buildingBounds = [];
     const buildingWindowSystems = new Map();
     const buildingShadowProxies = new Map();
@@ -13670,7 +13970,7 @@ let landingRecoveryTimer = 0;
     // Temporary visual review mode: keep the glass facade and structural core,
     // but omit the individual, breakable opaque wall tiles.
     const ENABLE_BREAKABLE_FACADE_PANELS = false;
-    const BUILDING_HEALTH_MULTIPLIER = 2;
+const BUILDING_HEALTH_MULTIPLIER = 4;
     let stability = 100;
     const collapsingBuildings = new Set();
     const buildingCollapseStates = new Map();
@@ -13846,7 +14146,8 @@ let landingRecoveryTimer = 0;
       minFilter: THREE.LinearMipmapLinearFilter
     });
     const windowReflectionProbe = new THREE.CubeCamera(.5, arenaHalfSize * 3, windowReflectionTarget);
-    windowReflectionProbe.position.set(0, 14, 0);
+    // Bake the game reflection from the battlefield center, 10m above ground.
+    windowReflectionProbe.position.set(0, 10, 0);
     scene.add(windowReflectionProbe);
     let windowReflectionBaked = false;
     transparentWindowMat.envMap = windowReflectionTarget.texture;
@@ -14012,22 +14313,23 @@ let landingRecoveryTimer = 0;
     }
 
     const visualSettings = JSON.parse(localStorage.getItem('mechaVisualSettings') || '{}');
-    if (visualSettings.visualTuningRevision !== 3) {
+    const shouldResetVisualDefaults = visualSettings.visualTuningRevision !== 6;
+    if (shouldResetVisualDefaults) {
       Object.assign(visualSettings, {
         reflectionIntensity: 3,
         windowDarkness: .8,
-        windowColor: '#004452',
-        windowOpacity: .7,
+        windowColor: '#003542',
+        windowOpacity: .85,
         windowRoughness: 0,
-        bloomStrength: .5,
+        bloomStrength: .6,
         chromaticAberration: .008,
         filmGrain: .3,
-        toneExposure: .9,
+        toneExposure: 1.5,
         rainIntensity: .05,
         shadowMapResolution: 1024,
-        shadowCascadeDistance1: 20,
-        shadowCascadeDistance2: 50,
-        shadowCascadeFar: 145,
+        shadowCascadeDistance1: 10,
+        shadowCascadeDistance2: 30,
+        shadowCascadeFar: 100,
         cameraDistanceOffset: 3,
         cameraHeightOffset: 1.4,
         cameraSideOffset: 0,
@@ -14037,37 +14339,103 @@ let landingRecoveryTimer = 0;
         cameraLocalYaw: 0,
         cameraRoll: 0,
         battlefieldShadowsEnabled: true,
+        dangerBarrierRenderEnabled: true,
+        itemsRenderEnabled: true,
+        itemSpawnMultiplier: .5,
+        barrierLodNearDistance: 80,
+        barrierLodMediumDistance: 180,
+        barrierLod2MinSize: 4.5,
         dangerBarrierTransparencyEnabled: true,
         trafficMovementEnabled: true,
+        trafficNearUpdateDistance: 100,
+        trafficFarUpdateHz: 30,
         dreadnoughtSkyShipEnabled: true,
         enemyMechaRenderEnabled: true,
+        enemyMechaNearUpdateDistance: 120,
+        enemyMechaFarUpdateHz: 30,
         evacueeRenderEnabled: true,
+        evacueeCullDistance: 150,
+        evacueeNearUpdateDistance: 75,
+        evacueeFarUpdateHz: 30,
         buildingWindowsRenderEnabled: true,
         buildingRenderEnabled: true,
         cityDecorRenderEnabled: true,
+        cityDecorCullDistance: 55,
+        treeCullDistance: 90,
+        streetlightCullDistance: 115,
+        itemCullDistance: 125,
         distantBackgroundRenderEnabled: true,
-        battlefieldTimeOfDay: 14,
-        battlefieldEnvironmentColor: '#e4d4d5',
-        visualTuningRevision: 3
+        battlefieldTimeOfDay: 9,
+        battlefieldEnvironmentColor: '#e7d1c5',
+        visualTuningRevision: 6
       });
+    }
+    // Apply only the four values changed by the revision-6 default profile.
+    // User-tuned values are preserved when they no longer match the previous
+    // built-in defaults.
+    if (visualSettings.visualTuningRevision === 6 &&
+      visualSettings.bloomStrength === .55 &&
+      visualSettings.toneExposure === 1.6 &&
+      visualSettings.battlefieldTimeOfDay === 10.5 &&
+      visualSettings.battlefieldEnvironmentColor === '#e1dedf') {
+      Object.assign(visualSettings, {
+        bloomStrength: .6,
+        toneExposure: 1.5,
+        battlefieldTimeOfDay: 9,
+        battlefieldEnvironmentColor: '#e7d1c5'
+      });
+    }
+    if (shouldResetVisualDefaults && window.hangarFogParams) {
+      Object.assign(window.hangarFogParams, {
+        enabled: true,
+        mode: 'exp2',
+        color: 6519959,
+        density: .005,
+        near: 11,
+        far: 88,
+        steamIntensity: 2,
+        dustIntensity: 2
+      });
+      localStorage.setItem('mechaHangarFogParams', JSON.stringify(window.hangarFogParams));
     }
     Object.assign(visualSettings, {
       battlefieldShadowsEnabled: visualSettings.battlefieldShadowsEnabled ?? true,
-      shadowMapResolution: visualSettings.shadowMapResolution ?? 2048,
-      shadowCascadeDistance1: visualSettings.shadowCascadeDistance1 ?? 30,
-      shadowCascadeDistance2: visualSettings.shadowCascadeDistance2 ?? 60,
-      shadowCascadeFar: visualSettings.shadowCascadeFar ?? 260,
+      shadowMapResolution: visualSettings.shadowMapResolution ?? 1024,
+      shadowCascadeDistance1: visualSettings.shadowCascadeDistance1 ?? 10,
+      shadowCascadeDistance2: visualSettings.shadowCascadeDistance2 ?? 30,
+      shadowCascadeFar: visualSettings.shadowCascadeFar ?? 100,
+      dangerBarrierRenderEnabled: visualSettings.dangerBarrierRenderEnabled ?? true,
+      itemsRenderEnabled: visualSettings.itemsRenderEnabled ?? true,
+      itemSpawnMultiplier: visualSettings.itemSpawnMultiplier ?? .5,
+      barrierLodNearDistance: visualSettings.barrierLodNearDistance ?? 80,
+      barrierLodMediumDistance: visualSettings.barrierLodMediumDistance ?? 180,
+      barrierLod2MinSize: Math.max(2.6, visualSettings.barrierLod2MinSize ?? 4.5),
       dangerBarrierTransparencyEnabled: visualSettings.dangerBarrierTransparencyEnabled ?? true,
       trafficMovementEnabled: visualSettings.trafficMovementEnabled ?? true,
+      trafficNearUpdateDistance: visualSettings.trafficNearUpdateDistance ?? 100,
+      trafficFarUpdateHz: visualSettings.trafficFarUpdateHz ?? 30,
       dreadnoughtSkyShipEnabled: visualSettings.dreadnoughtSkyShipEnabled ?? true,
+      dreadnoughtModelQuality: visualSettings.dreadnoughtModelQuality === 'high' ? 'high' : 'low',
       enemyMechaRenderEnabled: visualSettings.enemyMechaRenderEnabled ?? true,
+      enemyMechaNearUpdateDistance: visualSettings.enemyMechaNearUpdateDistance ?? 120,
+      enemyMechaFarUpdateHz: visualSettings.enemyMechaFarUpdateHz ?? 30,
       evacueeRenderEnabled: visualSettings.evacueeRenderEnabled ?? true,
+      evacueeCullDistance: visualSettings.evacueeCullDistance ?? 150,
+      evacueeNearUpdateDistance: visualSettings.evacueeNearUpdateDistance ?? 75,
+      evacueeFarUpdateHz: visualSettings.evacueeFarUpdateHz ?? 30,
       buildingWindowsRenderEnabled: visualSettings.buildingWindowsRenderEnabled ?? true,
       buildingRenderEnabled: visualSettings.buildingRenderEnabled ?? true,
       cityDecorRenderEnabled: visualSettings.cityDecorRenderEnabled ?? true,
-      distantBackgroundRenderEnabled: visualSettings.distantBackgroundRenderEnabled ?? true
+      cityDecorCullDistance: visualSettings.cityDecorCullDistance ?? 55,
+      treeCullDistance: visualSettings.treeCullDistance ?? 90,
+      streetlightCullDistance: visualSettings.streetlightCullDistance ?? 115,
+      itemCullDistance: visualSettings.itemCullDistance ?? 125,
+      distantBackgroundRenderEnabled: visualSettings.distantBackgroundRenderEnabled ?? true,
+      fpsCounterVisible: visualSettings.fpsCounterVisible ?? true
     });
+    dreadnoughtSkyShipQuality = visualSettings.dreadnoughtModelQuality;
     localStorage.setItem('mechaVisualSettings', JSON.stringify(visualSettings));
+    fpsCounterVisible = Boolean(visualSettings.fpsCounterVisible);
     battlefieldShadowsEnabled = Boolean(visualSettings.battlefieldShadowsEnabled);
     let shadowMapResolution = THREE.MathUtils.clamp(Number(visualSettings.shadowMapResolution), 512, 2048);
     shadowCascadeDistance1 = Number(visualSettings.shadowCascadeDistance1);
@@ -14075,30 +14443,56 @@ let landingRecoveryTimer = 0;
     shadowCascadeFar = Number(visualSettings.shadowCascadeFar);
     dangerBarrierTransparencyEnabled = Boolean(visualSettings.dangerBarrierTransparencyEnabled);
     trafficMovementEnabled = Boolean(visualSettings.trafficMovementEnabled);
+    let trafficNearUpdateDistance = THREE.MathUtils.clamp(Number(visualSettings.trafficNearUpdateDistance), 20, 160);
+    let trafficFarUpdateHz = THREE.MathUtils.clamp(Number(visualSettings.trafficFarUpdateHz), 1, 30);
     dreadnoughtSkyShipEnabled = Boolean(visualSettings.dreadnoughtSkyShipEnabled);
     enemyMechaRenderEnabled = Boolean(visualSettings.enemyMechaRenderEnabled);
+    let enemyMechaNearUpdateDistance = THREE.MathUtils.clamp(Number(visualSettings.enemyMechaNearUpdateDistance), 20, 160);
+    let enemyMechaFarUpdateHz = THREE.MathUtils.clamp(Number(visualSettings.enemyMechaFarUpdateHz), 1, 30);
     evacueeRenderEnabled = Boolean(visualSettings.evacueeRenderEnabled);
+    evacueeCullDistance = THREE.MathUtils.clamp(Number(visualSettings.evacueeCullDistance), 10, 250);
+    let evacueeNearUpdateDistance = THREE.MathUtils.clamp(Number(visualSettings.evacueeNearUpdateDistance), 10, 120);
+    let evacueeFarUpdateHz = THREE.MathUtils.clamp(Number(visualSettings.evacueeFarUpdateHz), 1, 30);
     buildingWindowsRenderEnabled = Boolean(visualSettings.buildingWindowsRenderEnabled);
     buildingRenderEnabled = Boolean(visualSettings.buildingRenderEnabled);
     cityDecorRenderEnabled = Boolean(visualSettings.cityDecorRenderEnabled);
+    cityDecorCullDistance = THREE.MathUtils.clamp(Number(visualSettings.cityDecorCullDistance), 10, 200);
+    treeCullDistance = THREE.MathUtils.clamp(Number(visualSettings.treeCullDistance), 10, 250);
+    streetlightCullDistance = THREE.MathUtils.clamp(Number(visualSettings.streetlightCullDistance), 10, 250);
+    itemCullDistance = THREE.MathUtils.clamp(Number(visualSettings.itemCullDistance), 10, 180);
     distantBackgroundRenderEnabled = Boolean(visualSettings.distantBackgroundRenderEnabled);
-    battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(visualSettings.battlefieldTimeOfDay ?? 10), 0, 24);
-    battlefieldAtmosphere.environmentColor = visualSettings.battlefieldEnvironmentColor || '#dceaf5';
+    battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(visualSettings.battlefieldTimeOfDay ?? 9.5), 0, 24);
+    battlefieldAtmosphere.environmentColor = visualSettings.battlefieldEnvironmentColor || '#e5d5ce';
     const visualControls = {
       reflectionIntensity: ['envMapIntensity', 3],
       windowDarkness: ['darkness', .8],
-      windowColor: ['color', '#004452'],
-      windowOpacity: ['opacity', .7],
+      windowColor: ['color', '#003542'],
+      windowOpacity: ['opacity', .85],
       windowRoughness: ['roughness', 0],
-      bloomStrength: ['bloom', .5],
+      bloomStrength: ['bloom', .6],
       chromaticAberration: ['chromaticAberration', .008],
       filmGrain: ['filmGrain', .3],
-      toneExposure: ['exposure', .9],
+      toneExposure: ['exposure', 1.5],
       rainIntensity: ['rain', .05],
       shadowMapResolution: ['shadowResolution', 1024],
-      shadowCascadeDistance1: ['shadowCascade1', 20],
-      shadowCascadeDistance2: ['shadowCascade2', 50],
-      shadowCascadeFar: ['shadowFar', 145],
+      shadowCascadeDistance1: ['shadowCascade1', 10],
+      shadowCascadeDistance2: ['shadowCascade2', 30],
+      shadowCascadeFar: ['shadowFar', 100],
+      barrierLodNearDistance: ['barrierLodNear', 80],
+      barrierLodMediumDistance: ['barrierLodMedium', 180],
+      barrierLod2MinSize: ['barrierLod2MinSize', 4.5],
+      itemSpawnMultiplier: ['itemSpawnAmount', .5],
+      cityDecorCullDistance: ['cityDecorCullDistance', 55],
+      treeCullDistance: ['treeCullDistance', 90],
+      streetlightCullDistance: ['streetlightCullDistance', 115],
+      itemCullDistance: ['itemCullDistance', 125],
+      evacueeCullDistance: ['evacueeCullDistance', 150],
+      trafficNearUpdateDistance: ['trafficNearUpdateDistance', 100],
+      trafficFarUpdateHz: ['trafficFarUpdateHz', 30],
+      enemyMechaNearUpdateDistance: ['enemyMechaNearUpdateDistance', 120],
+      enemyMechaFarUpdateHz: ['enemyMechaFarUpdateHz', 30],
+      evacueeNearUpdateDistance: ['evacueeNearUpdateDistance', 75],
+      evacueeFarUpdateHz: ['evacueeFarUpdateHz', 30],
       cameraDistanceOffset: ['cameraDistance', 3],
       cameraHeightOffset: ['cameraHeight', 1.4],
       cameraSideOffset: ['cameraSide', 0],
@@ -14108,13 +14502,19 @@ let landingRecoveryTimer = 0;
       cameraLocalYaw: ['cameraLocalYaw', 0],
       cameraRoll: ['cameraRoll', 0]
     };
+    function isBattlefieldCsmActive() {
+      return Boolean(battlefieldShadowCsm && battlefieldShadowsEnabled && !hangarActive && !hangarLaunching && !titleActive);
+    }
+
     function applyBattlefieldShadowSettings() {
       renderer.shadowMap.enabled = battlefieldShadowsEnabled;
       if (!battlefieldShadowCsm) return;
+      const csmActive = isBattlefieldCsmActive();
       battlefieldShadowCsm.shadowMapSize = shadowMapResolution;
       battlefieldShadowCsm.maxFar = shadowCascadeFar;
       battlefieldShadowCsm.lights.forEach(light => {
-        light.castShadow = battlefieldShadowsEnabled;
+        light.visible = csmActive;
+        light.castShadow = csmActive;
         if (light.shadow.mapSize.width !== shadowMapResolution || light.shadow.mapSize.height !== shadowMapResolution) {
           light.shadow.mapSize.set(shadowMapResolution, shadowMapResolution);
           light.shadow.map?.dispose();
@@ -14122,7 +14522,10 @@ let landingRecoveryTimer = 0;
           light.shadow.needsUpdate = true;
         }
       });
-      if (battlefieldShadowsEnabled) battlefieldShadowCsm.updateFrustums();
+      if (csmActive) battlefieldShadowCsm.updateFrustums();
+    }
+    function applyDangerBarrierRenderVisibility() {
+      if (dangerBarrierGroup) dangerBarrierGroup.visible = dangerBarrierRenderEnabled;
     }
     function applyDangerBarrierTransparency() {
       for (const wall of dangerBarrierTransparentMeshes) wall.visible = dangerBarrierTransparencyEnabled;
@@ -14199,6 +14602,74 @@ let landingRecoveryTimer = 0;
         visualSettings[key] = shadowMapResolution;
         applyBattlefieldShadowSettings();
       }
+      if (key === 'barrierLodNearDistance') {
+        dangerBarrierLodNearDistance = THREE.MathUtils.clamp(amount, 10, Math.min(80, dangerBarrierLodMediumDistance - 5));
+        visualSettings[key] = dangerBarrierLodNearDistance;
+        updateDangerBarrierLod();
+      }
+      if (key === 'barrierLodMediumDistance') {
+        dangerBarrierLodMediumDistance = THREE.MathUtils.clamp(amount, Math.max(40, dangerBarrierLodNearDistance + 5), 200);
+        visualSettings[key] = dangerBarrierLodMediumDistance;
+        updateDangerBarrierLod();
+      }
+      if (key === 'barrierLod2MinSize') {
+        dangerBarrierLod2MinSize = THREE.MathUtils.clamp(amount, 1.5, 4.5);
+        visualSettings[key] = dangerBarrierLod2MinSize;
+        updateDangerBarrierLod();
+      }
+      if (key === 'itemSpawnMultiplier') {
+        itemSpawnMultiplier = THREE.MathUtils.clamp(amount, .25, 2);
+        visualSettings[key] = itemSpawnMultiplier;
+      }
+      if (key === 'cityDecorCullDistance') {
+        cityDecorCullDistance = THREE.MathUtils.clamp(amount, 10, 200);
+        visualSettings[key] = cityDecorCullDistance;
+        updateTreeBranchVisibility();
+        updateCityDecorDistanceVisibility();
+      }
+      if (key === 'treeCullDistance') {
+        treeCullDistance = THREE.MathUtils.clamp(amount, 10, 250);
+        visualSettings[key] = treeCullDistance;
+        updateTreeBranchVisibility();
+      }
+      if (key === 'streetlightCullDistance') {
+        streetlightCullDistance = THREE.MathUtils.clamp(amount, 10, 250);
+        visualSettings[key] = streetlightCullDistance;
+        updateStreetlightDistanceVisibility();
+      }
+      if (key === 'itemCullDistance') {
+        itemCullDistance = THREE.MathUtils.clamp(amount, 10, 180);
+        visualSettings[key] = itemCullDistance;
+        applyItemRenderVisibility();
+      }
+      if (key === 'evacueeCullDistance') {
+        evacueeCullDistance = THREE.MathUtils.clamp(amount, 10, 250);
+        visualSettings[key] = evacueeCullDistance;
+      }
+      if (key === 'trafficNearUpdateDistance') {
+        trafficNearUpdateDistance = THREE.MathUtils.clamp(amount, 20, 160);
+        visualSettings[key] = trafficNearUpdateDistance;
+      }
+      if (key === 'trafficFarUpdateHz') {
+        trafficFarUpdateHz = THREE.MathUtils.clamp(amount, 1, 30);
+        visualSettings[key] = trafficFarUpdateHz;
+      }
+      if (key === 'enemyMechaNearUpdateDistance') {
+        enemyMechaNearUpdateDistance = THREE.MathUtils.clamp(amount, 20, 160);
+        visualSettings[key] = enemyMechaNearUpdateDistance;
+      }
+      if (key === 'enemyMechaFarUpdateHz') {
+        enemyMechaFarUpdateHz = THREE.MathUtils.clamp(amount, 1, 30);
+        visualSettings[key] = enemyMechaFarUpdateHz;
+      }
+      if (key === 'evacueeNearUpdateDistance') {
+        evacueeNearUpdateDistance = THREE.MathUtils.clamp(amount, 10, 120);
+        visualSettings[key] = evacueeNearUpdateDistance;
+      }
+      if (key === 'evacueeFarUpdateHz') {
+        evacueeFarUpdateHz = THREE.MathUtils.clamp(amount, 1, 30);
+        visualSettings[key] = evacueeFarUpdateHz;
+      }
       if (key === 'cameraDistanceOffset') gameplayCameraDistanceOffset = THREE.MathUtils.clamp(amount, -8, 8);
       if (key === 'cameraHeightOffset') gameplayCameraHeightOffset = THREE.MathUtils.clamp(amount, -4, 6);
       if (key === 'cameraSideOffset') gameplayCameraSideOffset = THREE.MathUtils.clamp(amount, -6, 6);
@@ -14252,6 +14723,18 @@ let landingRecoveryTimer = 0;
         ? `${Number(rawValue)} x ${Number(rawValue)}`
         : id.startsWith('shadowCascade')
         ? `${Number(rawValue).toFixed(0)}m`
+        : id === 'barrierLodNearDistance' || id === 'barrierLodMediumDistance'
+        ? `${Number(rawValue).toFixed(0)}m`
+        : id === 'barrierLod2MinSize'
+        ? `${Number(rawValue).toFixed(1)}m`
+        : id === 'itemSpawnMultiplier'
+        ? `${Number(rawValue).toFixed(2)}x`
+        : id === 'cityDecorCullDistance'
+        ? `${Number(rawValue).toFixed(0)}m`
+        : id === 'trafficNearUpdateDistance' || id === 'enemyMechaNearUpdateDistance' || id === 'evacueeNearUpdateDistance' || id === 'treeCullDistance' || id === 'streetlightCullDistance' || id === 'itemCullDistance' || id === 'evacueeCullDistance'
+        ? `${Number(rawValue).toFixed(0)}m`
+        : id === 'trafficFarUpdateHz' || id === 'enemyMechaFarUpdateHz' || id === 'evacueeFarUpdateHz'
+        ? `${Number(rawValue).toFixed(0)}Hz`
         : id === 'cameraYawOffset' || id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' || id === 'cameraRoll'
         ? `${Number(rawValue).toFixed(0)}°`
         : id.startsWith('camera') ? `${Number(rawValue).toFixed(1)}m`
@@ -14264,8 +14747,29 @@ let landingRecoveryTimer = 0;
         applyVisualSetting(id, control.value);
       });
     });
+    const dreadnoughtQualityControl = document.getElementById('dreadnoughtModelQuality');
+    if (dreadnoughtQualityControl) {
+      dreadnoughtQualityControl.value = dreadnoughtSkyShipQuality;
+      dreadnoughtQualityControl.nextElementSibling.value = dreadnoughtSkyShipQuality === 'high' ? 'HIGH POLY' : 'LOW POLY';
+      dreadnoughtQualityControl.addEventListener('change', () => {
+        dreadnoughtSkyShipQuality = dreadnoughtQualityControl.value === 'high' ? 'high' : 'low';
+        visualSettings.dreadnoughtModelQuality = dreadnoughtSkyShipQuality;
+        dreadnoughtQualityControl.nextElementSibling.value = dreadnoughtSkyShipQuality === 'high' ? 'HIGH POLY' : 'LOW POLY';
+        localStorage.setItem('mechaVisualSettings', JSON.stringify(visualSettings));
+        rebuildDreadnoughtSkyShip();
+      });
+    }
     const performanceToggleControls = [
+      ['fpsCounterVisible', true, value => {
+        fpsCounterVisible = Boolean(value);
+        fpsFrames = 0;
+        fpsElapsed = 0;
+        const fpsCounter = document.getElementById('fpsCounter');
+        if (fpsCounter) fpsCounter.style.display = fpsCounterVisible ? '' : 'none';
+      }],
       ['battlefieldShadowsEnabled', true, value => { battlefieldShadowsEnabled = value; applyBattlefieldShadowSettings(); }],
+      ['dangerBarrierRenderEnabled', true, value => { dangerBarrierRenderEnabled = value; applyDangerBarrierRenderVisibility(); }],
+      ['itemsRenderEnabled', true, value => { itemsRenderEnabled = value; applyItemRenderVisibility(); }],
       ['dangerBarrierTransparencyEnabled', true, value => { dangerBarrierTransparencyEnabled = value; applyDangerBarrierTransparency(); }],
       ['trafficMovementEnabled', true, value => { trafficMovementEnabled = value; }],
       ['dreadnoughtSkyShipEnabled', true, value => { dreadnoughtSkyShipEnabled = value; applyDreadnoughtSkyShipVisibility(); }],
@@ -14291,6 +14795,24 @@ let landingRecoveryTimer = 0;
       apply(control.checked);
       control.addEventListener('change', sync);
     });
+    // The first pass above runs before the battlefield objects are created.
+    // Keep the same values, but expose one replayable pass for the point after
+    // buildings, windows, background props, and CPU mechas have been created.
+    const applyAllInitialVisualSettings = () => {
+      Object.entries(visualControls).forEach(([id, [, fallback]]) => {
+        applyVisualSetting(id, visualSettings[id] ?? fallback);
+      });
+      performanceToggleControls.forEach(([id, fallback, apply]) => {
+        apply(Boolean(visualSettings[id] ?? fallback));
+      });
+      battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(visualSettings.battlefieldTimeOfDay ?? 9.5), 0, 24);
+      battlefieldAtmosphere.environmentColor = visualSettings.battlefieldEnvironmentColor || '#e5d5ce';
+      applyBattlefieldAtmosphere(false);
+      // Re-apply the loaded fog profile after the runtime scene is ready.
+      // This prevents the first title/hangar frame from using the previous
+      // fog object until a slider is touched.
+      updateFogState();
+    };
     const cameraPositionConfigField = document.getElementById('cameraPositionConfig');
     const cameraPositionCopyBtn = document.getElementById('cameraPositionCopy');
     const cameraPositionApplyBtn = document.getElementById('cameraPositionApply');
@@ -14531,9 +15053,20 @@ let landingRecoveryTimer = 0;
             ? value : Number(value).toFixed(2);
           applyVisualSetting(id, value);
         });
+        performanceToggleControls.forEach(([id, fallback, apply]) => {
+          if (!(id in parsed)) return;
+          const value = Boolean(parsed[id] ?? fallback);
+          const control = document.getElementById(id);
+          visualSettings[id] = value;
+          if (control) {
+            control.checked = value;
+            if (control.nextElementSibling) control.nextElementSibling.value = value ? 'ON' : 'OFF';
+          }
+          apply(value);
+        });
         if ('battlefieldTimeOfDay' in parsed || 'battlefieldEnvironmentColor' in parsed) {
-          battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(parsed.battlefieldTimeOfDay ?? 10), 0, 24);
-          battlefieldAtmosphere.environmentColor = parsed.battlefieldEnvironmentColor || '#dceaf5';
+          battlefieldAtmosphere.timeOfDay = THREE.MathUtils.clamp(Number(parsed.battlefieldTimeOfDay ?? 9.5), 0, 24);
+          battlefieldAtmosphere.environmentColor = parsed.battlefieldEnvironmentColor || '#e5d5ce';
           if (battlefieldTimeControl) battlefieldTimeControl.value = battlefieldAtmosphere.timeOfDay;
           if (battlefieldColorControl) battlefieldColorControl.value = battlefieldAtmosphere.environmentColor;
           updateBattlefieldAtmosphere(false);
@@ -14543,10 +15076,10 @@ let landingRecoveryTimer = 0;
           Object.assign(window.hangarFogParams, fog);
           fogToggle.checked = fog.enabled !== false;
           fogModeSelect.value = fog.mode || 'exp2';
-          fogColorInput.value = '#' + Number(fog.color ?? 0x152e47).toString(16).padStart(6, '0');
-          fogDensityInput.value = Number(fog.density ?? .018);
-          fogNearInput.value = Number(fog.near ?? 10);
-          fogFarInput.value = Number(fog.far ?? 78);
+          fogColorInput.value = '#' + Number(fog.color ?? 0x5b748f).toString(16).padStart(6, '0');
+          fogDensityInput.value = Number(fog.density ?? .005);
+          fogNearInput.value = Number(fog.near ?? 11);
+          fogFarInput.value = Number(fog.far ?? 88);
           steamIntensityInput.value = Number(fog.steamIntensity ?? 2);
           dustIntensityInput.value = Number(fog.dustIntensity ?? 2);
           updateFogState();
@@ -14589,6 +15122,7 @@ let landingRecoveryTimer = 0;
       p.far = parseFloat(fogFarInput.value);
       p.steamIntensity = parseFloat(steamIntensityInput.value);
       p.dustIntensity = parseFloat(dustIntensityInput.value);
+      localStorage.setItem('mechaHangarFogParams', JSON.stringify(p));
 
       fogDensityVal.textContent = p.density.toFixed(3);
       fogNearVal.textContent = p.near.toFixed(0) + 'm';
@@ -14637,10 +15171,10 @@ let landingRecoveryTimer = 0;
       // Apply the initial values to both the controls and the live scene.
       fogToggle.checked = window.hangarFogParams.enabled !== false;
       fogModeSelect.value = window.hangarFogParams.mode || 'exp2';
-      fogColorInput.value = '#' + Number(window.hangarFogParams.color ?? 0x152e47).toString(16).padStart(6, '0');
-      fogDensityInput.value = Number(window.hangarFogParams.density ?? .018);
-      fogNearInput.value = Number(window.hangarFogParams.near ?? 10);
-      fogFarInput.value = Number(window.hangarFogParams.far ?? 78);
+      fogColorInput.value = '#' + Number(window.hangarFogParams.color ?? 0x5b748f).toString(16).padStart(6, '0');
+      fogDensityInput.value = Number(window.hangarFogParams.density ?? .005);
+      fogNearInput.value = Number(window.hangarFogParams.near ?? 11);
+      fogFarInput.value = Number(window.hangarFogParams.far ?? 88);
       steamIntensityInput.value = Number(window.hangarFogParams.steamIntensity ?? 2);
       dustIntensityInput.value = Number(window.hangarFogParams.dustIntensity ?? 2);
       updateFogState();
@@ -14649,7 +15183,9 @@ let landingRecoveryTimer = 0;
     const visualSettingsCopyBtn = document.getElementById('visualSettingsCopy');
     if (visualSettingsCopyBtn) {
       visualSettingsCopyBtn.addEventListener('click', () => {
-        const configData = {};
+        // Start with every persisted option so newly added performance and
+        // distance/frame controls are copied automatically as well.
+        const configData = JSON.parse(JSON.stringify(visualSettings));
         Object.entries(visualControls).forEach(([id, [, fallback]]) => {
           configData[id] = visualSettings[id] ?? fallback;
         });
@@ -14658,7 +15194,8 @@ let landingRecoveryTimer = 0;
         });
         configData.battlefieldTimeOfDay = battlefieldAtmosphere.timeOfDay;
         configData.battlefieldEnvironmentColor = battlefieldAtmosphere.environmentColor;
-        configData.hangarLights = { ...hangarLightConfig };
+        configData.cameraPosition = getCameraPositionConfig();
+        configData.hangarLights = JSON.parse(JSON.stringify(hangarLightConfig));
         configData.fog = { ...window.hangarFogParams };
         configData.format = 'MECHA_VISUAL_CONFIG_V2';
         const jsonStr = JSON.stringify(configData, null, 2);
@@ -14689,6 +15226,12 @@ let landingRecoveryTimer = 0;
             : id === 'cameraYawOffset' || id === 'cameraPitchOffset' || id === 'cameraLocalPitch' || id === 'cameraLocalYaw' || id === 'cameraRoll'
             ? `${Number(fallback).toFixed(0)}°`
             : id.startsWith('camera') ? `${Number(fallback).toFixed(1)}m`
+            : id === 'barrierLodNearDistance' || id === 'barrierLodMediumDistance'
+            ? `${Number(fallback).toFixed(0)}m`
+            : id === 'barrierLod2MinSize'
+            ? `${Number(fallback).toFixed(1)}m`
+            : id === 'itemSpawnMultiplier'
+            ? `${Number(fallback).toFixed(2)}x`
             : id === 'windowColor' ? fallback : Number(fallback).toFixed(2);
           applyVisualSetting(id, fallback);
         });
@@ -14698,12 +15241,19 @@ let landingRecoveryTimer = 0;
           control.checked = true;
           control.dispatchEvent(new Event('change'));
         });
-        battlefieldAtmosphere.timeOfDay = 14;
-        battlefieldAtmosphere.environmentColor = '#e4d4d5';
-        visualSettings.battlefieldTimeOfDay = 14;
-        visualSettings.battlefieldEnvironmentColor = '#e4d4d5';
-        if (battlefieldTimeControl) battlefieldTimeControl.value = 14;
-        if (battlefieldColorControl) battlefieldColorControl.value = '#e4d4d5';
+        dreadnoughtSkyShipQuality = 'low';
+        visualSettings.dreadnoughtModelQuality = 'low';
+        if (dreadnoughtQualityControl) {
+          dreadnoughtQualityControl.value = 'low';
+          dreadnoughtQualityControl.nextElementSibling.value = 'LOW POLY';
+        }
+        rebuildDreadnoughtSkyShip();
+        battlefieldAtmosphere.timeOfDay = 9.5;
+        battlefieldAtmosphere.environmentColor = '#e5d5ce';
+        visualSettings.battlefieldTimeOfDay = 9.5;
+        visualSettings.battlefieldEnvironmentColor = '#e5d5ce';
+        if (battlefieldTimeControl) battlefieldTimeControl.value = 9.5;
+        if (battlefieldColorControl) battlefieldColorControl.value = '#e5d5ce';
         updateBattlefieldAtmosphere(false);
         showMessage('VISUAL SETTINGS RESET TO DEFAULTS');
       });
@@ -15047,14 +15597,12 @@ let landingRecoveryTimer = 0;
       for (const item of droneItems) scene.remove(item);
       shieldItems.length = 0;
       droneItems.length = 0;
-      for (const block of blocks) block.userData.cameraFadeMaterial?.dispose();
       cameraFadedObjects.clear();
       blocks.length = 0;
       cameraCollisionBuildingIds.clear();
       cameraCollisionCandidates.length = 0;
       columns.length = 0;
       buildingHealth.clear();
-      healthSprites.length = 0;
       buildingBounds.length = 0;
       buildingWindowSystems.clear();
       buildingProfiles.clear();
@@ -15206,74 +15754,6 @@ let landingRecoveryTimer = 0;
           facadeDecor.add(strip);
         }
         
-        // Holographic neon billboards give every tower a readable city identity.
-        {
-          const texts = ["NEO-SEOUL", "MECHA LAB", "RAMPAGE V5", "SHIELD STN", "AMMO DEPOT", "DANGER ZONE", "CYBERCITY", "AI CORE"];
-          const text = texts[profile.accentVariant % texts.length];
-          const colorStr = profile.accentVariant % 3 === 0 ? "#00f3ff" : (profile.accentVariant % 3 === 1 ? "#ff007f" : "#ffaa00");
-          
-          const billCanvas = document.createElement('canvas');
-          billCanvas.width = 256;
-          billCanvas.height = 128;
-          const bctx = billCanvas.getContext('2d');
-          
-          bctx.clearRect(0, 0, 256, 128);
-          
-          // Cyberpunk styled board borders
-          bctx.strokeStyle = colorStr;
-          bctx.lineWidth = 6;
-          bctx.strokeRect(10, 10, 236, 108);
-          bctx.fillStyle = 'rgba(0,0,0,0.45)';
-          bctx.fillRect(10, 10, 236, 108);
-          
-          // Glowing text rendering
-          bctx.shadowColor = colorStr;
-          bctx.shadowBlur = 14;
-          bctx.fillStyle = colorStr;
-          bctx.font = 'bold 30px monospace';
-          bctx.textAlign = 'center';
-          bctx.textBaseline = 'middle';
-          bctx.fillText(text, 128, 64);
-          
-          const billTex = new THREE.CanvasTexture(billCanvas);
-          const billMat = new THREE.MeshBasicMaterial({
-            map: billTex,
-            transparent: true,
-            opacity: 0.88,
-            blending: THREE.AdditiveBlending,
-            side: THREE.DoubleSide
-          });
-          
-          const billboard = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 3.2), billMat);
-          
-          // Project from one of the sides: 0, PI/2, PI, 3PI/2
-          const sideAngle = (profile.accentVariant % 4) * (Math.PI / 2);
-          billboard.rotation.y = sideAngle;
-          
-          const radiusX = 5.85;
-          const radiusZ = 5.35;
-          billboard.position.set(
-            Math.sin(sideAngle) * radiusX,
-            coreHeight * .5 + 2.45 + (buildingId % 2) * .45,
-            Math.cos(sideAngle) * radiusZ
-          );
-          
-          // Bracket connector
-          facadeDecor.add(billboard);
-          if (profile.accentVariant % 3 === 0) {
-            const secondBoard = billboard.clone();
-            const secondAngle = sideAngle + Math.PI / 2;
-            secondBoard.scale.setScalar(.7);
-            secondBoard.rotation.y = secondAngle;
-            secondBoard.position.set(
-              Math.sin(secondAngle) * radiusX,
-              coreHeight * .5 + 3.15,
-              Math.cos(secondAngle) * radiusZ
-            );
-            facadeDecor.add(secondBoard);
-          }
-        }
-
         // Upgrade: Sci-Fi Exterior Steel Trusses for industrial look
         if (profile.accentVariant % 2 === 1) {
           const trussMat = new THREE.MeshStandardMaterial({ color: 0x333c44, roughness: 0.3, metalness: 0.85 });
@@ -15324,8 +15804,7 @@ let landingRecoveryTimer = 0;
         const maxHealth = blocks
           .filter(block => block.userData.buildingId === buildingId)
           .reduce((total, block) => total + block.userData.maxHp, 0);
-        buildingHealth.set(buildingId, { current: maxHealth, max: maxHealth, floors, sprite: null });
-        createBuildingHealthBar(buildingId, offsetX, roofY + 2.4, offsetZ);
+        buildingHealth.set(buildingId, { current: maxHealth, max: maxHealth, floors, sprite: null, anchor: new THREE.Vector3(offsetX, roofY + 2.4, offsetZ), damageStage: 0 });
       });
       building.updateMatrixWorld(true);
       createCityDecor();
@@ -15376,6 +15855,19 @@ let landingRecoveryTimer = 0;
 
     function registerBlock(mesh, isColumn, hp = 2, mass = 4, buildingId = 0) {
       const durableHp = hp * BUILDING_HEALTH_MULTIPLIER;
+      const sourceMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const fadedMaterials = sourceMaterials.map(material => {
+        if (!material?.isMaterial) return material;
+        let faded = cameraFadeMaterialVariants.get(material);
+        if (!faded) {
+          faded = material.clone();
+          faded.transparent = true;
+          faded.opacity = .22;
+          faded.depthWrite = false;
+          cameraFadeMaterialVariants.set(material, faded);
+        }
+        return faded;
+      });
       // Buildings use one low-poly silhouette proxy for shadows. Structural
       // blocks, windows and facade details stay out of the shadow pass.
       mesh.castShadow = false;
@@ -15393,7 +15885,8 @@ let landingRecoveryTimer = 0;
         velocity: new THREE.Vector3(),
         angularVelocity: new THREE.Vector3(),
         worldBox: new THREE.Box3(),
-        cameraOriginalMaterial: mesh.material
+        cameraOriginalMaterial: mesh.material,
+        cameraFadeMaterial: Array.isArray(mesh.material) ? fadedMaterials : fadedMaterials[0]
       };
       building.add(mesh);
       blocks.push(mesh);
@@ -15427,44 +15920,6 @@ let landingRecoveryTimer = 0;
       }
       const topY = Math.max(...index.wallBlocks.map(block => block.position.y), -Infinity);
       index.topWallBlocks = index.blocksByFloor.get(structuralIndexKey(topY)) || [];
-    }
-
-    function createBuildingHealthBar(buildingId, x, y, z) {
-      const canvas = document.createElement('canvas');
-      canvas.width = 320;
-      canvas.height = 64;
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false }));
-      sprite.position.set(x, y, z);
-      sprite.scale.set(10, 2 / BUILDING_Y_SCALE, 1);
-      sprite.renderOrder = 100;
-      sprite.userData.canvas = canvas;
-      sprite.userData.texture = texture;
-      building.add(sprite);
-      healthSprites.push(sprite);
-      buildingHealth.get(buildingId).sprite = sprite;
-      updateBuildingHealthBar(buildingId);
-    }
-
-    function updateBuildingHealthBar(buildingId) {
-      const health = buildingHealth.get(buildingId);
-      if (!health?.sprite) return;
-      const canvas = health.sprite.userData.canvas;
-      const ctx = canvas.getContext('2d');
-      const ratio = THREE.MathUtils.clamp(health.current / health.max, 0, 1);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(4, 8, 18, .88)';
-      ctx.fillRect(4, 4, 312, 56);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${health.floors}F  ${Math.ceil(ratio * 100)}%`, 160, 24);
-      ctx.fillStyle = 'rgba(255,255,255,.18)';
-      ctx.fillRect(18, 34, 284, 16);
-      ctx.fillStyle = ratio > .5 ? '#46e06f' : ratio > .2 ? '#ffb020' : '#ff4b4b';
-      ctx.fillRect(18, 34, 284 * ratio, 16);
-      health.sprite.userData.texture.needsUpdate = true;
     }
 
     function applyLoadout(slot, loadout, announce = true, activate = true) {
@@ -16351,7 +16806,7 @@ let landingRecoveryTimer = 0;
         hangarGroup.visible = true;
         customStudio.visible = false;
         scene.background = hangarBackground;
-        scene.fog = hangarFog;
+        if (window.updateHangarFog) window.updateHangarFog();
         renderer.toneMappingExposure = 1;
         customizer.classList.remove('active');
         setCustomizerAssemblyStage('parts');
@@ -16661,6 +17116,9 @@ let landingRecoveryTimer = 0;
     });
     preTitleScreen.addEventListener('click', event => {
       event.stopPropagation();
+      // The click is also the browser-autoplay fallback. If the splash-time
+      // play attempt was blocked, this user gesture starts the same BGM.
+      startTitleHangarBgm();
       // Keep the WebGL scene frozen behind the launch image. Only this user
       // gesture releases the pause and starts the title/elevator animation.
       paused = false;
@@ -16759,7 +17217,14 @@ let landingRecoveryTimer = 0;
 
     function launchBattleWithMode(mode) {
       if (hangarLaunching) return;
+      if (battlefieldBackgroundTestMode) {
+        battlefieldBackgroundTestMode = false;
+        enemyMechaRenderEnabled = battlefieldBackgroundTestEnemyVisibility?.setting ?? true;
+        battlefieldBackgroundTestEnemyVisibility = null;
+        applyEnemyMechaRenderVisibility();
+      }
       currentGameMode = mode;
+      battlefieldDebugMode = false;
       ctfPlayerFlagScore = 0;
       ctfCpuFlagScore = 0;
       enemyFlagState = 'base';
@@ -16807,6 +17272,9 @@ let landingRecoveryTimer = 0;
       event.stopPropagation();
       launchBattleWithMode('ctf');
     });
+
+    document.getElementById('victoryReplayButton')?.addEventListener('click', replayMatchFromResult);
+    document.getElementById('victoryTitleButton')?.addEventListener('click', returnToTitleFromPause);
 
     const sharedAimPoint = new THREE.Vector3();
     const sharedAimLeftMuzzle = new THREE.Vector3();
@@ -17477,6 +17945,24 @@ let landingRecoveryTimer = 0;
       // must collapse immediately, regardless of how many yellow columns are
       // still standing. Any active lean is intentionally replaced by collapse.
       startCollapse(buildingId);
+      // Only the cells around the destroyed footprint need a navigation update;
+      // the shared grid remains valid everywhere else.
+      refreshSharedAINavigationGridForBuilding(buildingId);
+    }
+
+    function updateBuildingDamageStage(buildingId) {
+      const health = buildingHealth.get(buildingId);
+      if (!health || health.max <= 0 || collapsingBuildings.has(buildingId)) return;
+      const damageRatio = THREE.MathUtils.clamp(1 - health.current / health.max, 0, 1);
+      // One yellow-column effect per 25% accumulated building damage.
+      const stage = Math.min(4, Math.floor(damageRatio * 4 + 1e-6));
+      if (stage <= health.damageStage) return;
+      health.damageStage = stage;
+      if (stage >= 4) {
+        startCollapse(buildingId);
+      } else {
+        startBuildingTilt(buildingId, stage);
+      }
     }
 
     function damageBlock(block, damage, impulseDir) {
@@ -17493,13 +17979,13 @@ let landingRecoveryTimer = 0;
           ? health.max * .25
           : block.userData.isColumn ? 0 : dealtDamage;
         health.current = Math.max(0, health.current - buildingDamage);
-        updateBuildingHealthBar(block.userData.buildingId);
       }
       if (block.userData.hp <= 0) {
         breakBlock(block, impulseDir, block.userData.isColumn ? 80 : 20);
       } else if (!block.userData.core) {
         flash(block);
       }
+      updateBuildingDamageStage(block.userData.buildingId);
       collapseBuildingIfDepleted(block.userData.buildingId);
     }
 
@@ -17519,7 +18005,7 @@ let landingRecoveryTimer = 0;
       healthItems.length = 0;
       shieldItems.length = 0;
       const itemMat = new THREE.MeshStandardMaterial({ color: 0xffad4d, emissive: 0xff4a08, emissiveIntensity: 1.55, metalness: .55, roughness: .22 });
-      for (let index = 0; index < 7; index++) {
+      for (let index = 0; index < getItemSpawnCount(7); index++) {
         const spawn = getRandomItemPoint();
         const y = 1.1;
         const item = new THREE.Group();
@@ -17535,7 +18021,7 @@ let landingRecoveryTimer = 0;
         scene.add(item);
         powerItems.push(item);
       }
-      for (let index = 0; index < 2; index++) {
+      for (let index = 0; index < getItemSpawnCount(2); index++) {
         const spawn = getRandomItemPoint();
         const jetpackPickup = new THREE.Mesh(
           new THREE.TorusGeometry(.72, .22, 8, 20),
@@ -17551,6 +18037,7 @@ let landingRecoveryTimer = 0;
         scene.add(jetpackPickup);
         jetpackItems.push(jetpackPickup);
       }
+      for (let index = 0; index < getItemSpawnCount(1); index++) {
       const homingSpawn = getRandomItemPoint();
       const homingPickup = new THREE.Group();
       const homingMat = new THREE.MeshStandardMaterial({ color: 0x6cff68, emissive: 0x1a9c35, emissiveIntensity: 1.7, metalness: .65 });
@@ -17565,6 +18052,8 @@ let landingRecoveryTimer = 0;
       homingPickup.userData.phase = Math.random() * Math.PI * 2;
       scene.add(homingPickup);
       homingItems.push(homingPickup);
+      }
+      for (let index = 0; index < getItemSpawnCount(1); index++) {
       const laserSpawn = getRandomItemPoint();
       const laserPickup = new THREE.Group();
       const laserPickupBody = new THREE.Mesh(
@@ -17582,7 +18071,8 @@ let landingRecoveryTimer = 0;
       laserPickup.userData.phase = Math.random() * Math.PI * 2;
       scene.add(laserPickup);
       laserItems.push(laserPickup);
-
+      }
+      for (let index = 0; index < getItemSpawnCount(1); index++) {
       const jumpSpawn = getRandomItemPoint();
       const jumpPickup = new THREE.Mesh(
         new THREE.ConeGeometry(.72, 1.45, 8),
@@ -17593,7 +18083,8 @@ let landingRecoveryTimer = 0;
       jumpPickup.userData.phase = Math.random() * Math.PI * 2;
       scene.add(jumpPickup);
       jumpItems.push(jumpPickup);
-      for (let index = 0; index < 5; index++) {
+      }
+      for (let index = 0; index < getItemSpawnCount(5); index++) {
         const spawn = getRandomItemPoint();
         const healthPickup = new THREE.Group();
         const healthMat = new THREE.MeshStandardMaterial({ color: 0x4dffcf, emissive: 0x089f78, emissiveIntensity: 1.5, metalness: .25 });
@@ -17607,7 +18098,7 @@ let landingRecoveryTimer = 0;
         scene.add(healthPickup);
         healthItems.push(healthPickup);
       }
-      for (let index = 0; index < 3; index++) {
+      for (let index = 0; index < getItemSpawnCount(3); index++) {
         const spawn = getRandomItemPoint();
         const shieldPickup = new THREE.Mesh(
           new THREE.OctahedronGeometry(.82, 1),
@@ -17619,42 +18110,22 @@ let landingRecoveryTimer = 0;
         scene.add(shieldPickup);
         shieldItems.push(shieldPickup);
       }
-      for (let index = 0; index < MAX_DRONE_COMPANIONS; index++) {
+      for (let index = 0; index < getItemSpawnCount(MAX_DRONE_COMPANIONS); index++) {
         const droneSpawn = getRandomItemPoint();
-        const dronePickup = window.hangarRepairDrones?.[0]
-          ? cloneVisualWithoutUserDataSerialization(window.hangarRepairDrones[0])
-          : new THREE.Group();
+        const dronePickup = createSimpleDronePickup();
         dronePickup.name = `DroneCompanionPickup_${index + 1}`;
-        dronePickup.scale.setScalar(.58);
         dronePickup.position.set(droneSpawn.x, 2.0, droneSpawn.z);
         dronePickup.userData.baseY = 2.0;
         dronePickup.userData.phase = Math.random() * Math.PI * 2;
         dronePickup.userData.pickupKind = 'drone-companion';
         dronePickup.traverse(object => {
-          if (!object.isMesh) return;
-          object.frustumCulled = true;
-          if (!object.material) return;
-          const sourceMaterial = object.material;
-          const applyPickupMaterial = material => {
-            const pickupMaterial = material.clone();
-            if (pickupMaterial.isMeshStandardMaterial) {
-              const isFrame = Number(pickupMaterial.metalness || 0) > .88;
-              pickupMaterial.color.setHex(isFrame ? 0x9ff4ff : 0x087f9f);
-              pickupMaterial.emissive.setHex(isFrame ? 0x176f82 : 0x043f5a);
-              pickupMaterial.emissiveIntensity = isFrame ? .75 : 1.1;
-              pickupMaterial.needsUpdate = true;
-            }
-            return pickupMaterial;
-          };
-          object.material = Array.isArray(sourceMaterial)
-            ? sourceMaterial.map(applyPickupMaterial)
-            : applyPickupMaterial(sourceMaterial);
+          if (object.isMesh) object.frustumCulled = true;
         });
         scene.add(dronePickup);
         droneItems.push(dronePickup);
       }
       const itemGroups = [
-        [powerItems, 0xffad4d], [jetpackItems, 0xb05cff], [homingItems, 0x6cff68],
+          [powerItems, 0xffad4d], [jetpackItems, 0xb05cff], [homingItems, 0x6cff68],
         [laserItems, 0x21dfff], [jumpItems, 0xffd34f], [healthItems, 0x4dffcf], [shieldItems, 0x56c9ff],
         [droneItems, 0xffb347]
       ];
@@ -17665,13 +18136,14 @@ let landingRecoveryTimer = 0;
           item.userData.uprightRotation = { x: item.rotation.x, z: item.rotation.z };
           item.userData.yaw = item.rotation.y;
           schedulePickupRelocation(item);
-          addPickupDetailMeshes(item, color);
+          if (items !== droneItems) addPickupDetailMeshes(item, color);
           addPickupBeacon(item, color);
           item.traverse(object => {
             if (object.isMesh) object.frustumCulled = true;
           });
         }
       }
+      applyItemRenderVisibility();
     }
 
     function addPickupDetailMeshes(item, color) {
@@ -17859,6 +18331,8 @@ let landingRecoveryTimer = 0;
 
 
     function createCityDecor() {
+      cityDecorCullObjects = [];
+      cityDecorCullInstancedObjects = [];
       while (cityDecor.children.length) {
         const object = cityDecor.children[0];
         // Battle spectator drones share the hangar drone GPU resources.
@@ -17878,6 +18352,8 @@ let landingRecoveryTimer = 0;
       destructibleBenches.length = 0;
       destructibleStations.length = 0;
       streetlightMeshes = [];
+      streetlightSourceMatrices = [];
+      streetlightVisibility = [];
       evacuees.length = 0;
       cityFireSources.length = 0;
       cityPatrolDrones.length = 0;
@@ -18164,6 +18640,16 @@ let landingRecoveryTimer = 0;
       poles.count = lampArms.count = lamps.count = lampBases.count = lampHousings.count = lampRings.count = lightIndex;
       cityDecor.add(poles, lampArms, lamps, lampBases, lampHousings, lampRings);
       streetlightMeshes = [poles, lampArms, lamps, lampBases, lampHousings, lampRings];
+      const streetlightMatrixScratch = new THREE.Matrix4();
+      streetlightSourceMatrices = streetlightMeshes.map(mesh => {
+        const matrices = [];
+        for (let index = 0; index < lightIndex; index++) {
+          mesh.getMatrixAt(index, streetlightMatrixScratch);
+          matrices.push(streetlightMatrixScratch.clone());
+        }
+        return matrices;
+      });
+      streetlightVisibility = Array(lightIndex).fill(true);
 
       const signalSpots = [];
       for (const z of [-34, -66]) {
@@ -18342,6 +18828,8 @@ let landingRecoveryTimer = 0;
           separationVelocityY: 0,
           separationVelocityZ: 0,
           separationDuration: 0,
+          evacueeUpdateAccumulator: 0,
+          distanceCulled: false,
           fromVehicle
         });
         const clothingColor = new THREE.Color(clothingPalette[i % clothingPalette.length]);
@@ -18433,6 +18921,48 @@ let landingRecoveryTimer = 0;
         cityDecor.add(group);
         cityFireSources.push({ group, flames, smoke, phase: index * 1.7 + Math.random() * 3 });
       });
+
+      // Non-instanced city props can be culled as whole local groups/meshes.
+      cityDecorCullObjects = cityDecor.children.filter(object =>
+        object.isGroup || (object.isMesh && !object.isInstancedMesh)
+      );
+      for (const object of cityDecorCullObjects) {
+        object.userData.cityDecorCullBaseVisible = object.visible;
+        object.userData.cityDecorDistanceCulled = false;
+      }
+      // Register instanced decorations that previously escaped this cache
+      // (signals, benches and similar props). Trees, streetlights and
+      // evacuees have dedicated per-instance visibility paths below.
+      cityDecorCullInstancedObjects = cityDecor.children.filter(object =>
+        object.isInstancedMesh &&
+        !treeBranches.includes(object) &&
+        !treeTrunks.includes(object) &&
+        !treeCrowns.includes(object) &&
+        !streetlightMeshes.includes(object) &&
+        !(evacueeMeshSet?.includes(object))
+      );
+      for (const object of cityDecorCullInstancedObjects) {
+        const center = new THREE.Vector3();
+        let sampleCount = 0;
+        let maxRadiusSq = 0;
+        for (let index = 0; index < object.count; index++) {
+          object.getMatrixAt(index, cityDecorCullInstanceMatrixScratch);
+          cityDecorCullInstancePositionScratch.setFromMatrixPosition(cityDecorCullInstanceMatrixScratch);
+          center.add(cityDecorCullInstancePositionScratch);
+          sampleCount++;
+        }
+        if (sampleCount) center.multiplyScalar(1 / sampleCount);
+        for (let index = 0; index < object.count; index++) {
+          object.getMatrixAt(index, cityDecorCullInstanceMatrixScratch);
+          cityDecorCullInstancePositionScratch.setFromMatrixPosition(cityDecorCullInstanceMatrixScratch);
+          maxRadiusSq = Math.max(maxRadiusSq, center.distanceToSquared(cityDecorCullInstancePositionScratch));
+        }
+        object.userData.cityDecorCullCenter = center;
+        object.userData.cityDecorCullRadius = Math.sqrt(maxRadiusSq);
+        object.userData.cityDecorCullBaseVisible = object.visible;
+        object.userData.cityDecorDistanceCulled = false;
+      }
+      updateCityDecorDistanceVisibility();
 
     }
 
@@ -18601,6 +19131,11 @@ let landingRecoveryTimer = 0;
       position.z += person.separationVelocityZ * spread;
     }
 
+    function hideEvacueeInstance(index, matrix = evacueeMatrix) {
+      matrix.makeScale(0, 0, 0);
+      for (const mesh of evacueeMeshSet || []) mesh.setMatrixAt(index, matrix);
+    }
+
     function updateEvacuees(dt) {
       if (!evacueeRenderEnabled || !envGroup.visible || !evacueeBodies || !evacueeHeads || !evacueeLeftArms || !evacueeRightArms || !evacueeLeftThighs || !evacueeRightThighs) return;
       const matrix = evacueeMatrix;
@@ -18625,22 +19160,31 @@ let landingRecoveryTimer = 0;
       const elbowRot = evacueeElbowRot;
 
       evacuees.forEach((person, index) => {
+        const dxToCamera = person.position.x - camera.position.x;
+        const dzToCamera = person.position.z - camera.position.z;
+        const distanceSqToCamera = dxToCamera * dxToCamera + dzToCamera * dzToCamera;
+        const outsideCullDistance = distanceSqToCamera > evacueeCullDistance * evacueeCullDistance;
+        const farUpdate = distanceSqToCamera > evacueeNearUpdateDistance * evacueeNearUpdateDistance;
+        person.evacueeUpdateAccumulator = (person.evacueeUpdateAccumulator || 0) + dt;
+        const farUpdateStep = 1 / Math.max(evacueeFarUpdateHz, 1);
+        if (farUpdate && person.evacueeUpdateAccumulator < farUpdateStep) return;
+        const personDt = farUpdate ? person.evacueeUpdateAccumulator : dt;
+        person.evacueeUpdateAccumulator = 0;
         const separating = person.separationTimer > 0;
         if (separating) {
-          person.separationTimer = Math.max(0, person.separationTimer - dt);
-          person.separationVelocityY -= 9.8 * dt;
-          person.position.x += person.separationVelocityX * dt;
-          person.position.y += person.separationVelocityY * dt;
-          person.position.z += person.separationVelocityZ * dt;
+          person.separationTimer = Math.max(0, person.separationTimer - personDt);
+          person.separationVelocityY -= 9.8 * personDt;
+          person.position.x += person.separationVelocityX * personDt;
+          person.position.y += person.separationVelocityY * personDt;
+          person.position.z += person.separationVelocityZ * personDt;
           if (person.separationTimer <= 0) {
             person.active = false;
             person.position.set(0, -20, 0);
           }
         }
         if (!separating && (!person.active || person.exitDelay > 0 || !battleStarted)) {
-          if (person.active && battleStarted && Number.isFinite(person.exitDelay)) person.exitDelay = Math.max(0, person.exitDelay - dt);
-          matrix.makeScale(0, 0, 0);
-          for (const mesh of evacueeMeshes) mesh.setMatrixAt(index, matrix);
+          if (person.active && battleStarted && Number.isFinite(person.exitDelay)) person.exitDelay = Math.max(0, person.exitDelay - personDt);
+          hideEvacueeInstance(index, matrix);
           return;
         }
         const escape = evacueeEscape.set(person.side, 0, 0);
@@ -18658,12 +19202,19 @@ let landingRecoveryTimer = 0;
           }
           escape.normalize();
           runSpeed = person.speed * (1 + danger * 1.45);
-          person.position.addScaledVector(escape, runSpeed * dt);
+          person.position.addScaledVector(escape, runSpeed * personDt);
           if (Math.abs(person.position.x) > arenaHalfSize + 5 || Math.abs(person.position.z) > arenaHalfSize + 5) {
             person.side *= -1;
             person.position.set(person.side * THREE.MathUtils.randFloat(12, 16), 0, THREE.MathUtils.randFloat(-arenaHalfSize + 8, arenaHalfSize - 8));
           }
         }
+
+        if (outsideCullDistance) {
+          hideEvacueeInstance(index, matrix);
+          person.distanceCulled = true;
+          return;
+        }
+        person.distanceCulled = false;
 
         const stridePhase = now * runSpeed * 4.8 + person.phase;
         const strideSin = Math.sin(stridePhase);
@@ -18782,6 +19333,7 @@ let landingRecoveryTimer = 0;
     }
 
     function createTraffic() {
+      delayedVehicleExplosions.length = 0;
       while (trafficGroup.children.length) trafficGroup.remove(trafficGroup.children[0]);
       trafficVehicles.length = 0;
       const routeLimit = arenaHalfSize + 4;
@@ -18805,11 +19357,13 @@ let landingRecoveryTimer = 0;
         vehicle.userData.currentSpeed = vehicle.userData.speed;
         vehicle.userData.avoidanceOffset = 0;
         vehicle.userData.alive = true;
+        vehicle.userData.pendingExplosion = false;
         vehicle.userData.respawnTimer = 0;
         vehicle.userData.hoverPhase = Math.random() * Math.PI * 2;
         vehicle.userData.passengerIndex = passengerSlots[index % Math.max(1, passengerSlots.length)] ?? -1;
         vehicle.userData.evacuated = false;
         vehicle.userData.turnCooldown = THREE.MathUtils.randFloat(0, 2);
+        vehicle.userData.trafficUpdateAccumulator = 0;
         placeVehicleOnRoute(vehicle, (index / vehicleCount + Math.random() * .12) % 1);
         trafficGroup.add(vehicle);
         trafficVehicles.push(vehicle);
@@ -18848,6 +19402,10 @@ let landingRecoveryTimer = 0;
 
     function explodeVehicle(vehicle, source = 'environment', impulseDirection = new THREE.Vector3(0, 0, 1)) {
       if (!vehicle?.userData.alive) return false;
+      vehicle.userData.pendingExplosion = false;
+      for (let index = delayedVehicleExplosions.length - 1; index >= 0; index--) {
+        if (delayedVehicleExplosions[index].vehicle === vehicle) delayedVehicleExplosions.splice(index, 1);
+      }
       vehicle.userData.alive = false;
       vehicle.userData.respawnTimer = THREE.MathUtils.randFloat(5.5, 8.5);
       vehicle.visible = false;
@@ -18951,13 +19509,38 @@ let landingRecoveryTimer = 0;
       }
     }
 
+    function updateEnemyAIWithDistanceBudget(ai, dt) {
+      // Keep updating dead AI instances as well: EnemyAI.update() owns the
+      // respawn timer and must continue running while the visual is hidden.
+      if (!ai?.group) return;
+      const dx = ai.group.position.x - camera.position.x;
+      const dz = ai.group.position.z - camera.position.z;
+      const farUpdate = dx * dx + dz * dz > enemyMechaNearUpdateDistance * enemyMechaNearUpdateDistance;
+      ai.userData = ai.userData || {};
+      ai.userData.distanceUpdateAccumulator = (ai.userData.distanceUpdateAccumulator || 0) + dt;
+      const farUpdateStep = 1 / Math.max(enemyMechaFarUpdateHz, 1);
+      if (farUpdate && ai.userData.distanceUpdateAccumulator < farUpdateStep) return;
+      const aiDt = farUpdate ? ai.userData.distanceUpdateAccumulator : dt;
+      ai.userData.distanceUpdateAccumulator = 0;
+      ai.update(aiDt);
+    }
+
     function updateTraffic(dt) {
       if (!trafficMovementEnabled || !envGroup.visible || !battleStarted || matchOver) return;
       for (const vehicle of trafficVehicles) {
+        const dxToCamera = vehicle.position.x - camera.position.x;
+        const dzToCamera = vehicle.position.z - camera.position.z;
+        const farTraffic = dxToCamera * dxToCamera + dzToCamera * dzToCamera > trafficNearUpdateDistance * trafficNearUpdateDistance;
+        vehicle.userData.trafficUpdateAccumulator = (vehicle.userData.trafficUpdateAccumulator || 0) + dt;
+        const farTrafficStep = 1 / Math.max(trafficFarUpdateHz, 1);
+        if (farTraffic && vehicle.userData.trafficUpdateAccumulator < farTrafficStep) continue;
+        const vehicleDt = farTraffic ? vehicle.userData.trafficUpdateAccumulator : dt;
+        vehicle.userData.trafficUpdateAccumulator = 0;
         if (!vehicle.userData.alive) {
-          vehicle.userData.respawnTimer -= dt;
+          vehicle.userData.respawnTimer -= vehicleDt;
           if (vehicle.userData.respawnTimer <= 0) {
             vehicle.userData.alive = true;
+            vehicle.userData.pendingExplosion = false;
             vehicle.visible = true;
             vehicle.userData.currentSpeed = vehicle.userData.speed;
             vehicle.userData.avoidanceOffset = 0;
@@ -18967,7 +19550,7 @@ let landingRecoveryTimer = 0;
           continue;
         }
         const route = vehicle.userData.route;
-        vehicle.userData.turnCooldown = Math.max(0, (vehicle.userData.turnCooldown || 0) - dt);
+        vehicle.userData.turnCooldown = Math.max(0, (vehicle.userData.turnCooldown || 0) - vehicleDt);
         const travel = route.max - route.min;
         let speedFactor = 1;
         let targetOffset = 0;
@@ -19017,15 +19600,15 @@ let landingRecoveryTimer = 0;
         vehicle.userData.currentSpeed = THREE.MathUtils.lerp(
           vehicle.userData.currentSpeed,
           vehicle.userData.speed * speedFactor,
-          1 - Math.exp(-3.8 * dt)
+          1 - Math.exp(-3.8 * vehicleDt)
         );
         vehicle.userData.avoidanceOffset = THREE.MathUtils.lerp(
           vehicle.userData.avoidanceOffset,
           targetOffset,
-          1 - Math.exp(-2.6 * dt)
+          1 - Math.exp(-2.6 * vehicleDt)
         );
         const previousOffset = vehicle.userData.previousAvoidanceOffset ?? 0;
-        const lateralVelocity = (vehicle.userData.avoidanceOffset - previousOffset) / Math.max(dt, .001);
+        const lateralVelocity = (vehicle.userData.avoidanceOffset - previousOffset) / Math.max(vehicleDt, .001);
         vehicle.userData.previousAvoidanceOffset = vehicle.userData.avoidanceOffset;
         if (evacuationThreat && vehicle.userData.currentSpeed < 2.2 && !vehicle.userData.evacuated) {
           const passenger = evacuees[vehicle.userData.passengerIndex];
@@ -19040,12 +19623,12 @@ let landingRecoveryTimer = 0;
           vehicle.userData.evacuated = true;
         }
         let value = route.axis === 'z' ? vehicle.position.z : vehicle.position.x;
-        value += vehicle.userData.currentSpeed * route.direction * dt;
+        value += vehicle.userData.currentSpeed * route.direction * vehicleDt;
         if (vehicle.userData.turnCooldown <= 0) {
           let intersection = null;
           if (route.axis === 'z') {
-            intersection = [-34, -66].find(z => Math.abs(value - z) < vehicle.userData.currentSpeed * dt + .55);
-          } else if (Math.abs(value) < vehicle.userData.currentSpeed * dt + .55) {
+            intersection = [-34, -66].find(z => Math.abs(value - z) < vehicle.userData.currentSpeed * vehicleDt + .55);
+          } else if (Math.abs(value) < vehicle.userData.currentSpeed * vehicleDt + .55) {
             intersection = route.lane < -50 ? -66 : -34;
           }
           if (intersection !== null && Math.random() < .48) {
@@ -19104,9 +19687,9 @@ let landingRecoveryTimer = 0;
           -.32,
           .32
         );
-        vehicle.rotation.y = THREE.MathUtils.lerp(vehicle.rotation.y, routeYaw + steerAngle, 1 - Math.exp(-7 * dt));
+        vehicle.rotation.y = THREE.MathUtils.lerp(vehicle.rotation.y, routeYaw + steerAngle, 1 - Math.exp(-7 * vehicleDt));
         for (const wheelPivot of vehicle.userData.frontWheelPivots || []) {
-          wheelPivot.rotation.y = THREE.MathUtils.lerp(wheelPivot.rotation.y, steerAngle * 1.7, 1 - Math.exp(-11 * dt));
+          wheelPivot.rotation.y = THREE.MathUtils.lerp(wheelPivot.rotation.y, steerAngle * 1.7, 1 - Math.exp(-11 * vehicleDt));
         }
         if (vehicle.userData.warningBeacon) {
           const pulse = .5 + .5 * Math.sin(performance.now() * .008 + vehicle.userData.warningPhase);
@@ -19337,10 +19920,37 @@ let landingRecoveryTimer = 0;
       return root;
     }
 
+    function disposeDreadnoughtSkyShip(root) {
+      if (!root) return;
+      const geometries = new Set();
+      const materials = new Set();
+      root.traverse(object => {
+        if (object.geometry) geometries.add(object.geometry);
+        if (Array.isArray(object.material)) object.material.forEach(material => materials.add(material));
+        else if (object.material) materials.add(object.material);
+      });
+      root.parent?.remove(root);
+      geometries.forEach(geometry => geometry.dispose());
+      materials.forEach(material => {
+        material.map?.dispose();
+        material.dispose();
+      });
+    }
+
+    function rebuildDreadnoughtSkyShip() {
+      if (!dreadnoughtSkyShip) return;
+      const previous = dreadnoughtSkyShip;
+      dreadnoughtSkyShip = null;
+      disposeDreadnoughtSkyShip(previous);
+      createDreadnoughtSkyShip();
+    }
+
     function createDreadnoughtSkyShip() {
       if (dreadnoughtSkyShip) return dreadnoughtSkyShip;
       {
-        const ship = createSciFiBattlecruiserModel({ castShadow: false, receiveShadow: false });
+        const ship = dreadnoughtSkyShipQuality === 'high'
+          ? createDreadnoughtHighPolyModel({ castShadow: false, receiveShadow: false })
+          : createSciFiBattlecruiserModel({ castShadow: false, receiveShadow: false });
         ship.name = 'DreadnoughtSkyShip';
         // The source model's local Z axis is the ship length; stretch only
         // that axis so the cruiser becomes longer without growing taller.
@@ -19468,10 +20078,8 @@ let landingRecoveryTimer = 0;
       }
     }
 
-    // Barrier LOD: full detail to 30m, medium detail to 100m, then only
-    // the large structural reinforcement meshes remain visible.
-    const DANGER_BARRIER_DETAIL_DISTANCE_SQ = 30 * 30;
-    const DANGER_BARRIER_DETAIL_FAR_DISTANCE_SQ = 100 * 100;
+    // Barrier LOD: full detail to the near distance, reduced detail to the
+    // medium distance, then only large structural reinforcement meshes remain.
     function updateDangerBarrierLod() {
       if (!dangerBarrierGroup || !envGroup.visible || !dangerBarrierLodDetailMeshes.length) return;
       const cameraWorld = camera.getWorldPosition(dangerBarrierLodCameraScratch);
@@ -19490,26 +20098,80 @@ let landingRecoveryTimer = 0;
         const dy = dangerBarrierLodScratch.y - cameraWorld.y;
         const dz = dangerBarrierLodScratch.z - cameraWorld.z;
         const distanceSq = dx * dx + dy * dy + dz * dz;
-        const shouldRender = distanceSq <= DANGER_BARRIER_DETAIL_DISTANCE_SQ
+        const detailSize = Number(detail.userData.barrierLodDetailSize || 0);
+        const keepAtDistance = detailSize > dangerBarrierLod2MinSize;
+        const keepAtFar = detail.userData.barrierLodKeepAtFar === true;
+        const nearDistanceSq = dangerBarrierLodNearDistance * dangerBarrierLodNearDistance;
+        const mediumDistanceSq = dangerBarrierLodMediumDistance * dangerBarrierLodMediumDistance;
+        const shouldRender = distanceSq <= nearDistanceSq
           ? true
-          : distanceSq <= DANGER_BARRIER_DETAIL_FAR_DISTANCE_SQ
-            ? detail.userData.barrierLodKeepAtDistance === true
-            : detail.userData.barrierLodKeepAtFar === true;
+          : distanceSq <= mediumDistanceSq
+            ? keepAtDistance
+            : keepAtFar;
         detail.visible = shouldRender;
         detail.castShadow = shouldRender && detail.userData.barrierLodCastShadow === true;
         detail.receiveShadow = shouldRender && detail.userData.barrierLodReceiveShadow === true;
       }
     }
 
-    const TREE_BRANCH_RENDER_DISTANCE_SQ = 50 * 50;
     const hiddenTreeBranchMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
+    function updateCityDecorDistanceVisibility() {
+      if (!envGroup.visible || (!cityDecorCullObjects.length && !cityDecorCullInstancedObjects.length)) return;
+      const distanceSq = cityDecorCullDistance * cityDecorCullDistance;
+      for (const object of cityDecorCullObjects) {
+        if (!object?.parent) continue;
+        object.getWorldPosition(cityDecorCullPositionScratch);
+        const inRange = cityDecorCullPositionScratch.distanceToSquared(camera.position) <= distanceSq;
+        const baseVisible = object.userData.cityDecorCullBaseVisible !== false;
+        const shouldRender = baseVisible && inRange;
+        if (object.userData.cityDecorDistanceCulled === !shouldRender) continue;
+        object.userData.cityDecorDistanceCulled = !shouldRender;
+        object.visible = shouldRender;
+      }
+      for (const object of cityDecorCullInstancedObjects) {
+        if (!object?.parent || !object.userData.cityDecorCullCenter) continue;
+        const center = object.userData.cityDecorCullCenter;
+        const radius = object.userData.cityDecorCullRadius || 0;
+        const dx = camera.position.x - center.x;
+        const dz = camera.position.z - center.z;
+        const allowedDistance = cityDecorCullDistance + radius;
+        const inRange = dx * dx + dz * dz <= allowedDistance * allowedDistance;
+        const baseVisible = object.userData.cityDecorCullBaseVisible !== false;
+        const shouldRender = baseVisible && inRange;
+        if (object.userData.cityDecorDistanceCulled === !shouldRender) continue;
+        object.userData.cityDecorDistanceCulled = !shouldRender;
+        object.visible = shouldRender;
+      }
+    }
+
+    const hiddenStreetlightMatrix = new THREE.Matrix4().makeScale(0, 0, 0);
+    function updateStreetlightDistanceVisibility() {
+      if (!envGroup.visible || !streetlightMeshes.length || !streetlightVisibility.length) return;
+      const distanceSq = streetlightCullDistance * streetlightCullDistance;
+      for (let index = 0; index < destructibleStreetlights.length; index++) {
+        const light = destructibleStreetlights[index];
+        const dx = camera.position.x - light.position.x;
+        const dz = camera.position.z - light.position.z;
+        const shouldRender = light.alive && dx * dx + dz * dz <= distanceSq;
+        if (streetlightVisibility[index] === shouldRender) continue;
+        streetlightVisibility[index] = shouldRender;
+        for (let meshIndex = 0; meshIndex < streetlightMeshes.length; meshIndex++) {
+          streetlightMeshes[meshIndex].setMatrixAt(
+            index,
+            shouldRender ? streetlightSourceMatrices[meshIndex][index] : hiddenStreetlightMatrix
+          );
+          streetlightMeshes[meshIndex].instanceMatrix.needsUpdate = true;
+        }
+      }
+    }
+
     function updateTreeBranchVisibility() {
       if (!envGroup.visible || !treeBranches.length || !treeBranchVisibility.length) return;
       for (let index = 0; index < destructibleTrees.length; index++) {
         const tree = destructibleTrees[index];
         const dx = camera.position.x - tree.position.x;
         const dz = camera.position.z - tree.position.z;
-        const shouldRender = tree.alive && dx * dx + dz * dz <= TREE_BRANCH_RENDER_DISTANCE_SQ;
+        const shouldRender = tree.alive && dx * dx + dz * dz <= treeCullDistance * treeCullDistance;
         if (treeBranchVisibility[index] === shouldRender) continue;
         treeBranchVisibility[index] = shouldRender;
         for (let meshIndex = 0; meshIndex < treeBranches.length; meshIndex++) {
@@ -19520,6 +20182,8 @@ let landingRecoveryTimer = 0;
           treeBranches[meshIndex].instanceMatrix.needsUpdate = true;
         }
       }
+      updateCityDecorDistanceVisibility();
+      updateStreetlightDistanceVisibility();
       // Branch bounds are intentionally kept stable. Rebuilding a bounding
       // sphere for every visibility toggle caused a CPU spike and is not
       // needed because branch meshes are excluded from frustum culling.
@@ -20146,6 +20810,124 @@ let landingRecoveryTimer = 0;
       );
     }
 
+    const sharedAINavigationGrid = (() => {
+      const config = window.MECHA_AI_CONFIG?.PATHFINDING || { GRID_SIZE: 4, ARENA_LIMIT: 78 };
+      const width = Math.floor(config.ARENA_LIMIT * 2 / config.GRID_SIZE) + 1;
+      return {
+        gridSize: config.GRID_SIZE,
+        limit: config.ARENA_LIMIT,
+        width,
+        blocked: new Int8Array(width * width),
+        ready: false,
+        version: 0
+      };
+    })();
+    let aiNavigationPrewarmedVersion = -1;
+
+    function rebuildSharedAINavigationGrid() {
+      const grid = sharedAINavigationGrid;
+      const { gridSize, limit, width, blocked } = grid;
+      for (let zIndex = 0; zIndex < width; zIndex++) {
+        const worldZ = -limit + zIndex * gridSize;
+        for (let xIndex = 0; xIndex < width; xIndex++) {
+          const worldX = -limit + xIndex * gridSize;
+          blocked[zIndex * width + xIndex] = cpuNavigationBlocked(worldX, worldZ, 2.05) ? 1 : 0;
+        }
+      }
+      grid.ready = true;
+      grid.version++;
+    }
+
+    function refreshSharedAINavigationGridForBuilding(buildingId) {
+      const bounds = buildingBounds.find(entry => entry.buildingId === buildingId);
+      if (!bounds) return;
+      const grid = sharedAINavigationGrid;
+      const radius = 2.05;
+      const minX = Math.max(0, Math.floor((bounds.x - bounds.halfX - radius + grid.limit) / grid.gridSize));
+      const maxX = Math.min(grid.width - 1, Math.ceil((bounds.x + bounds.halfX + radius + grid.limit) / grid.gridSize));
+      const minZ = Math.max(0, Math.floor((bounds.z - bounds.halfZ - radius + grid.limit) / grid.gridSize));
+      const maxZ = Math.min(grid.width - 1, Math.ceil((bounds.z + bounds.halfZ + radius + grid.limit) / grid.gridSize));
+      for (let zIndex = minZ; zIndex <= maxZ; zIndex++) {
+        const worldZ = -grid.limit + zIndex * grid.gridSize;
+        for (let xIndex = minX; xIndex <= maxX; xIndex++) {
+          const worldX = -grid.limit + xIndex * grid.gridSize;
+          grid.blocked[zIndex * grid.width + xIndex] = cpuNavigationBlocked(worldX, worldZ, radius) ? 1 : 0;
+        }
+      }
+      grid.ready = true;
+      grid.version++;
+    }
+
+    function prewarmInitialAINavigation(iterations = 12) {
+      const grid = sharedAINavigationGrid;
+      if (!grid.ready) rebuildSharedAINavigationGrid();
+      if (aiNavigationPrewarmedVersion === grid.version) return;
+      const destination = player?.position;
+      if (!destination) return;
+      for (const ai of [enemyAI, enemyAI2]) {
+        if (typeof ai?.prewarmNavigation === 'function') {
+          ai.prewarmNavigation(destination, iterations);
+        }
+      }
+      aiNavigationPrewarmedVersion = grid.version;
+    }
+
+    // Drones share the same coarse footprint occupancy as CPU mechs. Their
+    // vertical flight is preserved; only the horizontal route is tested here.
+    // This keeps the cheap broad phase common to both navigators while the
+    // existing mech/building checks below still handle narrow corridors.
+    function sharedNavigationCellBlocked(x, z, radius = 1.4) {
+      const grid = sharedAINavigationGrid;
+      if (!grid.ready) return cpuNavigationBlocked(x, z, radius);
+      const centerX = Math.floor((x + grid.limit) / grid.gridSize);
+      const centerZ = Math.floor((z + grid.limit) / grid.gridSize);
+      const cellRadius = Math.max(1, Math.ceil(radius / grid.gridSize));
+      for (let zIndex = centerZ - cellRadius; zIndex <= centerZ + cellRadius; zIndex++) {
+        if (zIndex < 0 || zIndex >= grid.width) return true;
+        for (let xIndex = centerX - cellRadius; xIndex <= centerX + cellRadius; xIndex++) {
+          if (xIndex < 0 || xIndex >= grid.width) return true;
+          if (grid.blocked[zIndex * grid.width + xIndex]) return true;
+        }
+      }
+      return false;
+    }
+
+    function sharedNavigationLineClear(start, end, radius = 1.4) {
+      const dx = end.x - start.x;
+      const dz = end.z - start.z;
+      const steps = Math.max(1, Math.ceil(Math.hypot(dx, dz) / (sharedAINavigationGrid.gridSize * .6)));
+      for (let index = 0; index <= steps; index++) {
+        const ratio = index / steps;
+        if (sharedNavigationCellBlocked(start.x + dx * ratio, start.z + dz * ratio, radius)) return false;
+      }
+      return true;
+    }
+
+    function scheduleVehicleExplosion(vehicle, source, impulseDirection, delay = 1.1) {
+      if (!vehicle?.userData.alive || vehicle.userData.pendingExplosion) return;
+      vehicle.userData.pendingExplosion = true;
+      delayedVehicleExplosions.push({
+        vehicle,
+        source,
+        impulseDirection: impulseDirection.clone(),
+        remaining: Math.max(1.05, delay)
+      });
+    }
+
+    function updateDelayedVehicleExplosions(dt) {
+      for (let index = delayedVehicleExplosions.length - 1; index >= 0; index--) {
+        const pending = delayedVehicleExplosions[index];
+        pending.remaining -= dt;
+        if (pending.remaining > 0) continue;
+        delayedVehicleExplosions.splice(index, 1);
+        if (pending.vehicle.userData.alive) {
+          explodeVehicle(pending.vehicle, pending.source, pending.impulseDirection);
+        } else {
+          pending.vehicle.userData.pendingExplosion = false;
+        }
+      }
+    }
+
     function projectileHitsBuilding(position, velocity) {
       if (projectileHitsBarrier(position, velocity)) return true;
       if (projectileHitsVehicle(position, velocity, 'cpu')) return true;
@@ -20286,8 +21068,6 @@ let landingRecoveryTimer = 0;
       pendingSupportChecks.add(buildingId);
       const destroyedColumns = columns.filter(column => column.userData.buildingId === buildingId && column.userData.broken).length;
       if (block.userData.isColumn) showMessage(`MAIN COLUMNS ${destroyedColumns}/4 DESTROYED`);
-      if ((destroyedColumns === 2 || destroyedColumns === 3) && !collapsingBuildings.has(buildingId)) startBuildingTilt(buildingId);
-      if (destroyedColumns >= 4 && !collapsingBuildings.has(buildingId)) startCollapse(buildingId);
     }
 
     function detachUnsupportedBlock(block) {
@@ -20357,7 +21137,6 @@ let landingRecoveryTimer = 0;
           const supportingTopBlocks = topWallBlocks.filter(block => !block.userData.broken && !block.userData.removed).length;
           if (supportingTopBlocks < Math.max(2, topWallBlocks.length * .3)) detachUnsupportedBlock(roof);
         }
-        updateBuildingHealthBar(buildingId);
       }
       pendingSupportChecks.clear();
     }
@@ -20442,15 +21221,15 @@ let landingRecoveryTimer = 0;
       }
     }
 
-    function startBuildingTilt(buildingId) {
+    function startBuildingTilt(buildingId, damageStage = 0) {
       if (collapsingBuildings.has(buildingId)) return;
       const bounds = buildingBounds.find(entry => entry.buildingId === buildingId);
       if (!bounds) return;
       const destroyed = columns.filter(column =>
         column.userData.buildingId === buildingId && column.userData.broken
       );
-      if (destroyed.length < 2) return;
-      const isDiagonalCorrection = destroyed.length >= 3 && buildingTiltStates.has(buildingId);
+      if ((destroyed.length < 1 && damageStage < 1) || destroyed.length >= 4) return;
+      const tiltStage = Math.min(3, Math.max(destroyed.length, damageStage));
 
       const tiltDirection = new THREE.Vector3();
       for (const column of destroyed) {
@@ -20467,8 +21246,8 @@ let landingRecoveryTimer = 0;
         .35,
         bounds.z + tiltDirection.z * 2.4
       );
-      const dustScale = destroyed.length >= 3 ? .82 : .52;
-      const dustCount = destroyed.length >= 3 ? 20 : 8;
+      const dustScale = [0, .34, .52, .82][tiltStage];
+      const dustCount = [0, 4, 8, 20][tiltStage];
       const buildingHeight = 1.1 + ((buildingHealth.get(buildingId)?.floors || 10) - 1) * 1.55 + 1.35;
       spawnCollapseDust(dustOrigin, dustScale, dustCount, {
         x: bounds.x,
@@ -20493,13 +21272,17 @@ let landingRecoveryTimer = 0;
         buildingId,
         center: new THREE.Vector3(bounds.x, 0, bounds.z),
         axis: tiltAxis,
-        angle: THREE.MathUtils.degToRad(isDiagonalCorrection ? 8.5 : 6.5),
+        swayDirection: tiltDirection.clone(),
+        wobblePhase: buildingId * 1.73 + tiltStage * .61,
+        // Each lost yellow support adds to the lean. Rebuild the basis from
+        // the current intact blocks so the next stage grows progressively.
+        angle: THREE.MathUtils.degToRad([0, 3.2, 6.5, 10.5][tiltStage]),
         elapsed: 0,
-        duration: isDiagonalCorrection ? .9 : 1.1,
+        duration: [0, 1.25, 1.1, .95][tiltStage],
         entries
       });
-      showMessage('TWO MAIN COLUMNS LOST · STRUCTURE LEANING');
-      shake = Math.max(shake, .24);
+      showMessage(`${tiltStage} MAIN COLUMN${tiltStage > 1 ? 'S' : ''} LOST · STRUCTURE LEANING`);
+      shake = Math.max(shake, tiltStage === 1 ? .1 : tiltStage === 2 ? .18 : .24);
     }
 
     function updateBuildingTilts(dt) {
@@ -20511,12 +21294,24 @@ let landingRecoveryTimer = 0;
         state.elapsed = Math.min(state.duration, state.elapsed + dt);
         const progress = THREE.MathUtils.clamp(state.elapsed / state.duration, 0, 1);
         const eased = progress * progress * (3 - 2 * progress);
+        // Add a short damped sway so the building settles into the lean
+        // instead of rotating like a perfectly rigid keyframe.
+        const swayEnvelope = Math.sin(progress * Math.PI);
+        const wobble = Math.sin(state.elapsed * 18 + state.wobblePhase)
+          * .065 * swayEnvelope * (1 - progress * .35);
+        const swayOffset = state.swayDirection.clone().multiplyScalar(wobble);
+        swayOffset.y = Math.sin(state.elapsed * 21 + state.wobblePhase * .7)
+          * .018 * swayEnvelope;
+        const wobbleAngle = THREE.MathUtils.degToRad(.65)
+          * Math.sin(state.elapsed * 16 + state.wobblePhase + .8)
+          * swayEnvelope * (1 - progress * .4);
         const tilt = new THREE.Quaternion().setFromAxisAngle(state.axis, state.angle * eased);
+        tilt.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), wobbleAngle));
         for (const entry of state.entries) {
           const { block, startPosition, startQuaternion } = entry;
           if (block.userData.broken || block.userData.removed) continue;
           const relative = startPosition.clone().sub(state.center).applyQuaternion(tilt);
-          block.position.copy(state.center).add(relative);
+          block.position.copy(state.center).add(relative).add(swayOffset);
           block.quaternion.copy(tilt).multiply(startQuaternion);
         }
         if (progress >= 1) buildingTiltStates.delete(buildingId);
@@ -20547,7 +21342,6 @@ let landingRecoveryTimer = 0;
       if (health) {
         health.current = 0;
         if (health.sprite) health.sprite.visible = false;
-        updateBuildingHealthBar(buildingId);
       }
       showMessage('BUILDING COLLAPSE!');
       const bounds = buildingBounds.find(entry => entry.buildingId === buildingId);
@@ -21091,8 +21885,6 @@ if (!wasGrounded && grounded) {
       jetFlameOuterMat.color.setHex(dashJetsActive ? 0xff3217 : 0x1c9dff);
       jetFlameOuterMat.opacity = dashJetsActive ? .58 : .42;
       if (jetsActive) jetFlameNoiseTexture.offset.y = (jetFlameNoiseTexture.offset.y - dt * (dashJetsActive ? .9 : .55)) % 1;
-      dashBoostLight.color.setHex(dashJetsActive ? 0xff2b18 : 0x2d9dff);
-      dashBoostLight.intensity = dashJetsActive ? 72 : jetsActive ? 42 : 0;
       if (jetsActive) {
         jetpack.updateWorldMatrix(true, false);
         jetpack.getWorldQuaternion(jetpackWorldQuaternion).invert();
@@ -21215,7 +22007,10 @@ if (!wasGrounded && grounded) {
           locomotionSpeed,
           grounded: gaitGrounded,
           dashing,
-          airBoosting,
+          // Ground dash and air boost share one compact flight pose. This
+          // prevents the walking gait from leaving one leg extended during a
+          // dash, including the short dash-to-boost transition.
+          airBoosting: airBoosting || dashing,
           isReversing,
           turnRate,
           turnStability,
@@ -21414,6 +22209,11 @@ if (!wasGrounded && grounded) {
           } else if (piece.userData.streetlightDebrisPoolType) {
             piece.visible = false;
             streetlightDebrisPools[piece.userData.streetlightDebrisPoolType].push(piece);
+          } else if (piece.userData.poolType === 'disabledMechPart') {
+            piece.visible = false;
+            piece.geometry = null;
+            piece.material = null;
+            disabledMechPartPool.push(piece);
           }
           debris.splice(i, 1);
         }
@@ -21974,6 +22774,7 @@ if (!wasGrounded && grounded) {
     }
 
     const MECH_DEATH_SPLASH_RADIUS = 20;
+    const MECH_DEATH_WINDOW_SHATTER_MAX = 24;
     const MECH_DEATH_MAX_DAMAGE = 90;
     const MECH_DEATH_EFFECT_POOL_SIZE = 4;
     const MECH_DEATH_DEBRIS_POOL_SIZE = 48;
@@ -22022,11 +22823,39 @@ if (!wasGrounded && grounded) {
     for (let index = 0; index < MECH_DEATH_DEBRIS_POOL_SIZE; index++) {
       const piece = new THREE.Mesh(mechDeathDebrisGeometry, mechDeathDebrisMaterials[index % mechDeathDebrisMaterials.length].clone());
       piece.visible = false;
-      piece.userData.poolType = 'mechDeath';
+      piece.userData = {
+        poolType: 'mechDeath',
+        velocity: new THREE.Vector3(),
+        angularVelocity: new THREE.Vector3(),
+        life: 0,
+        maxLife: 4.2
+      };
       mechDeathDebrisPool.push(piece);
     }
 
-    function spawnMechDeathExplosion(position, primaryColor = 0x5ee7ff, splashSource = null) {
+    function spawnMechDeathDebris(position, primaryColor = 0x5ee7ff) {
+      const center = position.clone().add(new THREE.Vector3(0, 4.15, 0));
+      for (let i = 0; i < 12; i++) {
+        const piece = mechDeathDebrisPool.pop();
+        if (!piece) break;
+        piece.visible = true;
+        // Enemy destruction debris is intentionally larger and more readable
+        // than the tiny ambient fragments, while remaining pooled.
+        piece.scale.setScalar(.48 + Math.random() * .52);
+        piece.material.color.setHex(i % 3 === 2 ? primaryColor : i % 3 === 1 ? 0x48677f : 0x17212d);
+        if (i % 3 === 2) piece.material.emissive.setHex(primaryColor);
+        piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * 1.8, (Math.random() - .5) * 1.6));
+        piece.userData.velocity.set((Math.random() - .5) * 32, 14 + Math.random() * 20, (Math.random() - .5) * 32);
+        piece.userData.angularVelocity.set((Math.random() - .5) * 14, (Math.random() - .5) * 14, (Math.random() - .5) * 14);
+        piece.userData.life = 2.8 + Math.random() * 1.4;
+        piece.userData.maxLife = 4.2;
+        scene.add(piece);
+        debris.push(piece);
+      }
+    }
+
+    function spawnMechDeathExplosion(position, primaryColor = 0x5ee7ff, splashSource = null, options = {}) {
+      const { screenShake = true, shatterWindows = true, delay = .42 } = options;
       const center = position.clone().add(new THREE.Vector3(0, 4.15, 0));
       const group = mechDeathEffectPool.pop();
       if (!group) return;
@@ -22050,7 +22879,7 @@ if (!wasGrounded && grounded) {
       light.intensity = 28;
       group.userData = {
         elapsed: 0,
-        delay: .42,
+        delay,
         duration: 1.32,
         exploded: false,
         primaryColor,
@@ -22063,28 +22892,16 @@ if (!wasGrounded && grounded) {
       group.visible = true;
       scene.add(group);
       mechDeathEffects.push(group);
-      for (let i = 0; i < 12; i++) {
-        const piece = mechDeathDebrisPool.pop();
-        if (!piece) break;
-        piece.visible = true;
-        piece.scale.setScalar(.22 + Math.random() * .38);
-        piece.material.color.setHex(i % 3 === 2 ? primaryColor : i % 3 === 1 ? 0x48677f : 0x17212d);
-        if (i % 3 === 2) piece.material.emissive.setHex(primaryColor);
-        piece.position.copy(center).add(new THREE.Vector3((Math.random() - .5) * 1.6, Math.random() * 1.8, (Math.random() - .5) * 1.6));
-        piece.userData = {
-          poolType: 'mechDeath',
-          velocity: new THREE.Vector3((Math.random() - .5) * 28, 12 + Math.random() * 18, (Math.random() - .5) * 28),
-          angularVelocity: new THREE.Vector3((Math.random() - .5) * 14, (Math.random() - .5) * 14, (Math.random() - .5) * 14),
-          life: 2.8 + Math.random() * 1.4,
-          maxLife: 4.2
-        };
-        scene.add(piece);
-        debris.push(piece);
+      spawnMechDeathDebris(position, primaryColor);
+      if (shatterWindows) {
+        const windowBlastCenter = center.clone();
+        windowBlastCenter.y = 0;
+        shatterWindowsInRadius(windowBlastCenter, new THREE.Vector3(0, 1, 0), MECH_DEATH_SPLASH_RADIUS * 1.35, MECH_DEATH_WINDOW_SHATTER_MAX);
       }
-      const windowBlastCenter = center.clone();
-      windowBlastCenter.y = 0;
-      shatterWindowsInRadius(windowBlastCenter, new THREE.Vector3(0, 1, 0), MECH_DEATH_SPLASH_RADIUS * 1.35, 48);
-      shake = Math.max(shake, 1.35);
+      if (screenShake) {
+        const shakeStrength = typeof screenShake === 'number' ? screenShake : 1.35;
+        shake = Math.max(shake, shakeStrength);
+      }
     }
 
     function getScatteredMechPartSources() {
@@ -22240,7 +23057,15 @@ if (!wasGrounded && grounded) {
       // Vehicles, Trees, Streetlights
       for (const vehicle of trafficVehicles) {
         if (!vehicle.userData.alive || getRadialFalloff(vehicle.position) <= 0) continue;
-        explodeVehicle(vehicle, sourceKey === 'player' ? 'player' : 'cpu', impulseFrom(vehicle.position));
+        // A mech core blast should not erase nearby traffic on the same
+        // frame. Keep the cars visible for at least one second, then stagger
+        // their pooled explosions so the blast reads as a delayed chain.
+        scheduleVehicleExplosion(
+          vehicle,
+          sourceKey === 'player' ? 'player' : 'cpu',
+          impulseFrom(vehicle.position),
+          1.1 + Math.random() * .45
+        );
       }
       for (let index = 0; index < destructibleTrees.length; index++) {
         const tree = destructibleTrees[index];
@@ -22502,19 +23327,28 @@ if (!wasGrounded && grounded) {
       // inherited rotation from its previous collection cycle.
       setPickupUpright(item);
       const now = performance.now();
+      if (item.userData.boostUnlockDelayed && !boostItemsUnlocked) {
+        item.visible = false;
+        return false;
+      }
       if (!item.userData.respawnAt) {
-        if (!item.visible) return false;
         if (!item.userData.relocateAt) item.userData.relocateAt = now + PICKUP_STAY_MS;
-        if (now < item.userData.relocateAt) return true;
+        if (now < item.userData.relocateAt) {
+          applyPickupDistanceVisibility(item);
+          return true;
+        }
       } else {
-        if (now < item.userData.respawnAt) return false;
+        if (now < item.userData.respawnAt) {
+          item.visible = false;
+          return false;
+        }
       }
       const spawn = getRandomItemPoint();
       item.position.set(spawn.x, item.userData.baseY, spawn.z);
       item.userData.phase = Math.random() * Math.PI * 2;
       item.userData.respawnAt = 0;
       item.userData.relocateAt = now + PICKUP_STAY_MS;
-      item.visible = true;
+      applyPickupDistanceVisibility(item);
       return true;
     }
 
@@ -22539,7 +23373,7 @@ if (!wasGrounded && grounded) {
         item.userData.phase = Math.random() * Math.PI * 2;
         item.userData.respawnAt = 0;
         item.userData.relocateAt = now + PICKUP_STAY_MS;
-        item.visible = true;
+        item.visible = itemsRenderEnabled;
       }
       showMessage('BOOST ITEMS DEPLOYED');
     }
@@ -22801,6 +23635,10 @@ if (!wasGrounded && grounded) {
         formationSlot,
         phase: Math.random() * Math.PI * 2,
         active: true,
+        destructionVelocity: new THREE.Vector3(),
+        destructionAngularVelocity: new THREE.Vector3(),
+        destructionTimer: 0,
+        destructionGrounded: false,
         healthBar,
         lastHealthRatio: -1
       };
@@ -22823,21 +23661,55 @@ if (!wasGrounded && grounded) {
     }
 
     function destroyDroneCompanion(companion, message = true) {
-      if (!companion?.active) return;
+      if (!companion?.active || companion.destructionPending) return;
       companion.active = false;
-      companion.group.visible = false;
-      scene.remove(companion.group);
-      companion.healthBar?.material.map?.dispose();
-      companion.healthBar?.material.dispose();
+      companion.destructionPending = true;
+      companion.destructionGrounded = false;
+      companion.destructionTimer = 0;
+      companion.destructionVelocity.set((Math.random() - .5) * 2.4, -1.5, (Math.random() - .5) * 2.4);
+      companion.destructionAngularVelocity.set((Math.random() - .5) * 4, (Math.random() - .5) * 4, (Math.random() - .5) * 4);
+      companion.healthBar && (companion.healthBar.visible = false);
+      // Keep the visual in the scene while it falls. The group and its
+      // health-bar resources are released only after the delayed blast.
+      scene.add(companion.group);
       if (companion.ownerAI) {
         companion.ownerAI.droneCompanions = (companion.ownerAI.droneCompanions || []).filter(entry => entry !== companion);
       } else {
         const index = playerDroneCompanions.indexOf(companion);
         if (index >= 0) playerDroneCompanions.splice(index, 1);
       }
-      // Drone destruction gets a larger final blast than a normal hit.
-      spawnExplosionEffect(companion.group.position.clone(), 2.55);
+      droneDestructionEffects.push(companion);
       if (message) showMessage(companion.ownerAI ? 'CPU DRONE DESTROYED' : 'DRONE DESTROYED');
+    }
+
+    function updateDroneDestructionEffects(dt) {
+      for (let index = droneDestructionEffects.length - 1; index >= 0; index--) {
+        const companion = droneDestructionEffects[index];
+        const group = companion.group;
+        if (!companion.destructionGrounded) {
+          companion.destructionVelocity.y -= 22 * dt;
+          group.position.addScaledVector(companion.destructionVelocity, dt);
+          group.rotation.x += companion.destructionAngularVelocity.x * dt;
+          group.rotation.y += companion.destructionAngularVelocity.y * dt;
+          group.rotation.z += companion.destructionAngularVelocity.z * dt;
+          if (group.position.y <= .28) {
+            group.position.y = .28;
+            companion.destructionVelocity.set(0, 0, 0);
+            companion.destructionAngularVelocity.multiplyScalar(.18);
+            companion.destructionGrounded = true;
+            companion.destructionTimer = .34;
+          }
+          continue;
+        }
+        companion.destructionTimer -= dt;
+        if (companion.destructionTimer > 0) continue;
+        spawnExplosionEffect(group.position.clone(), 2.55);
+        scene.remove(group);
+        group.visible = false;
+        companion.healthBar?.material.map?.dispose();
+        companion.healthBar?.material.dispose();
+        droneDestructionEffects.splice(index, 1);
+      }
     }
 
     function destroyDroneCompanionsForOwner(ownerAI = null) {
@@ -22921,9 +23793,15 @@ if (!wasGrounded && grounded) {
       }
       result.x = THREE.MathUtils.clamp(result.x, -arenaHalfSize + 4, arenaHalfSize - 4);
       result.z = THREE.MathUtils.clamp(result.z, -arenaHalfSize + 4, arenaHalfSize - 4);
-      const blockingBounds = buildingBounds.filter(bounds =>
-        !collapsingBuildings.has(bounds.buildingId) && dronePathHitsBounds(position, result, bounds)
-      );
+      // Use the shared AI occupancy grid as the first broad phase. Most drone
+      // frames are clear and avoid scanning every building footprint; only a
+      // grid hit falls through to the precise bounds/corner routing below.
+      const sharedPathBlocked = !sharedNavigationLineClear(position, result, 1.4);
+      const blockingBounds = sharedPathBlocked
+        ? buildingBounds.filter(bounds =>
+          !collapsingBuildings.has(bounds.buildingId) && dronePathHitsBounds(position, result, bounds)
+        )
+        : [];
       const pathCutsThroughMech = mechPosition && dronePathHitsMech(position, result, mechPosition, mechAvoidRadius);
       if (!blockingBounds.length && !pathCutsThroughMech) return result;
 
@@ -22935,6 +23813,7 @@ if (!wasGrounded && grounded) {
         for (const x of [bounds.x - bounds.halfX - margin, bounds.x + bounds.halfX + margin]) {
           for (const z of [bounds.z - bounds.halfZ - margin, bounds.z + bounds.halfZ + margin]) {
             const candidate = new THREE.Vector3(x, result.y, z);
+            if (!sharedNavigationLineClear(position, candidate, 1.2)) continue;
             if (buildingBounds.some(other =>
               !collapsingBuildings.has(other.buildingId) && dronePathHitsBounds(position, candidate, other, 1.2)
             )) continue;
@@ -22946,15 +23825,17 @@ if (!wasGrounded && grounded) {
         const preferredAngle = Math.atan2(result.z - mechPosition.z, result.x - mechPosition.x);
         for (let index = 0; index < 8; index++) {
           const angle = preferredAngle + (index - 3.5) * (Math.PI * 2 / 8);
-          candidates.push(new THREE.Vector3(
+          const candidate = new THREE.Vector3(
             mechPosition.x + Math.cos(angle) * (mechAvoidRadius + 2.5),
             result.y,
             mechPosition.z + Math.sin(angle) * (mechAvoidRadius + 2.5)
-          ));
+          );
+          if (sharedNavigationLineClear(position, candidate, 1.2)) candidates.push(candidate);
         }
       }
       if (!candidates.length) return result;
       const clearCandidates = candidates.filter(candidate =>
+        sharedNavigationLineClear(position, candidate, 1.2) &&
         !buildingBounds.some(other =>
           !collapsingBuildings.has(other.buildingId) && dronePathHitsBounds(position, candidate, other, 1.2)
         ) && (!mechPosition || !dronePathHitsMech(position, candidate, mechPosition, mechAvoidRadius))
@@ -23158,6 +24039,13 @@ if (!wasGrounded && grounded) {
     function updateAimTarget(dt = 0) {
       const aimMarker = document.getElementById('aimMarker');
       const lockReticle = document.getElementById('lockReticle');
+      if (freeCamActive) {
+        autoLockProgress = 0;
+        lockOnActive = false;
+        aimMarker.style.display = 'none';
+        lockReticle.style.display = 'none';
+        return;
+      }
       if (!battleStarted || matchOver || titleActive || hangarActive || hangarLaunching) {
         autoLockProgress = 0;
         lockOnActive = false;
@@ -23288,7 +24176,12 @@ if (!wasGrounded && grounded) {
       const segmentLengthSq = segmentX * segmentX + segmentY * segmentY + segmentZ * segmentZ;
       if (segmentLengthSq < .01) return;
       cameraOcclusionCandidates.length = 0;
-      for (const block of blocks) cameraOcclusionCandidates.push(block);
+      // Broad-phase first: only structural blocks belonging to buildings
+      // whose X/Z bounds overlap the camera-to-mech segment are candidates.
+      // This avoids rescanning every block in the city every 83ms.
+      cameraOcclusionCandidates.push(
+        ...collectBuildingCollisionCandidates(camera.position, camTarget, 1.25)
+      );
       for (const barrierMesh of dangerBarrierCameraOccluders) cameraOcclusionCandidates.push(barrierMesh);
       for (const block of cameraOcclusionCandidates) {
         if (block.userData.removed || !block.visible || block.userData.cameraNoFade) continue;
@@ -23318,16 +24211,9 @@ if (!wasGrounded && grounded) {
         if (!block.userData.cameraOriginalMaterial) {
           block.userData.cameraOriginalMaterial = block.material;
         }
-        if (!block.userData.cameraFadeMaterial) {
-          const fadedMaterials = materials.map(material => {
-            const faded = material.clone();
-            faded.transparent = true;
-            faded.opacity = .22;
-            faded.depthWrite = false;
-            return faded;
-          });
-          block.userData.cameraFadeMaterial = Array.isArray(sourceMaterial) ? fadedMaterials : fadedMaterials[0];
-        }
+        // The fade variant was created in registerBlock(). Keep this path a
+        // material reference swap only, with zero clone/allocation work.
+        if (!block.userData.cameraFadeMaterial) continue;
         block.material = block.userData.cameraFadeMaterial;
         cameraFadedObjects.add(block);
       }
@@ -23688,10 +24574,14 @@ if (!wasGrounded && grounded) {
       document.getElementById('boostText').textContent = Math.ceil(boostEnergy);
       updatePlayerStatusHud();
       document.getElementById('homingAmmoText').textContent = homingMissileAmmo;
-      const totalSeconds = Math.ceil(matchTimeRemaining);
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      document.getElementById('matchTimer').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      if (battlefieldDebugMode) {
+        document.getElementById('matchTimer').textContent = 'NO LIMIT';
+      } else {
+        const totalSeconds = Math.ceil(matchTimeRemaining);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        document.getElementById('matchTimer').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+      }
       document.getElementById('playerKillsText').textContent = playerKills;
       document.getElementById('cpuKillsText').textContent = cpuKills;
     }
@@ -24107,7 +24997,7 @@ if (!wasGrounded && grounded) {
       waistCoreAssembly.rotation.set(0, 0, 0);
       waistCoreAssembly.scale.set(1, 1, 1);
       shieldBubble.reset();
-      player.visible = true;
+      player.visible = !playerMechaHidden;
       clearPlayerShells();
       for (const ai of [enemyAI, enemyAI2]) {
         if (!ai) continue;
@@ -24116,6 +25006,8 @@ if (!wasGrounded && grounded) {
       }
       createDangerZoneBarrier();
       createBuilding();
+      rebuildSharedAINavigationGrid();
+      applyAllInitialVisualSettings();
       player.position.copy(getFormationSpawn('player'));
       player.rotation.y = yaw;
       player.updateWorldMatrix(true, true);
@@ -24152,6 +25044,10 @@ if (!wasGrounded && grounded) {
     }
 
     function updateMatchTimer(dt) {
+      if (battlefieldDebugMode) {
+        matchTimeRemaining = Infinity;
+        return;
+      }
       if (matchOver) return;
       matchTimeRemaining = Math.max(0, matchTimeRemaining - dt);
       if (matchTimeRemaining <= 0) {
@@ -24341,6 +25237,21 @@ if (!wasGrounded && grounded) {
       }
     }
 
+function createDisabledMechPartPool() {
+  if (disabledMechPartPool.length) return;
+  for (let index = 0; index < 12; index++) {
+    const piece = new THREE.Mesh();
+    piece.visible = false;
+    piece.userData = {
+      poolType: 'disabledMechPart',
+      velocity: new THREE.Vector3(),
+      angularVelocity: new THREE.Vector3(),
+      life: 0
+    };
+    disabledMechPartPool.push(piece);
+  }
+}
+
 function detachDisabledMechPart(partKey, impactPosition = null) {
   if (disabledMechParts.has(partKey)) return;
   if (partKey === 'legs') {
@@ -24381,8 +25292,12 @@ function detachDisabledMechPart(partKey, impactPosition = null) {
   }
   for (const mesh of chunks.slice(0, 12)) {
     mesh.updateWorldMatrix(true, false);
-    const piece = mesh.clone();
-    piece.material = Array.isArray(mesh.material) ? mesh.material.map(material => material.clone()) : mesh.material.clone();
+    const piece = disabledMechPartPool.pop();
+    if (!piece) break;
+    // Reuse a preallocated Mesh shell and the source geometry/material
+    // references. No clone or Material allocation occurs on the lethal hit.
+    piece.geometry = mesh.geometry;
+    piece.material = mesh.material;
     piece.position.copy(mesh.getWorldPosition(new THREE.Vector3()));
     piece.quaternion.copy(mesh.getWorldQuaternion(new THREE.Quaternion()));
     piece.scale.copy(mesh.getWorldScale(new THREE.Vector3()));
@@ -24401,6 +25316,8 @@ function detachDisabledMechPart(partKey, impactPosition = null) {
   }
   showMessage(`${partKey.toUpperCase()} PART DESTROYED`);
 }
+
+createDisabledMechPartPool();
 
 function restoreDisabledMechParts() {
   for (const [source, wasVisible] of disabledMechPartSources) source.visible = wasVisible;
@@ -24671,7 +25588,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       arrivalGateRight.position.x = 0;
       arrivalGateGroup.visible = true;
       player.position.y = BATTLE_ELEVATOR_BOTTOM_Y;
-      player.visible = true;
+      player.visible = !playerMechaHidden;
       playerRespawnElevatorTimer = 1.8;
       playerRespawnGateTimer = 0;
       playerDestroyed = true;
@@ -24711,16 +25628,41 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       const badge = document.getElementById('freeCamBadge');
       const btn = document.getElementById('freeCamButton');
       if (freeCamActive) {
+        freeCamPlayActive = false;
+        paused = true;
+        pauseFrameRendered = false;
         freeCamPos.copy(camera.position);
         freeCamYaw = yaw;
         freeCamPitch = pitch;
+        document.body.classList.add('free-camera-mode');
+        clearTimeout(freeCamBadgeTimer);
+        if (badge) {
+          badge.innerHTML = `
+            <div class="free-cam-title">🎥 FREE CAMERA MODE</div>
+            <div class="free-cam-controls">
+              <span><strong>W A S D</strong> 이동</span>
+              <span><strong>Space / Ctrl</strong> 상승 / 하강</span>
+              <span><strong>Shift</strong> 고속 비행</span>
+              <span><strong>Y</strong> 게임 재개</span>
+              <span><strong>P</strong> 프리카메라 종료</span>
+            </div>`;
+        }
         if (badge) badge.classList.add('active');
+        freeCamBadgeTimer = setTimeout(() => badge?.classList.remove('active'), 3600);
         if (btn) btn.classList.add('active');
+        setGameplayAudioPaused(true);
         renderer.domElement.requestPointerLock();
         showMessage('FREE CAMERA MODE (PAUSED)');
       } else {
+        freeCamPlayActive = false;
+        paused = false;
+        pauseFrameRendered = false;
+        document.body.classList.remove('free-camera-mode');
+        clearTimeout(freeCamBadgeTimer);
         if (badge) badge.classList.remove('active');
         if (btn) btn.classList.remove('active');
+        setGameplayAudioPaused(false);
+        if (document.pointerLockElement) document.exitPointerLock();
         showMessage('FREE CAMERA EXIT · RESUMED');
       }
     }
@@ -24757,8 +25699,13 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
 
     function togglePause() {
       if (matchOver && victoryCelebrationActive) return;
-      if (freeCamActive) toggleFreeCamera();
+      if (freeCamActive) {
+        toggleFreeCamera();
+        return;
+      }
       paused = !paused;
+      if (!paused) closePauseSettings();
+      setGameplayAudioPaused(paused);
       pauseFrameRendered = false;
       document.getElementById('pauseButton').textContent = paused ? '계속하기 (P)' : '일시정지 (P)';
       document.getElementById('pauseOverlay').classList.toggle('active', paused);
@@ -24767,10 +25714,20 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       showMessage(paused ? 'PAUSED' : 'RESUME');
     }
 
+    function closePauseSettings() {
+      document.body.classList.remove('pause-audio-open');
+      document.getElementById('visualSettings')?.classList.remove('active');
+      const gaitPanel = document.getElementById('gaitTuningPanel');
+      const gaitToggle = document.getElementById('gaitTuningToggle');
+      if (gaitPanel) gaitPanel.style.display = 'none';
+      if (gaitToggle) gaitToggle.style.display = '';
+    }
+
     function returnToTitleFromPause(event) {
       event?.stopPropagation();
       if (!paused) return;
       if (freeCamActive) toggleFreeCamera();
+      closePauseSettings();
       // Do not carry the cockpit camera state into the title/hangar view.
       cockpitCameraActive = false;
       const cockpitButton = document.getElementById('cockpitCameraButton');
@@ -24778,6 +25735,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       if (cockpitButton) cockpitButton.textContent = '콕핏 시점';
       if (typeof releaseMobileInputs === 'function') releaseMobileInputs();
       paused = false;
+      setGameplayAudioPaused(false);
       document.getElementById('pauseOverlay').classList.remove('active');
       document.getElementById('pauseButton').textContent = '일시정지 (P)';
       if (document.pointerLockElement) document.exitPointerLock();
@@ -24803,6 +25761,27 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       showMessage('RETURNED TO TITLE');
     }
 
+    function replayMatchFromResult(event) {
+      event?.stopPropagation();
+      if (!victoryCelebrationActive) return;
+      const replayMode = currentGameMode;
+      const resultOverlay = document.getElementById('victoryCelebration');
+      loadSceneBeforeReveal('PREPARING NEXT MATCH', () => {
+        resetGame();
+        paused = false;
+        setGameplayAudioPaused(false);
+        titleActive = false;
+        titleIntroPlayed = true;
+        hangarLaunching = false;
+        resultOverlay?.classList.remove('active');
+        document.getElementById('titleScreen')?.classList.add('hidden');
+        document.getElementById('hangarOverlay')?.classList.add('hidden');
+        document.getElementById('modeSelectModal')?.classList.add('hidden');
+      }, () => {
+        launchBattleWithMode(replayMode);
+      });
+    }
+
     function resetGame() {
       if (freeCamActive) toggleFreeCamera();
       const resetCompanions = [
@@ -24817,6 +25796,13 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           companion.active = false;
         }
       }
+      for (const companion of droneDestructionEffects) {
+        scene.remove(companion.group);
+        companion.group.visible = false;
+        companion.healthBar?.material.map?.dispose();
+        companion.healthBar?.material.dispose();
+      }
+      droneDestructionEffects.length = 0;
       playerDroneCompanions.length = 0;
       if (enemyAI) enemyAI.droneCompanions = [];
       if (enemyAI2) enemyAI2.droneCompanions = [];
@@ -24942,7 +25928,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       playerDestroyed = false;
       playerRespawnTimer = 0;
       pendingPlayerDeathData = null;
-      player.visible = true;
+      player.visible = !playerMechaHidden;
       jetpack.visible = true;
       for (const flame of [...jetFlames, ...footBoostFlames]) flame.visible = false;
       clearPlayerShells();
@@ -24975,6 +25961,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       missileTrails.length = 0;
       createDangerZoneBarrier();
       createBuilding();
+      rebuildSharedAINavigationGrid();
+      applyAllInitialVisualSettings();
       player.position.copy(getFormationSpawn('player'));
       enemyAI?.reset();
       if (enemyAI2) {
@@ -24988,6 +25976,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     }
 
     createBuilding();
+    rebuildSharedAINavigationGrid();
     createDreadnoughtSkyShip();
     setStartupLoading(76, 'BUILDING CITY DEFENSE GRID');
     player.position.copy(getFormationSpawn('player'));
@@ -25054,7 +26043,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         rimColor: 0xffd2dc,
         shellScale: 1.035,
         thickness: .052,
-        waveAmplitude: .032
+        waveAmplitude: .032,
+        singleShell: true
       });
       const healthCanvas = document.createElement('canvas');
       healthCanvas.width = 256;
@@ -25154,6 +26144,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       target: player,
       isBlocked: cpuCollidesWithBuilding,
       isNavigationBlocked: cpuNavigationBlocked,
+      navigationGrid: sharedAINavigationGrid,
       isProjectileBlocked: projectileHitsBuilding,
       getBuildingTarget: getCpuBuildingTarget,
       getPickupTarget: getNearestPickup,
@@ -25170,7 +26161,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           showMessage('🚩 CPU DROPPED YOUR FLAG!');
         }
         destroyDroneCompanionsForOwner(enemyAI);
-        spawnMechDeathExplosion(position, 0xff4964, 'enemy-1');
+        spawnMechDeathExplosion(position, 0xff4964, 'enemy-1', { screenShake: .18, shatterWindows: false, delay: 0 });
         spawnEnemyLoot(position);
       },
       onStatus: health => {
@@ -25190,6 +26181,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       target: player,
       isBlocked: cpuCollidesWithBuilding,
       isNavigationBlocked: cpuNavigationBlocked,
+      navigationGrid: sharedAINavigationGrid,
       isProjectileBlocked: projectileHitsBuilding,
       getBuildingTarget: getCpuBuildingTarget,
       getPickupTarget: getNearestPickup,
@@ -25206,7 +26198,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           showMessage('🚩 CPU DROPPED YOUR FLAG!');
         }
         destroyDroneCompanionsForOwner(enemyAI2);
-        spawnMechDeathExplosion(position, 0xff9a32, 'enemy-2');
+        spawnMechDeathExplosion(position, 0xff9a32, 'enemy-2', { screenShake: .18, shatterWindows: false, delay: 0 });
         spawnEnemyLoot(position);
       },
       onStatus: health => {
@@ -25237,6 +26229,9 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     enemyAI2.respawnTimer = Number.POSITIVE_INFINITY;
     enemyAI2.group.visible = false;
     applyEnemyMechaRenderVisibility();
+    // Replay settings after all runtime render targets exist. The initial UI
+    // pass happens earlier than createBuilding()/EnemyAI construction.
+    applyAllInitialVisualSettings();
     applyLoadout(1, 'laser', false);
     applyLoadout(2, 'cannon', false);
     enterHangar();
@@ -25347,9 +26342,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       const stats = { meshes: 0, instances: 0, triangles: 0 };
       root.traverse(object => {
         if (!object.isMesh || !object.geometry) return;
+        const positionAttribute = object.geometry.attributes?.position;
+        const indexedCount = object.geometry.index?.count;
+        // Empty pooled Mesh shells use Three.js's default BufferGeometry,
+        // which has no position attribute until a real part is assigned.
+        if (!positionAttribute && !indexedCount) return;
         const triangles = object.geometry.index
           ? object.geometry.index.count / 3
-          : object.geometry.attributes.position.count / 3;
+          : positionAttribute.count / 3;
         const instances = object.isInstancedMesh ? object.count : 1;
         stats.meshes++;
         stats.instances += instances;
@@ -25374,8 +26374,6 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     setStartupLoading(92, 'VERIFYING RENDER BUDGET');
 
     const clock = new THREE.Clock();
-    let fpsFrames = 0;
-    let fpsElapsed = 0;
     // Keep player movement on a stable 60 Hz fixed step while rendering at the
     // display refresh rate.
     const PLAYER_PHYSICS_STEP = 1 / 60;
@@ -25417,9 +26415,11 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       // Capture weapon sockets once per render frame. All fixed-step firing
       // work in this frame reuses the same world-space transform snapshot.
       fireTransformSnapshotReady = false;
-      fpsFrames++;
-      fpsElapsed += rawDt;
-      if (fpsElapsed >= .5) {
+      if (fpsCounterVisible) {
+        fpsFrames++;
+        fpsElapsed += rawDt;
+      }
+      if (fpsCounterVisible && fpsElapsed >= .5) {
         const fpsCounter = document.getElementById('fpsCounter');
         const fps = Math.round(fpsFrames / fpsElapsed);
         const frameMs = (fpsElapsed * 1000 / fpsFrames).toFixed(1);
@@ -25429,9 +26429,17 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         fpsFrames = 0;
         fpsElapsed = 0;
       }
+      if (paused && freeCamActive && !freeCamPlayActive) {
+        // Free Camera pauses gameplay, but the spectator camera itself must
+        // remain responsive until Y resumes the simulation.
+        updateFreeCamera(dt);
+        if (isBattlefieldCsmActive()) battlefieldShadowCsm?.update();
+        composer.render();
+        return;
+      }
       if (paused) {
         if (!pauseFrameRendered) {
-          if (battlefieldShadowsEnabled) battlefieldShadowCsm?.update();
+          if (isBattlefieldCsmActive()) battlefieldShadowCsm?.update();
           composer.render();
           pauseFrameRendered = true;
         }
@@ -25443,9 +26451,11 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       updateBuildingImpactFlashes(dt);
       if (freeCamActive) {
         updateFreeCamera(dt);
-        if (battlefieldShadowsEnabled) battlefieldShadowCsm?.update();
-        composer.render();
-        return;
+        if (!freeCamPlayActive) {
+          if (isBattlefieldCsmActive()) battlefieldShadowCsm?.update();
+          composer.render();
+          return;
+        }
       }
       if (!paused) {
         for (const layer of cloudLayers) {
@@ -25460,6 +26470,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           dangerZoneTexZ.offset.y = bounce;
         }
         updateFutureBackdrop(dt);
+        updateDelayedVehicleExplosions(dt);
         if (envGroup.visible) {
           trafficSimulationAccumulator = Math.min(TRAFFIC_SIMULATION_STEP, trafficSimulationAccumulator + dt);
           if (trafficSimulationAccumulator >= TRAFFIC_SIMULATION_STEP) {
@@ -25472,6 +26483,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         treeBranchVisibilityAccumulator = Math.min(TREE_BRANCH_VISIBILITY_STEP, treeBranchVisibilityAccumulator + dt);
         if (treeBranchVisibilityAccumulator >= TREE_BRANCH_VISIBILITY_STEP) {
           updateTreeBranchVisibility();
+          updateStreetlightDistanceVisibility();
+          updateCityDecorDistanceVisibility();
           treeBranchVisibilityAccumulator = 0;
         }
         dangerBarrierLodFrame = (dangerBarrierLodFrame + 1) % 6;
@@ -25561,9 +26574,12 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           updateStructuralSupport();
           updatePowerItems(dt);
           updateDroneCompanions(dt);
-          enemyAI.update(dt);
-          if (currentLevel >= 2) enemyAI2.update(dt);
-          updateEnemyGroundShadows();
+          updateDroneDestructionEffects(dt);
+          if (!battlefieldBackgroundTestMode) {
+            updateEnemyAIWithDistanceBudget(enemyAI, dt);
+            if (currentLevel >= 2) updateEnemyAIWithDistanceBudget(enemyAI2, dt);
+            updateEnemyGroundShadows();
+          }
           updateLaserBeams(dt);
         } else if (matchOver) {
           updateDebris(dt);
@@ -25582,7 +26598,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         updateTacticalMap(dt);
         updateSpawnProtectionHud();
       }
-      if (battlefieldShadowsEnabled) battlefieldShadowCsm?.update();
+      if (isBattlefieldCsmActive()) battlefieldShadowCsm?.update();
       composer.render();
       const frameMs = performance.now() - hitchProfiler.frameStart;
       hitchProfiler.maxFrameMs = Math.max(hitchProfiler.maxFrameMs, frameMs);
@@ -25599,9 +26615,10 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
       }
     }
     animate();
-    // Warm the first-impact resources while the startup loading screen is
-    // still visible. Full battle prewarm remains gated before deployment.
-    prepareInitialBattlePrewarm();
+    // Battle resources are intentionally not prewarmed during the initial
+    // title boot. They are prepared by showBattleControlsLoading() after the
+    // player presses START, while the loading screen still covers the scene.
+    // This keeps the later elevator ascent free of shader/GC work.
     // Prepare the complete title/hangar scene behind the boot loading screen
     // so the first visible title frame never performs its initial compilation.
     prepareInitialTitleScene();
@@ -25615,10 +26632,14 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
         const remaining = Math.max(0, loadingDuration - (performance.now() - loadingStartedAt));
         const seconds = Math.ceil(remaining / 1000);
         if (loadingCountdown) loadingCountdown.textContent = seconds > 0 ? `엘리베이터 작동까지 ${seconds}초` : 'ELEVATOR MOVING';
-        if (remaining > 0 || !battleCorePrewarmed || !initialTitleSceneReady) {
+        // Battle core prewarm is intentionally deferred until the START
+        // loading screen. The initial boot screen only waits for the title
+        // scene; waiting for battleCorePrewarmed here would never complete
+        // because its startup call is intentionally disabled.
+        if (remaining > 0 || !initialTitleSceneReady) {
           if (remaining <= 0) {
-            setStartupLoading(96, initialTitleSceneReady ? 'WAITING FOR CORE PREWARM' : 'WAITING FOR TITLE SCENE');
-            if (loadingCountdown) loadingCountdown.textContent = initialTitleSceneReady ? '핵심 전투 리소스 준비 중' : '타이틀 씬 준비 중';
+            setStartupLoading(96, 'WAITING FOR TITLE SCENE');
+            if (loadingCountdown) loadingCountdown.textContent = '타이틀 씬 준비 중';
           }
           requestAnimationFrame(updateLoadingCountdown);
         }
@@ -25631,6 +26652,8 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
           enterHangar();
           document.getElementById('titleScreen').classList.add('hidden');
           preTitleScreen.classList.remove('hidden');
+          // Do not call play() before a user gesture. The splash click handler
+          // starts the title/hangar track after the browser grants autoplay.
           paused = true;
           pauseFrameRendered = false;
           loadingScreen.classList.add('hidden');
@@ -25643,7 +26666,7 @@ function damagePlayer(damage, impactPosition = null, source = 'cpu', attackerPos
     addEventListener('resize', () => {
       camera.aspect = innerWidth / innerHeight;
       camera.updateProjectionMatrix();
-      if (battlefieldShadowsEnabled) battlefieldShadowCsm?.updateFrustums();
+      if (isBattlefieldCsmActive()) battlefieldShadowCsm?.updateFrustums();
       renderer.setSize(innerWidth, innerHeight);
       composer.setSize(innerWidth, innerHeight);
     });
