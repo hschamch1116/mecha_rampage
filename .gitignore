@@ -29,6 +29,9 @@ coverage/
 !vendor/cannon-es/dist/
 !vendor/cannon-es/dist/cannon-es.js
 
+# Three.js addons are loaded from the pinned CDN import map entry.
+vendor/three/examples/jsm/
+
 # ==========================================
 # Environment Variables & Secrets
 # ==========================================
