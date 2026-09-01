@@ -23,6 +23,12 @@ coverage/
 *.map
 *.bundle.js
 
+# Required browser vendor modules for the Vercel static deployment
+!vendor/three/build/
+!vendor/three/build/three.module.js
+!vendor/cannon-es/dist/
+!vendor/cannon-es/dist/cannon-es.js
+
 # ==========================================
 # Environment Variables & Secrets
 # ==========================================
